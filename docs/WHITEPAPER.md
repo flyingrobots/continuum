@@ -18,18 +18,17 @@ The basic unit of the CΩMPUTER is the holographic node. These nodes form a caus
 
 The causal graph is an immutable ledger of rewrites. Given the same initial state and the same sequence of rewrites, the resulting graph will be isomorphically identical every time, down to the bit.
 
-What's JITOS?
+## What's JITOS?
 JITOS is the operating system for CΩMPUTER.
 
 Its primary function is to bridge the gap between human workflow and machine reality via Holographic Projection.
 
-For Humans (The Projection): JITOS materializes views of the causal DAG that look and behave exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—an interface layer generated on-the-fly from the underlying graph.
-
-For Agents (The Reality): AI agents bypass the projection entirely. They do not need to parse linear text files or navigate directories. Instead, they interact directly with the causal DAG, manipulating the raw graph structure, dependencies, and provenance chains.
+- **For Humans (The Projection):** JITOS materializes views of the causal DAG that look and behave exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—an interface layer generated on-the-fly from the underlying graph.
+- **For Agents (The Reality):** AI agents bypass the projection entirely. They do not need to parse linear text files or navigate directories. Instead, they interact directly with the causal DAG, manipulating the raw graph structure, dependencies, and provenance chains.
 
 There are no processes. Instead, agency occurs in shadow working sets—isolated, parallel branches of the universe held in superposition.
 
-JITOS is the interface. For humans, it simulates the familiar desk job. For AIs, it grants direct access to the physics of the system.
+JITOS is the interface. For humans, it simulates the familiar desktop. For AIs, it grants direct access to the physics of the system.
 
 ---
 
