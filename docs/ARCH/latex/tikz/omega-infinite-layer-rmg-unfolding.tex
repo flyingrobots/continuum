@@ -1,0 +1,13 @@
+\begin{tikzpicture}[
+    layer/.style={rectangle, draw=black, thick, fill=gray!10, minimum width=4cm, minimum height=0.6cm},
+    arrow/.style={->, thick}
+]
+
+\node[layer] (L0) at (0,0)   {Layer 0};
+\node[layer] (L1) at (0,-1)  {Layer 1};
+\node[layer] (L2) at (0,-2)  {Layer 2};
+\node[layer] (L3) at (0,-3)  {Layer 3};
+
+\draw[arrow] (0,-3.7)--(0,-4.5) node[midway,right]{\small ... infinite ...};
+
+\end{tikzpicture}

@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+    region/.style={rectangle, rounded corners, draw=black, thick, minimum width=2.5cm, minimum height=0.7cm, align=center},
+    arrow/.style={->, thick}
+]
+
+\node[region] (root) at (0,0) {Region 0};
+
+\node[region] (r1) at (-2,-1.5) {Region 1};
+\node[region] (r2) at (2,-1.5) {Region 2};
+
+\node[region] (r11) at (-3,-3) {Region 1.1};
+\node[region] (r12) at (-1,-3) {Region 1.2};
+
+\node[region] (r21) at (1,-3) {Region 2.1};
+\node[region] (r22) at (3,-3) {Region 2.2};
+
+\draw[arrow] (root) -- (r1);
+\draw[arrow] (root) -- (r2);
+\draw[arrow] (r1) -- (r11);
+\draw[arrow] (r1) -- (r12);
+\draw[arrow] (r2) -- (r21);
+\draw[arrow] (r2) -- (r22);
+
+\end{tikzpicture}

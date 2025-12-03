@@ -1,0 +1,30 @@
+\begin{tikzpicture}[
+    rnode/.style={circle, draw=black, fill=white, minimum size=6pt},
+    file/.style={rectangle, draw=black, fill=gray!10, rounded corners, minimum width=2cm, minimum height=0.7cm},
+    arrow/.style={->, thick}
+]
+
+% RMG nodes
+\node[rnode] (A) at (0,1) {};
+\node[rnode] (B) at (-1,0) {};
+\node[rnode] (C) at (1,0) {};
+\node[rnode] (D) at (0,-1) {};
+
+\draw (A)--(B);
+\draw (A)--(C);
+\draw (B)--(D);
+\draw (C)--(D);
+
+\node at (0,1.8) {\small RMG Truth};
+
+% Projection arrow
+\draw[arrow] (0,-1.5) -- (0,-2.5) node[midway,right]{projection};
+
+% Filesystem view
+\node[file] (f1) at (0,-3.3) {src/main.rs};
+\node[file] (f2) at (0,-4.3) {Cargo.toml};
+
+\node at (0,-0.8) {\small\itshape meaning};
+\node at (0,-3.8) {\small\bfseries Materialized Head};
+
+\end{tikzpicture}

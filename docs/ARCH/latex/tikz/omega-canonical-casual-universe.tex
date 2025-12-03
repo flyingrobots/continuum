@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+    core/.style={rectangle, draw=black, thick, rounded corners, minimum width=3.5cm, minimum height=1.2cm, align=center},
+    arrow/.style={->, thick}
+]
+
+% Layers
+\node[core] (SWS) at (0,3) {SWS\\Shadow Worlds};
+\node[core] (ECHO) at (0,1.5) {ECHO\\Event Collapse / Horizon Ordering};
+\node[core] (COL) at (0,0) {Collapse Engine\\(Inversion + Merge)};
+\node[core] (WAL) at (0,-1.5) {WAL\\Temporal Log};
+\node[core] (RMG) at (0,-3) {RMG\\Global Truth};
+\node[core] (MH) at (0,-4.5) {Materialized Head\\Human Projection};
+
+% Arrows
+\draw[arrow] (SWS) -- (ECHO);
+\draw[arrow] (ECHO) -- (COL);
+\draw[arrow] (COL) -- (WAL);
+\draw[arrow] (WAL) -- (RMG);
+\draw[arrow] (RMG) -- (MH);
+
+\end{tikzpicture}

@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+    node/.style={circle, draw=black, fill=white, minimum size=6pt},
+    arrow/.style={->, thick}
+]
+
+\node[node] (a) at (0,0){};
+\node[node] (b) at (2,0){};
+\node[node] (c) at (1,1){};
+\node[node] (d) at (1,-1){};
+
+\draw (a)--(c)--(b);
+\draw (a)--(d)--(b);
+
+\node at (1,-1.7) {\small SWS State Lattice};
+
+\end{tikzpicture}

@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+    sws/.style={rectangle, draw=black, thick, rounded corners, minimum width=3cm, minimum height=1cm, align=center},
+    human/.style={cloud, draw=blue!50, fill=blue!10, cloud puffs=10, cloud puff arc=120, aspect=2},
+    ai/.style={ellipse, draw=green!60!black, fill=green!20, minimum width=2cm, minimum height=0.8cm},
+]
+
+\node[sws] (S) at (0,0) {SWS};
+
+\node[human] at (-2.5,0) {\small human intent};
+\node[ai] at (2.5,0) {\small agent transforms};
+
+\draw[->, thick] (-1.1,0) -- (S.west);
+\draw[->, thick] (S.east) -- (1.1,0);
+
+\end{tikzpicture}

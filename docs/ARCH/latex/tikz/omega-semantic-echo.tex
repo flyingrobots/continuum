@@ -1,0 +1,17 @@
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, rounded corners, fill=gray!10, minimum width=2cm},
+    arrow/.style={->, thick}
+]
+
+\node[box] (H) at (-3,0.8) {Human Edit};
+\node[box] (M) at (-3,-0.8) {Machine Edit};
+
+\node[box] (C) at (0,0) {Semantic Merge};
+
+\node[box] (S) at (3,0) {Snapshot};
+
+\draw[arrow] (H) -- (C);
+\draw[arrow] (M) -- (C);
+\draw[arrow] (C) -- (S);
+
+\end{tikzpicture}

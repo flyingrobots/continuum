@@ -1,0 +1,17 @@
+\begin{tikzpicture}[
+    cone/.style={draw=purple!80, thick},
+    point/.style={circle, fill=black, minimum size=5pt}
+]
+
+\node[point] (p) at (0,0) {};
+
+\draw[cone] (p) -- (-2,3);
+\draw[cone] (p) -- (2,3);
+
+\draw[cone] (p) -- (-2,-3);
+\draw[cone] (p) -- (2,-3);
+
+\node at (0,3.5) {\small Future};
+\node at (0,-3.5) {\small Past};
+
+\end{tikzpicture}

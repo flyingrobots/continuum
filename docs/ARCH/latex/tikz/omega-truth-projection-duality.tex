@@ -1,0 +1,12 @@
+\begin{tikzpicture}[
+    truth/.style={rectangle, draw=black, thick, fill=gray!10, minimum width=3cm},
+    proj/.style={rectangle, draw=black, thick, fill=blue!10, minimum width=3cm},
+    arrow/.style={->, thick}
+]
+
+\node[truth] (T) at (0,0) {RMG Truth};
+\node[proj]  (P) at (4,0) {Materialized Head};
+
+\draw[arrow] (T) -- (P);
+
+\end{tikzpicture}

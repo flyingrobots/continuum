@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+    dag/.style={rectangle, draw=black, thick, minimum width=2cm, minimum height=0.8cm},
+    arrow/.style={->, thick}
+]
+
+\node[dag] (A) at (0,0) {DAG A};
+\node[dag] (B) at (4,0) {DAG B};
+\node[dag] (C) at (2,-1.5) {DAG C};
+
+\node[dag] (M) at (2,-3.5) {Meta-DAG};
+
+\draw[arrow] (A) -- (C);
+\draw[arrow] (B) -- (C);
+\draw[arrow] (C) -- (M);
+
+\end{tikzpicture}

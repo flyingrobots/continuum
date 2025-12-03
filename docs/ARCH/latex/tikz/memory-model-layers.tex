@@ -1,0 +1,10 @@
+\begin{tikzpicture}[
+    layer/.style={rectangle, draw=black, fill=gray!10, rounded corners, thick, minimum width=7cm, minimum height=1cm, align=center},
+]
+
+\node[layer] (rmg)  at (0,1.5) {Layer 0: RMG (Global Truth Memory)};
+\node[layer] (sws)  at (0,0)   {Layer 1: SWS Overlay Memory (Local Mutable)};
+\node[layer] (sem)  at (0,-1.5) {Layer 2: Semantic Memory (Meaning / AST / Reasoning)};
+\node[layer] (ecm)  at (0,-3)   {Layer 3: Ephemeral Compute Memory (Caches, Builds)};
+
+\end{tikzpicture}

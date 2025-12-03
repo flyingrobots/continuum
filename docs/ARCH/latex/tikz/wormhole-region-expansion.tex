@@ -1,0 +1,45 @@
+\begin{tikzpicture}[
+    smallnode/.style={circle, fill=white, draw=black, thick, minimum size=5pt},
+    macronode/.style={circle, fill=black, draw=black, thick, minimum size=6pt},
+    region/.style={rounded corners, fill=blue!10, draw=blue!40, thick, inner sep=6pt},
+    subregion/.style={rounded corners, fill=green!10, draw=green!40, thick, dashed, inner sep=5pt},
+    arrow/.style={->, thick}
+]
+
+% Macro graph
+\node[macronode] (M) at (0,0) {};
+\node[smallnode] (A) at (-1.2,0.7) {};
+\node[smallnode] (B) at (-1.3,-0.5) {};
+\node[smallnode] (C) at (1.2,0.7) {};
+\node[smallnode] (D) at (1.4,-0.6) {};
+
+\draw (M) -- (A);
+\draw (M) -- (B);
+\draw (M) -- (C);
+\draw (M) -- (D);
+
+% Region highlight
+\node[region, fit=(A)(B)(C)(D)] {};
+
+\node at (0,1.1) {\small Macro RMG Region};
+
+% Zoom arrow
+\draw[arrow] (0,-1) -- (3,-2) node[midway, sloped, above] {double-click → wormhole};
+
+% Micrograph
+\node[subregion] (WR) at (6,-2) {};
+\node at (6,-3.1) {\small Micro RMG};
+
+\node[smallnode] (m1) at (5.4,-2) {};
+\node[smallnode] (m2) at (6.0,-1.3) {};
+\node[smallnode] (m3) at (6.6,-1.9) {};
+\node[smallnode] (m4) at (6.1,-2.7) {};
+\node[smallnode] (m5) at (5.3,-2.8) {};
+
+\draw (m1) -- (m2);
+\draw (m2) -- (m3);
+\draw (m3) -- (m4);
+\draw (m4) -- (m5);
+\draw (m5) -- (m1);
+
+\end{tikzpicture}

@@ -1,0 +1,12 @@
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, rounded corners, minimum width=2cm, align=center}
+]
+
+\node[box] (A) at (0,2) {Graph};
+\node[box] (B) at (0,1) {Semantic Graph};
+\node[box] (C) at (0,0) {Meta-Graph};
+
+\draw[->, thick] (A) -- (B);
+\draw[->, thick] (B) -- (C);
+
+\end{tikzpicture}

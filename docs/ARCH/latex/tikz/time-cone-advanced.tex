@@ -1,0 +1,59 @@
+\begin{tikzpicture}[
+    node/.style={circle, fill=white, draw=black, thick, minimum size=6pt},
+    collapse/.style={circle, fill=black, draw=black, thick, minimum size=6pt},
+    bundle/.style={rounded corners, fill=blue!10, draw=blue!40, thick},
+    cone/.style={rounded corners, fill=purple!10, draw=purple!40, thick, dashed},
+    horizon/.style={dashed, thick},
+    echo/.style={->, thick, draw=gray!70},
+    sem/.style={->, ultra thick, draw=green!60!black!80},
+    yscale=1.1,
+    xscale=1.7
+]
+
+% Horizons
+\foreach \y/\t in {0/0, -1.5/1, -3/2, -4.5/3, -6/4, -7.5/5}{
+    \draw[horizon] (-1,\y) -- (8,\y) node[right, black] {Tick \t};
+}
+
+% Nodes
+\node[collapse] (S0) at (3,0) {};
+\node[collapse] (S1a) at (1.5,-1.5) {};
+\node[collapse] (S1b) at (4.5,-1.5) {};
+\node[collapse] (S2a) at (0.8,-3) {};
+\node[collapse] (S2b) at (3,-3) {};
+\node[collapse] (S2c) at (5.3,-3) {};
+\node[collapse] (S3)  at (3,-4.5) {};
+\node[collapse] (S4a) at (2,-6) {};
+\node[collapse] (S4b) at (4,-6) {};
+\node[collapse] (S5)  at (3,-7.5) {};
+
+% Echo arrows
+\foreach \a/\b in {S0/S1a, S0/S1b,
+                   S1a/S2a, S1a/S2b,
+                   S1b/S2b, S1b/S2c,
+                   S2a/S3, S2b/S3, S2c/S3,
+                   S3/S4a, S3/S4b,
+                   S4a/S5, S4b/S5}{
+    \draw[echo] (\a) -- (\b);
+}
+
+% Bundles
+\node[bundle, fit=(S1a)(S1b)] {};
+\node at (3,-1.1) {\small Bundle 1};
+
+\node[bundle, fit=(S2a)(S2b)(S2c)] {};
+\node at (3,-2.6) {\small Bundle 2};
+
+% Cone
+\node[cone, fit=(S2a)(S2b)(S2c)(S3)] {};
+\node at (3,-3.9) {\small Collapse Cone};
+
+% Semantic arrows
+\draw[sem] (S2b) to[bend left=30] node[midway, above, sloped] {\scriptsize semantic merge} (S3);
+
+% Echo ripples
+\foreach \r in {0.25,0.55,0.85} {
+    \draw[gray!50, thick] (S3) circle (\r);
+}
+
+\end{tikzpicture}

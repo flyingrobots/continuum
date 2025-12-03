@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+    braid/.style={thick, draw=black},
+    node/.style={circle, fill=black, minimum size=4pt}
+]
+
+\draw[braid] (0,0) -- (1,-1) -- (0,-2);
+\draw[braid] (1,0) -- (0,-1) -- (1,-2);
+
+\node[node] at (0,0) {};
+\node[node] at (1,0) {};
+\node[node] at (1,-2) {};
+\node[node] at (0,-2) {};
+
+\node at (0.5,-2.7) {\small Causal Braid};
+
+\end{tikzpicture}

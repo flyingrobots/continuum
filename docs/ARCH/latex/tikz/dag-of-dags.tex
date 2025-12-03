@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+    dag/.style={rectangle, draw=black, thick, rounded corners, minimum width=2.5cm, minimum height=1cm, fill=gray!10},
+    arrow/.style={->, thick}
+]
+
+\node[dag] (G1) at (0,0) {RMG A};
+\node[dag] (G2) at (4,0) {RMG B};
+\node[dag] (G3) at (2,-2) {RMG C};
+
+\draw[arrow] (G1) -- (G3);
+\draw[arrow] (G2) -- (G3);
+
+\node at (2,-3) {\small Dag-of-DAGs};
+
+\end{tikzpicture}

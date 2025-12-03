@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+    bigarrow/.style={->, ultra thick},
+    small/.style={font=\small}
+]
+
+% Left: Macro RMG
+\node[small] at (0,2.5) {Macro RMG};
+\draw (0,0) circle (1.6);
+
+% Middle: Wormhole Zoom
+\node[small] at (5,2.5) {Wormhole / RMG Region};
+\draw (5,0) ellipse (1.8 and 1);
+
+% Right: Time Cone
+\node[small] at (10,2.5) {Time Bundle View};
+\draw (10,0) -- (8,-3);
+\draw (10,0) -- (12,-3);
+\draw (8,-3) -- (12,-3);
+
+% Arrows
+\draw[bigarrow] (1.6,0) -- (3.2,0);
+\draw[bigarrow] (6.8,0) -- (8.4,0);
+
+\end{tikzpicture}

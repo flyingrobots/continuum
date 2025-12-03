@@ -1,0 +1,19 @@
+\begin{tikzpicture}[
+    entry/.style={rectangle, draw=black, fill=white, minimum width=0.7cm, minimum height=0.5cm},
+    wave/.style={thick, draw=blue!50},
+]
+
+\node[entry] (e1) at (0,0) {};
+\node[entry] (e2) at (1,0) {};
+\node[entry] (e3) at (2,0) {};
+\node[entry] (e4) at (3,0) {};
+\node[entry] (e5) at (4,0) {};
+
+% Wavefront arcs
+\foreach \x in {0.5,1.5,2.5,3.5}{
+    \draw[wave] (\x,-0.6) arc (-90:90:0.6);
+}
+
+\node at (2,-1.3) {\small WAL Wavefront};
+
+\end{tikzpicture}

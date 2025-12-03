@@ -1,0 +1,23 @@
+\begin{tikzpicture}[
+    node/.style={circle, draw=black, fill=white, minimum size=6pt},
+    conflict/.style={diamond, draw=red!80, fill=red!30, minimum size=14pt},
+    arrow/.style={->, thick}
+]
+
+\node[node] (A) at (0,0) {};
+\node[node] (B) at (2,1) {};
+\node[node] (C) at (2,-1) {};
+
+\node[conflict] (X) at (4,0) {};
+
+\node[node] (D) at (6,0) {};
+
+\draw[arrow] (A) -- (B);
+\draw[arrow] (A) -- (C);
+\draw[arrow] (B) -- (X);
+\draw[arrow] (C) -- (X);
+\draw[arrow] (X) -- (D);
+
+\node at (4,1.4) {\small Conflict Node};
+
+\end{tikzpicture}

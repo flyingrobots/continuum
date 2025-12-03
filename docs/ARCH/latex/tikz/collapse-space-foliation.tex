@@ -1,0 +1,11 @@
+\begin{tikzpicture}[
+    sheet/.style={draw=blue!40, thick, rounded corners, fill=blue!8},
+]
+
+\foreach \i in {0,1,2,3}{
+    \draw[sheet] (-3,-0.5-\i) -- (3,-0.5-\i) -- (2,-1.1-\i) -- (-2,-1.1-\i) -- cycle;
+}
+
+\node at (0,0.8) {\small Collapse Sheets (Foliations)};
+
+\end{tikzpicture}

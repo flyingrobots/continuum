@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+    sws/.style={circle, draw=black, fill=white, minimum size=6pt},
+    arrow/.style={->, thick},
+]
+
+\node[sws] (A1) at (0,0) {};
+\node[sws] (A2) at (2,-1) {};
+\node[sws] (A3) at (4,0) {};
+
+\node[sws] (B1) at (0,-1.5) {};
+\node[sws] (B2) at (2,-2.3) {};
+\node[sws] (B3) at (4,-1.5) {};
+
+\draw[arrow] (A1) -- (A2) -- (A3);
+\draw[arrow] (B1) -- (B2) -- (B3);
+
+\draw[red!70, thick, dashed] (A2) -- (B2);
+
+\node at (2,-3.5) {\small Multi-Agent Interference};
+
+\end{tikzpicture}

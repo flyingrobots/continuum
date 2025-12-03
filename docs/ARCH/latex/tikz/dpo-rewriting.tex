@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+    smallnode/.style={circle, draw=black, minimum size=5pt},
+    arrow/.style={->, thick}
+]
+
+\node[smallnode] (L1) at (0,0) {};
+\node[smallnode] (L2) at (1,0) {};
+
+\draw (L1) -- (L2);
+
+\node at (0.5,-0.7) {\small L};
+
+\node at (2.5,0) {$\Rightarrow$};
+
+\node[smallnode] (R1) at (4,0) {};
+\node[smallnode] (R2) at (5,0.6) {};
+\node[smallnode] (R3) at (5,-0.6) {};
+
+\draw (R1) -- (R2);
+\draw (R1) -- (R3);
+
+\node at (4.7,-0.7) {\small R};
+
+\end{tikzpicture}

@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+    wave/.style={draw=blue!50, thick},
+    dot/.style={circle, fill=black, minimum size=5pt},
+]
+
+\node[dot] (E) at (0,0) {};
+
+\foreach \r in {0.5,1,1.5,2,2.5}{
+    \draw[wave] (E) circle (\r);
+}
+
+\node at (0,-3.3) {\small ECHO Tick Wavefront};
+
+\end{tikzpicture}

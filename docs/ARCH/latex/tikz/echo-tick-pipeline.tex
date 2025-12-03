@@ -1,0 +1,17 @@
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, thick, rounded corners, minimum width=3cm, minimum height=1cm, align=center},
+    arrow/.style={->, thick}
+]
+
+\node[box] (intent) at (0,0) {Collapse Intent\\(SWS)};
+\node[box] (queue)  at (3.5,0) {ECHO Queue};
+\node[box] (sched)  at (7,0) {ECHO Scheduler\\Tick Assign};
+\node[box] (exec)   at (10.5,0) {Collapse Exec};
+\node[box] (wal)    at (14,0) {WAL Entry};
+
+\draw[arrow] (intent) -- (queue);
+\draw[arrow] (queue) -- (sched);
+\draw[arrow] (sched) -- (exec);
+\draw[arrow] (exec) -- (wal);
+
+\end{tikzpicture}

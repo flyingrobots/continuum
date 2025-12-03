@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, thick, rounded corners, minimum width=2.6cm, minimum height=1cm, align=center},
+    arrow/.style={->, thick}
+]
+
+\node[box] (create)   at (0,0)      {SWS Create\\(Clone Snapshot)};
+\node[box] (edit)     at (4,0)      {Edit / Overlays\\(Speculation)};
+\node[box] (collapse) at (8,0)      {Collapse\\(Commit to RMG)};
+\node[box] (destroy)  at (12,0)     {Destroy SWS\\(Evaporate)};
+
+\draw[arrow] (create) -- (edit);
+\draw[arrow] (edit) -- (collapse);
+\draw[arrow] (collapse) -- (destroy);
+
+\end{tikzpicture}

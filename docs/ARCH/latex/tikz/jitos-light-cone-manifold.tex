@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+    cone/.style={draw=blue!80, thick},
+    axis/.style={->, thick}
+]
+
+\draw[cone] (0,0) -- (-2,-3);
+\draw[cone] (0,0) -- (2,-3);
+
+\draw[axis] (-3,0) -- (3,0) node[right] {space};
+\draw[axis] (0,1) -- (0,-4) node[below] {time};
+
+\node[circle,fill=black,minimum size=5pt] at (0,0) {};
+
+\end{tikzpicture}

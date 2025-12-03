@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+    cone/.style={draw=red!70, thick},
+    node/.style={circle, fill=black, minimum size=5pt}
+]
+
+\node[node] (p) at (0,0) {};
+
+\draw[cone] (p) -- (-1.5,-3);
+\draw[cone] (p) -- (1.5,-3);
+\draw[cone] (-1.5,-3) -- (1.5,-3);
+
+\node at (0,-3.4) {\small Conflict Region};
+
+\end{tikzpicture}

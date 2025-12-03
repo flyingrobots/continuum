@@ -1,0 +1,9 @@
+\begin{tikzpicture}
+\foreach \x in {0,0.5,...,3}{
+  \foreach \y in {0,0.5,...,3}{
+    \pgfmathsetmacro{\c}{abs(sin(\x*30))*100}
+    \fill[blue!\c] (\x,\y) rectangle ++(0.5,0.5);
+  }
+}
+\node at (1.5,-0.7) {\small Semantic Resonance};
+\end{tikzpicture}

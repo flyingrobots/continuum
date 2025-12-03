@@ -1,0 +1,20 @@
+\begin{tikzpicture}[
+    op/.style={rectangle, rounded corners, draw=black, fill=gray!10, minimum width=2cm, align=center},
+    arrow/.style={->, thick}
+]
+
+\node[op] (H) at (-3,0.5) {Human Edit};
+\node[op] (A) at (-3,-0.5) {Agent Rewrite};
+\node[op] (T) at (-3,-1.5) {Tool Transform};
+
+\node[op] (M) at (0,-0.5) {Merged Semantic Region};
+
+\node[op] (C) at (3,-0.5) {Snapshot};
+
+\draw[arrow] (H) -- (M);
+\draw[arrow] (A) -- (M);
+\draw[arrow] (T) -- (M);
+
+\draw[arrow] (M) -- (C);
+
+\end{tikzpicture}

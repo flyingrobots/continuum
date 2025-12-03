@@ -1,0 +1,12 @@
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, thick, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center},
+    fade/.style={fill=gray!20},
+    arrow/.style={->, thick}
+]
+
+\node[box] (ecm) at (0,0) {Ephemeral Memory\\(ECM)};
+\node[box,fade] (gone) at (5,0) {Evaporated};
+
+\draw[arrow] (ecm) -- node[midway,above]{collapse} (gone);
+
+\end{tikzpicture}

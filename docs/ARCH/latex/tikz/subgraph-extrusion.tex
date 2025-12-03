@@ -1,0 +1,10 @@
+\begin{tikzpicture}[
+    region/.style={rounded corners, draw=black, thick, fill=gray!10, minimum width=2cm, minimum height=1cm},
+    arrow/.style={->, thick}
+]
+
+\node[region] (R) at (0,0) {RMG Region};
+\draw[arrow] (0,-0.8) -- (0,-2) node[midway,right]{extrude};
+\node[region] (S) at (0,-3) {Semantic Layer};
+
+\end{tikzpicture}

@@ -1,0 +1,36 @@
+\begin{tikzpicture}[
+    sem/.style={rectangle, draw=green!60!black, thick, fill=green!20, rounded corners, minimum height=0.45cm, minimum width=0.8cm},
+    col/.style={rectangle, draw=black, thick, fill=black, minimum height=0.35cm, minimum width=0.6cm},
+    arrow/.style={->, thick}
+]
+
+% Semantic blocks
+\node[sem] (s0) at (0,0) {S0};
+\node[sem] (s1) at (-1,-1) {S1a};
+\node[sem] (s2) at (1,-1)  {S1b};
+
+\node[sem] (s3) at (-1.5,-2) {S2a};
+\node[sem] (s4) at (0,-2)    {S2b};
+\node[sem] (s5) at (1.5,-2)  {S2c};
+
+\node[sem] (s6) at (0,-3) {S3};
+
+% Arrows
+\draw[arrow] (s0) -- (s1);
+\draw[arrow] (s0) -- (s2);
+
+\draw[arrow] (s1) -- (s3);
+\draw[arrow] (s1) -- (s4);
+
+\draw[arrow] (s2) -- (s4);
+\draw[arrow] (s2) -- (s5);
+
+\draw[arrow] (s3) -- (s6);
+\draw[arrow] (s4) -- (s6);
+\draw[arrow] (s5) -- (s6);
+
+% Bundle boundaries
+\draw[rounded corners, thick, blue!50] (-2,-0.4) rectangle (2,-1.6);
+\node at (0,-1.8) {\small Semantic Bundle};
+
+\end{tikzpicture}

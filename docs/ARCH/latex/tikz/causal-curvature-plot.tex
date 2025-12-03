@@ -1,0 +1,9 @@
+\begin{tikzpicture}
+\foreach \x in {0,0.5,...,3}{
+  \foreach \y in {0,0.5,...,3}{
+    \pgfmathsetmacro{\c}{(sin(\x*20)+cos(\y*25)+2)/4}
+    \fill[red!\c!yellow] (\x,\y) rectangle ++(0.5,0.5);
+  }
+}
+\node at (1.5,-0.7) {\small Causal Curvature};
+\end{tikzpicture}

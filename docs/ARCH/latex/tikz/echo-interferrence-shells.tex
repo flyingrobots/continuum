@@ -1,0 +1,13 @@
+\begin{tikzpicture}[
+    wave/.style={thick, draw=gray!70}
+]
+
+\foreach \c in {(0,0),(1.5,0),(0.7,-1.3)}{
+    \foreach \r in {0.5,1,1.5}{
+        \draw[wave] \c circle (\r);
+    }
+}
+
+\node at (0.5,-3) {\small Echo Interference};
+
+\end{tikzpicture}

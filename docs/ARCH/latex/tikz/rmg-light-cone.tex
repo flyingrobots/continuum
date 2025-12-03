@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+    cone/.style={thick, draw=purple!80},
+    event/.style={circle, fill=black, minimum size=4pt}
+]
+
+% Future cone
+\draw[cone] (0,0) -- (-2,-4);
+\draw[cone] (0,0) -- (2,-4);
+
+% Past cone
+\draw[cone] (0,0) -- (-1.2,2.5);
+\draw[cone] (0,0) -- (1.2,2.5);
+
+\node[event] at (0,0) {};
+
+\node at (0,-4.7) {\small Future};
+\node at (0,3)    {\small Past};
+
+\node at (3,0) {\small Causal Cone};
+
+\end{tikzpicture}
