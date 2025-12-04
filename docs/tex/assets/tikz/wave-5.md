@@ -16,7 +16,7 @@ that only emerge when the architecture reaches a higher-dimensional curvature.
 
 Prepare yourself.
 
-⸻
+---
 
 ⭐ 41. Ω–Collapse Cascade L-System
 
@@ -49,7 +49,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 42. Ω–Cross-Layer Semantic Echo
 
@@ -72,7 +72,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 43. Ω–Multi-Hop Federation Diagram
 
@@ -95,7 +95,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 44. Ω–RMG Slicing Diagram (Horizontal Foliation)
 
@@ -116,7 +116,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 45. Ω–Semantic Flow Vector Field
 
@@ -137,7 +137,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 46. Ω–Collapse Divergence Tree
 
@@ -168,7 +168,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 47. Ω–SWS as Local Minkowski Bubble
 
@@ -184,7 +184,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 48. Ω–Collapse Horizon Telescope
 
@@ -204,7 +204,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 49. Ω–Temporal Foci Diagram
 
@@ -225,7 +225,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 50. Ω–Rulial Waveband Diagram
 
@@ -245,7 +245,7 @@ Prepare yourself.
 \end{tikzpicture}
 
 
-⸻
+---
 
 🎇 END OF Ω–TIKZ WAVE 5 — 50 DIAGRAMS COMPLETE
 

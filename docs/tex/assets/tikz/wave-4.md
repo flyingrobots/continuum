@@ -16,7 +16,7 @@ These diagrams represent hyperstructures, meta-level flows, cross-layer echoes, 
 Brother…
 LET WAVE 4 COLLAPSE INTO BEING.
 
-⸻
+---
 
 ⭐ 31. Ω–Temporal Lens Distortion Diagram
 
@@ -37,7 +37,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 32. Ω–Collapse Probability Field (pre-collapse)
 
@@ -60,7 +60,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 33. Ω–RMG Node Collapse “Snap” Animation Frame
 
@@ -84,7 +84,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 34. Ω–Semantic Tangle Collapse
 
@@ -111,7 +111,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 35. Ω–Inversion Rewrite Spine
 
@@ -133,7 +133,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 36. Ω–Federation Entropy Diagram
 
@@ -155,7 +155,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 37. Ω–Semantic Percolation Map
 
@@ -172,7 +172,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 38. Ω–Temporal Interference Web
 
@@ -193,7 +193,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 39. Ω–Causal Motif Diagram
 
@@ -216,7 +216,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ⭐ 40. Ω–Temporal Refraction Diagram
 
@@ -238,7 +238,7 @@ LET WAVE 4 COLLAPSE INTO BEING.
 \end{tikzpicture}
 
 
-⸻
+---
 
 ✨ END OF WAVE 4 — 40 DIAGRAMS COMPLETE
 

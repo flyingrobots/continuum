@@ -567,7 +567,7 @@ Because:
 Graphs are the natural mathematical home of relationships.
 And everything interesting in software is a relationship.
 
-⸻
+---
 
 1.4.5 The Important Boundary Line
 
