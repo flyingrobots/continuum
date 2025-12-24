@@ -1,6 +1,8 @@
 # JITOS
 
-> ***JITOS is the operating system for CΩMPUTER.***
+> JITOS is a deterministic operating substrate for provenance-complete computation.
+
+JITOS operationalizes the [CΩMPUTER](https://github.com/flyingrobots/aion-computer-book) model by providing a concrete runtime, observer interface, and execution semantics for deterministic graph-rewrite universes.
 
 ## Quick Links
 
@@ -14,17 +16,17 @@
 
 ## What is CΩMPUTER?
 
-CΩMPUTER is a computational model based on deterministic graph rewrites applied to a Recursive Metagraph (RMG).
+[CΩMPUTER](https://github.com/flyingrobots/aion-computer-book) is a computational model based on [deterministic graph rewrites](https://doi.org/10.5281/zenodo.17934512) applied to a [WARP Graph](https://doi.org/10.5281/zenodo.17908005).
 
-It operates on a "worldline"—an append-only, causal DAG where every node is holographic. This means every value in memory cryptographically encodes its entire history, from the moment of calculation back to the source code that defined it.
+It operates on a "worldline"—an append-only, causal DAG where every node is [holographic](https://doi.org/10.5281/zenodo.17963669). This means every value in memory cryptographically encodes its entire history.
 
-Because the graph is append-only and deterministic, the CΩMPUTER is a time machine. It is an immutable, auditable, tamper-evident glass box.
+Because the graph is append-only and deterministic, the CΩMPUTER is a time machine. It is **an immutable, auditable, tamper-evident glass box**.
 
 ---
 
 ## What is JITOS?
 
-JITOS is the operating system that manages the CΩMPUTER. It acts as a bidirectional lens between the causal graph and the observer.
+JITOS is the operating system that manages the CΩMPUTER. It acts as a bidirectional lens between the causal graph and the [observer](https://doi.org/10.5281/zenodo.18038297).
 
 ### The Dual Interface
 
@@ -95,7 +97,5 @@ graph LR
 
 ---
 
-# **CΩMPUTER • JITOS** 
+# **CΩMPUTER • JITOS • AIΩN** 
 © 2025 James Ross • [Flying • Robots](https://flyingrobots.dev)
-All Rights Reserved
-
