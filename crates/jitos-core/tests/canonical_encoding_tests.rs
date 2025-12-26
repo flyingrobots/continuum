@@ -165,7 +165,7 @@ fn test_simple_types_roundtrip() {
     let val = 3.14f64;
     let bytes = canonical::encode(&val).unwrap();
     let decoded: f64 = canonical::decode(&bytes).unwrap();
-    assert!((decoded - val).abs() < f64::EPSILON);
+    assert_eq!(decoded, val);
 
     // String
     let val = "hello world";

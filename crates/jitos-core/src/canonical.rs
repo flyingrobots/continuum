@@ -8,52 +8,387 @@
 //! 1. Map entries sorted by lexicographic ordering of canonical CBOR encoding of keys
 //! 2. Definite-length encoding only (no streaming/indefinite lengths)
 //! 3. Float canonicalization:
-//!    - NaN → IEEE-754 quiet NaN with payload=0 (bit pattern: 0x7FF8_0000_0000_0000)
+//!    - NaN → IEEE-754 quiet NaN with payload=0 (bit pattern: 0x7FF8_0000_0000_0000 for f64)
 //!    - ±0 normalized to +0
 //!    - ±∞ preserved as-is
+//!    - Subnormals flushed to zero
 //! 4. No duplicate map keys
 //!
 //! ## Safety
 //!
 //! Use `hash_canonical()` instead of manual hashing to prevent accidental non-canonical hashing.
+//!
+//! ## Attribution
+//!
+//! Adapted from echo-session-proto/canonical.rs (Apache-2.0)
+//! © James Ross Ω FLYING•ROBOTS <https://github.com/flyingrobots>
 
+use ciborium::value::{Integer, Value};
 use serde::{Deserialize, Serialize};
 
-/// Error type for canonical encoding operations.
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum CanonicalError {
-    #[error("Serialization failed: {0}")]
-    SerializationFailed(#[from] ciborium::ser::Error<std::io::Error>),
-
-    #[error("Deserialization failed: {0}")]
-    DeserializationFailed(#[from] ciborium::de::Error<std::io::Error>),
-
-    #[error("Duplicate map key detected")]
+    #[error("incomplete input")]
+    Incomplete,
+    #[error("trailing bytes after value")]
+    Trailing,
+    #[error("tags not allowed")]
+    Tag,
+    #[error("indefinite length not allowed")]
+    Indefinite,
+    #[error("non-canonical integer width")]
+    NonCanonicalInt,
+    #[error("non-canonical float width")]
+    NonCanonicalFloat,
+    #[error("float encodes integral value; must be integer")]
+    FloatShouldBeInt,
+    #[error("map keys not strictly increasing")]
+    MapKeyOrder,
+    #[error("duplicate map key")]
     DuplicateKey,
+    #[error("decode error: {0}")]
+    Decode(String),
 }
+
+type Result<T> = std::result::Result<T, CanonicalError>;
+
+// Public API
 
 /// Encode a value using canonical CBOR.
 ///
 /// This is the ONLY valid way to serialize data for the ledger.
 /// All other serialization methods are forbidden for determinism-critical data.
-pub fn encode<T: Serialize>(_value: &T) -> Result<Vec<u8>, CanonicalError> {
-    // TODO: Implement canonical CBOR encoding
-    unimplemented!("canonical::encode not yet implemented")
+pub fn encode<T: Serialize>(value: &T) -> Result<Vec<u8>> {
+    // Convert to ciborium Value
+    let v: Value = ciborium::value::Value::serialized(value)
+        .map_err(|e| CanonicalError::Decode(e.to_string()))?;
+    encode_value(&v)
 }
 
 /// Decode a value from canonical CBOR.
-pub fn decode<T: for<'de> Deserialize<'de>>(_bytes: &[u8]) -> Result<T, CanonicalError> {
-    // TODO: Implement canonical CBOR decoding with duplicate key detection
-    unimplemented!("canonical::decode not yet implemented")
+pub fn decode<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> Result<T> {
+    let v = decode_value(bytes)?;
+    ciborium::value::Value::deserialized(&v).map_err(|e| CanonicalError::Decode(e.to_string()))
 }
 
 /// Hash a value using canonical encoding.
 ///
 /// This is the ONLY valid way to hash data for determinism.
 /// Never call `blake3::hash()` directly on serialized data.
-pub fn hash_canonical<T: Serialize>(_value: &T) -> Result<crate::Hash, CanonicalError> {
-    // TODO: Implement canonical hashing
-    unimplemented!("canonical::hash_canonical not yet implemented")
+pub fn hash_canonical<T: Serialize>(value: &T) -> Result<crate::Hash> {
+    let bytes = encode(value)?;
+    let hash = blake3::hash(&bytes);
+    Ok(crate::Hash(*hash.as_bytes()))
+}
+
+fn encode_value(val: &Value) -> Result<Vec<u8>> {
+    let mut out = Vec::new();
+    enc_value(val, &mut out)?;
+    Ok(out)
+}
+
+fn decode_value(bytes: &[u8]) -> Result<Value> {
+    let mut idx = 0usize;
+    let v = dec_value(bytes, &mut idx, true)?;
+    if idx != bytes.len() {
+        return Err(CanonicalError::Trailing);
+    }
+    Ok(v)
+}
+
+// --- Encoder --------------------------------------------------------------
+
+fn enc_value(v: &Value, out: &mut Vec<u8>) -> Result<()> {
+    match v {
+        Value::Bool(b) => {
+            out.push(if *b { 0xf5 } else { 0xf4 });
+        }
+        Value::Null => out.push(0xf6),
+        Value::Integer(n) => enc_int(i128::from(*n), out),
+        Value::Float(f) => enc_float(*f, out),
+        Value::Text(s) => enc_text(s, out)?,
+        Value::Bytes(b) => enc_bytes(b, out)?,
+        Value::Array(items) => {
+            enc_len(4, items.len() as u64, out);
+            for it in items {
+                enc_value(it, out)?;
+            }
+        }
+        Value::Map(entries) => {
+            let mut buf: Vec<(Value, Value, Vec<u8>)> = Vec::with_capacity(entries.len());
+            for (k, v) in entries {
+                let mut kb = Vec::new();
+                enc_value(k, &mut kb)?;
+                buf.push((k.clone(), v.clone(), kb));
+            }
+
+            buf.sort_by(|a, b| a.2.cmp(&b.2));
+
+            for win in buf.windows(2) {
+                if win[0].2 == win[1].2 {
+                    return Err(CanonicalError::DuplicateKey);
+                }
+            }
+
+            enc_len(5, buf.len() as u64, out);
+            for (_k, v, kb) in buf {
+                out.extend_from_slice(&kb);
+                enc_value(&v, out)?;
+            }
+        }
+        Value::Tag(_, _) => return Err(CanonicalError::Tag),
+        _ => return Err(CanonicalError::Decode("unsupported simple value".into())),
+    }
+    Ok(())
+}
+
+fn enc_len(major: u8, len: u64, out: &mut Vec<u8>) {
+    write_major(major, len as u128, out);
+}
+
+fn enc_int(n: i128, out: &mut Vec<u8>) {
+    if n >= 0 {
+        write_major(0, n as u128, out);
+    } else {
+        // CBOR negative: value = -1 - n => major 1 with (-(n+1))
+        let m = (-1 - n) as u128;
+        write_major(1, m, out);
+    }
+}
+
+/// Canonicalize a float64 value according to SPEC-0001 rules.
+///
+/// - NaN → IEEE-754 quiet NaN with bit pattern 0x7FF8_0000_0000_0000
+/// - ±0 → +0
+/// - ±∞ preserved as-is
+/// - Subnormals flushed to zero
+fn canonicalize_f64(val: f64) -> f64 {
+    if val.is_nan() {
+        // Canonical NaN: quiet NaN with payload=0
+        // Per SPEC-0001: 0x7FF8_0000_0000_0000
+        f64::from_bits(0x7FF8_0000_0000_0000)
+    } else if val.is_subnormal() {
+        // Flush subnormals to zero
+        0.0
+    } else if val == 0.0 {
+        // Normalize ±0 to +0
+        0.0
+    } else {
+        val
+    }
+}
+
+fn enc_float(f: f64, out: &mut Vec<u8>) {
+    let canonical_f = canonicalize_f64(f);
+
+    // Per SPEC-0001: Always use float64 encoding for determinism
+    // CBOR float64: major type 7, additional info 27 (0xFB)
+    out.push(0xfb);
+    out.extend_from_slice(&canonical_f.to_bits().to_be_bytes());
+}
+
+fn enc_bytes(b: &[u8], out: &mut Vec<u8>) -> Result<()> {
+    enc_len(2, b.len() as u64, out);
+    out.extend_from_slice(b);
+    Ok(())
+}
+
+fn enc_text(s: &str, out: &mut Vec<u8>) -> Result<()> {
+    enc_len(3, s.len() as u64, out);
+    out.extend_from_slice(s.as_bytes());
+    Ok(())
+}
+
+fn write_major(major: u8, n: u128, out: &mut Vec<u8>) {
+    debug_assert!(major <= 7);
+    match n {
+        0..=23 => out.push((major << 5) | n as u8),
+        24..=0xff => {
+            out.push((major << 5) | 24);
+            out.push(n as u8);
+        }
+        0x100..=0xffff => {
+            out.push((major << 5) | 25);
+            out.extend_from_slice(&(n as u16).to_be_bytes());
+        }
+        0x1_0000..=0xffff_ffff => {
+            out.push((major << 5) | 26);
+            out.extend_from_slice(&(n as u32).to_be_bytes());
+        }
+        _ => {
+            out.push((major << 5) | 27);
+            out.extend_from_slice(&(n as u64).to_be_bytes());
+        }
+    }
+}
+
+// --- Decoder --------------------------------------------------------------
+
+fn dec_value(bytes: &[u8], idx: &mut usize, strict: bool) -> Result<Value> {
+    if *idx >= bytes.len() {
+        return Err(CanonicalError::Incomplete);
+    }
+    let b0 = bytes[*idx];
+    *idx += 1;
+    let major = b0 >> 5;
+    let ai = b0 & 0x1f;
+
+    // forbid tags
+    if major == 6 {
+        return Err(CanonicalError::Tag);
+    }
+
+    // forbid indefinite
+    if ai == 31 {
+        return Err(CanonicalError::Indefinite);
+    }
+
+    // For major type 7 (floats/simples), handle ai directly without parsing length
+    if major == 7 {
+        return match ai {
+            20 => Ok(Value::Bool(false)),
+            21 => Ok(Value::Bool(true)),
+            22 | 23 => Ok(Value::Null),
+            24 => Err(CanonicalError::Decode("simple value not supported".into())),
+            25 | 26 => {
+                // Per SPEC-0001: Reject float16/float32, require float64
+                Err(CanonicalError::NonCanonicalFloat)
+            }
+            27 => {
+                let bits = take_u(bytes, idx, 8);
+                let f = f64::from_bits(bits);
+
+                // Verify canonicalization
+                if strict {
+                    let canonical_f = canonicalize_f64(f);
+                    if canonical_f.to_bits() != f.to_bits() {
+                        return Err(CanonicalError::NonCanonicalFloat);
+                    }
+                }
+
+                Ok(Value::Float(f))
+            }
+            _ => Err(CanonicalError::Decode("unknown simple/float".into())),
+        };
+    }
+
+    let n = match ai {
+        0..=23 => ai as u64,
+        24 => take_u(bytes, idx, 1),
+        25 => take_u(bytes, idx, 2),
+        26 => take_u(bytes, idx, 4),
+        27 => take_u(bytes, idx, 8),
+        _ => return Err(CanonicalError::Decode("invalid additional info".into())),
+    };
+
+    match major {
+        0 => {
+            // unsigned int
+            check_min_int(ai, n, false, strict)?;
+            Ok(int_to_value(n as u128, false))
+        }
+        1 => {
+            // negative
+            check_min_int(ai, n, true, strict)?;
+            Ok(int_to_value(n as u128, true))
+        }
+        2 => {
+            let len = n as usize;
+            let end = *idx + len;
+            if end > bytes.len() {
+                return Err(CanonicalError::Incomplete);
+            }
+            let v = Value::Bytes(bytes[*idx..end].to_vec());
+            *idx = end;
+            Ok(v)
+        }
+        3 => {
+            let len = n as usize;
+            let end = *idx + len;
+            if end > bytes.len() {
+                return Err(CanonicalError::Incomplete);
+            }
+            let s = std::str::from_utf8(&bytes[*idx..end])
+                .map_err(|e| CanonicalError::Decode(e.to_string()))?
+                .to_string();
+            *idx = end;
+            Ok(Value::Text(s))
+        }
+        4 => {
+            let len = n as usize;
+            let mut items = Vec::with_capacity(len);
+            for _ in 0..len {
+                items.push(dec_value(bytes, idx, strict)?);
+            }
+            Ok(Value::Array(items))
+        }
+        5 => {
+            let len = n as usize;
+            let mut entries = Vec::with_capacity(len);
+            let mut prev_bytes: Option<Vec<u8>> = None;
+            for _ in 0..len {
+                let key_start = *idx;
+                let key = dec_value(bytes, idx, strict)?;
+                let key_end = *idx;
+                let key_bytes = &bytes[key_start..key_end];
+                let curr_bytes = key_bytes.to_vec();
+                if let Some(pb) = &prev_bytes {
+                    match pb.cmp(&curr_bytes) {
+                        std::cmp::Ordering::Less => {}
+                        std::cmp::Ordering::Equal => return Err(CanonicalError::DuplicateKey),
+                        std::cmp::Ordering::Greater => return Err(CanonicalError::MapKeyOrder),
+                    }
+                }
+                prev_bytes = Some(curr_bytes);
+                let val = dec_value(bytes, idx, strict)?;
+                entries.push((key, val));
+            }
+            Ok(Value::Map(entries))
+        }
+        6 => unreachable!(),
+        7 => unreachable!(), // handled above
+        _ => Err(CanonicalError::Decode("unknown major".into())),
+    }
+}
+
+fn take_u(bytes: &[u8], idx: &mut usize, len: usize) -> u64 {
+    let mut buf = [0u8; 8];
+    let end = *idx + len;
+    if end > bytes.len() {
+        return 0; // will be caught as incomplete later
+    }
+    buf[8 - len..].copy_from_slice(&bytes[*idx..end]);
+    *idx = end;
+    u64::from_be_bytes(buf)
+}
+
+fn check_min_int(ai: u8, n: u64, _negative: bool, strict: bool) -> Result<()> {
+    if !strict {
+        return Ok(());
+    }
+    let min_ok = match ai {
+        0..=23 => true,
+        24 => n >= 24,
+        25 => n > 0xff,
+        26 => n > 0xffff,
+        27 => n > 0xffff_ffff,
+        _ => false,
+    };
+    if min_ok {
+        Ok(())
+    } else {
+        Err(CanonicalError::NonCanonicalInt)
+    }
+}
+
+fn int_to_value(n: u128, negative: bool) -> Value {
+    if negative {
+        // value = -1 - n
+        let v = -1i128 - (n as i128);
+        Value::Integer(Integer::try_from(v).expect("integer out of range"))
+    } else {
+        Value::Integer(Integer::try_from(n as i128).expect("integer out of range"))
+    }
 }
 
 #[cfg(test)]
@@ -66,5 +401,21 @@ mod tests {
         let bytes = encode(&value).unwrap();
         let decoded: u64 = decode(&bytes).unwrap();
         assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_reject_duplicate_keys() {
+        // Manually craft CBOR with duplicate keys: {a: 1, a: 2}
+        let bad_cbor = vec![0xa2, 0x61, 0x61, 0x01, 0x61, 0x61, 0x02];
+        let res = decode_value(&bad_cbor);
+        assert!(matches!(res, Err(CanonicalError::DuplicateKey)));
+    }
+
+    #[test]
+    fn test_reject_wrong_order() {
+        // Map with keys in wrong order: {"z": 1, "a": 1}
+        let bytes = vec![0xa2, 0x61, 0x7a, 0x01, 0x61, 0x61, 0x01];
+        let res = decode_value(&bytes);
+        assert!(matches!(res, Err(CanonicalError::MapKeyOrder)));
     }
 }
