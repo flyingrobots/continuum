@@ -1,451 +1,464 @@
-# JITOS Next Moves: Execution Plan
+# JITOS Next Moves: Execution Plan (CORRECTED)
 
 **Author:** Claude (Sonnet 4.5)
-**Date:** 2025-12-26
-**Status:** Execution Roadmap
-**Context:** Post-absorption of AION Papers, Echo, flyingrobots.dev, ninelives, and all supporting projects
+**Date:** 2025-12-26 (REVISED)
+**Status:** Execution Roadmap - Foundation-First Edition
+**Context:** Post-stakeholder feedback - fixing the three foundational holes
 
 ---
 
-## Executive Summary
+## Critical Course Correction
 
-We are consolidating **three fragmented implementations** (echo Rust kernel, flyingrobots.dev JS prototype, legacy Go planner) into **one rigorous Rust monorepo** that compiles to WASM and powers a lightweight JS shell. This plan addresses the "Two-Kernel Problem," implements the missing Inversion Engine, integrates ninelives as a deterministic resilience layer, and delivers a stakeholder-ready system.
+**Original Sin:** The first version of this plan treated branching, time-as-view, and canonical encoding as "later plumbing." They are not plumbing. **They are the axles.**
 
----
+**The Three Holes:**
+1. **Linear WAL in a Branching World:** Planned a hash chain, need a DAG
+2. **Time as Port Instead of View:** Treated time as "just don't cheat," need materialized Clock View
+3. **No Canonical Encoding:** Mentioned BLAKE3 without canonical serialization = hash divergence
 
-## Phase 0: Documentation & Cleanup (IMMEDIATE)
-
-### 0.1 Clean Up Documentation Cruft
-**Why:** Stakeholders need a clear view of the project without wading through legacy drafts.
-
-**Tasks:**
-- [ ] Generate `JITOS-CLEAN-UP-LIST.md` with justifications for each removal
-- [ ] Archive or delete files identified in cleanup list
-- [ ] Consolidate redundant ADRs into canonical ARCH documents
-- [ ] Move UNORGANIZED/ content to proper homes or archive
-
-**Deliverable:** Clean `docs/` directory with clear navigation.
+**The Fix:** New Phase 0.5 (Foundational Semantics) that MUST complete before touching scheduler, graph, or ninelives.
 
 ---
 
-### 0.2 Finalize SOTU-2025 for Stakeholders
-**Why:** This document explains project delays and the path forward.
+## Phase 0: Documentation & Cleanup (UNCHANGED)
 
-**Current Issues:**
-- Missing prose in Section 4 (just TikZ diagrams with no explanation)
-- Inversion Engine not discussed
-- No clear migration map from old → new
-
-**Tasks:**
-- [ ] Rewrite Section 4 with full narrative explaining the "Bionic Architecture"
-- [ ] Add Section 5: "The Inversion Engine" (SWS collapse/merge logic)
-- [ ] Add Section 6: "Migration Map" (table showing Source → Destination → Deprecated)
-- [ ] Add Section 7: "Tooling Evolution" (Time Travel Debugger, RMG Viewer fate)
-- [ ] Verify all three LaTeX versions compile (display, dark, print)
-- [ ] Generate PDFs and commit
-
-**Deliverable:** Professional-grade report suitable for stakeholder review.
+Same as before - clean docs, finalize SOTU. No changes needed here.
 
 ---
 
-## Phase 1: Core Infrastructure Migration (WEEKS 1-2)
+## **Phase 0.5: Foundational Semantics (NEW - CRITICAL)**
 
-### 1.1 Port Echo Scheduler to jitos-scheduler
-**Why:** This is the mathematical heart of determinism—the O(n) Radix scheduler with footprint-based independence checking.
+**Duration:** Week 1 (frontload before all other work)
+**Why:** These are not features. These are the rules of reality. Get them wrong and everything built on top is cosmetic.
 
-**Source:** `~/git/echo/crates/rmg-core/src/scheduler.rs`
-**Target:** `~/git/jitos/crates/jitos-scheduler/src/`
+### 0.5.1 Define Canonical Encoding Standard
 
-**Tasks:**
-- [ ] Copy `RadixScheduler`, `ActiveFootprints`, `GenSet` logic
-- [ ] Update imports to use `jitos-core::*` types
-- [ ] Add tests from echo (determinism, independence, ordering)
-- [ ] Document the Radix sort algorithm in rustdoc
-- [ ] Implement `normalize()` for antichain reordering (Slice Theorem requirement)
+**The Problem:** BLAKE3(non-canonical-bytes) = hash divergence across runtimes, browsers, replay sessions.
+
+**The Fix:**
+- [ ] Choose encoding: **Canonical CBOR (RFC 8949)** for ledger/events/archives
+- [ ] Create `jitos-core/src/canonical.rs` with strict rules:
+  - Map keys sorted lexicographically
+  - Definite-length encoding (no streaming)
+  - Canonical float representation (NaN → specific bit pattern)
+  - No duplicate keys
+- [ ] Generate test vectors (100+ edge cases)
+- [ ] Add compliance test: `serialize(deserialize(bytes)) == bytes`
 
 **Acceptance Criteria:**
-- All echo scheduler tests pass
-- New test: "antichain swap produces identical normalized hash"
+- Same logical structure → identical bytes on all platforms
+- Test vectors pass in Chrome, Firefox, Safari, Node, Deno
+- Document "what breaks determinism" guide (e.g., "never use HashMap.iter()")
 
 ---
 
-### 1.2 Port Echo Graph to jitos-graph
-**Why:** The WARP graph is the state container. It must support recursive attachments and content addressing.
+### 0.5.2 Define Event Envelope with DAG Structure
 
-**Source:** `~/git/echo/crates/rmg-core/src/graph.rs`
-**Target:** `~/git/jitos/crates/jitos-graph/src/`
+**The Problem:** Linear hash chain can't explain counterfactual divergence cleanly.
 
-**Tasks:**
-- [ ] Copy `GraphStore`, `NodeRecord`, `EdgeRecord` structures
-- [ ] Replace `BTreeMap` with `slotmap` for O(1) access
-- [ ] Implement `hash()` method using BLAKE3 (not SHA-256)
-- [ ] Implement `diff()` for SWS overlay tracking
-- [ ] Add recursive attachment loading (lazy or eager—document policy)
+**The Fix:**
+- [ ] Create `jitos-core/src/events.rs` with DAG-aware envelope:
+
+```rust
+/// The universal event envelope for the JITOS worldline DAG
+#[derive(Serialize, Deserialize, Clone)]
+pub struct EventEnvelope {
+    /// Content-addressed ID: H(parents || canonical_payload || nonce)
+    pub event_id: Hash,
+
+    /// Parent event(s) - normally 1, >1 for merge/anchor
+    pub parents: Vec<Hash>,
+
+    /// Optional branch identifier (can be derived from parents but useful)
+    pub branch_id: Option<BranchId>,
+
+    /// Event classification
+    pub kind: EventKind,
+
+    /// The actual payload (MUST be canonically encoded)
+    pub payload: CanonicalBytes,
+
+    /// Who created this event
+    pub agent_id: AgentId,
+
+    /// Cryptographic signature over (event_id || payload)
+    pub signature: Signature,
+
+    /// Which policy/observer interpreted reality (for now() queries)
+    pub policy_hashes: Vec<Hash>,
+
+    /// Nonce for uniqueness (prevents duplicate event_id collisions)
+    pub nonce: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum EventKind {
+    /// External input (user, device, network)
+    Input,
+
+    /// Kernel decision (schedule choice, timer fire)
+    Decision,
+
+    /// Untrusted assertion (clock sample, peer claim)
+    Claim,
+
+    /// Derived computation (rule application result)
+    Derivation,
+
+    /// Trust boundary crossing (signature verification, BTR anchor)
+    Anchor,
+
+    /// Branch fork
+    BranchFork {
+        base_event: Hash,
+        delta_spec_hash: Hash,
+    },
+
+    /// Branch merge (multiple parents)
+    BranchMerge {
+        strategy: MergeStrategy,
+    },
+}
+```
 
 **Acceptance Criteria:**
-- Graph can store 100k+ nodes in memory
-- Hash computation is deterministic and fast (<10ms for 10k nodes)
+- Event DAG can represent linear history (1 parent)
+- Event DAG can represent fork (new branch_id, delta_spec)
+- Event DAG can represent merge (multiple parents)
+- `event_id` computation is deterministic and collision-resistant
 
 ---
 
-### 1.3 Implement jitos-inversion (NEW CRATE)
-**Why:** This is the missing piece—the deterministic SWS collapse logic that Gemini omitted.
+### 0.5.3 Define DeltaSpec for Counterfactuals
 
-**Conceptual Source:** ARCH-0010 (Slice Theorem), echo conflict policies
-**Target:** `~/git/jitos/crates/jitos-inversion/src/`
+**The Problem:** "What if the packet arrived 10ms later?" needs formal expression.
 
-**Tasks:**
-- [ ] Create crate with `InversionEngine` struct
-- [ ] Implement `rebase(sws: &GraphOverlay, truth: &WarpGraph) -> Result<Commit, ConflictSet>`
-- [ ] Implement conflict detection using footprints
-- [ ] Implement conflict policies: `Abort`, `Retry`, `Join`
-- [ ] Add `normalize()` integration for deterministic merge order
-- [ ] Write extensive tests for conflict scenarios
+**The Fix:**
+- [ ] Create `jitos-core/src/delta.rs`:
+
+```rust
+/// Describes a controlled violation of history
+#[derive(Serialize, Deserialize, Clone)]
+pub struct DeltaSpec {
+    /// What kind of counterfactual
+    pub kind: DeltaKind,
+
+    /// Human-readable justification
+    pub description: String,
+
+    /// Hash of this spec (for branch.fork events)
+    pub hash: Hash,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum DeltaKind {
+    /// Change scheduler policy (e.g., FIFO → LIFO)
+    SchedulerPolicy { new_policy: SchedulerPolicyHash },
+
+    /// Inject/modify/delete input event
+    InputMutation {
+        insert: Vec<InputEvent>,
+        delete: Vec<Hash>,
+        modify: Vec<(Hash, InputEvent)>,
+    },
+
+    /// Change clock interpretation policy
+    ClockPolicy { new_policy: ClockPolicyHash },
+
+    /// Change trust assumptions
+    TrustPolicy { new_trust_roots: Vec<AgentId> },
+}
+```
 
 **Acceptance Criteria:**
-- Two independent SWSs can merge without conflicts
-- Conflicting SWSs fail deterministically with clear error
-- Replay of merge produces identical result
+- Can express "same inputs, different schedule"
+- Can express "same schedule, different inputs"
+- Can express "same inputs, different clock policy"
+- DeltaSpec is canonical-encodable and content-addressable
 
 ---
 
-### 1.4 Implement jitos-provenance (WAL/Ledger)
-**Why:** The WAL is the source of truth. Boot is resurrection.
+### 0.5.4 Implement Clock View (jitos-views)
 
-**Conceptual Source:** RFC-0001, RFC-0022, shiplog patterns
-**Target:** `~/git/jitos/crates/jitos-provenance/src/`
+**The Problem:** `ClockPort` isn't enough - time must be a **materialized view** not a syscall.
 
-**Tasks:**
-- [ ] Define `Receipt` format (tick, inputs, rules, state hash, signature)
-- [ ] Define `Event` enum (Input, Decision, Claim, Anchor) per ARCH-0009
-- [ ] Implement `WalAdapter` with IndexedDB backend (browser) and file backend (daemon)
-- [ ] Implement `readRange(start, end)` for optimized replay
-- [ ] Implement `verify()` using BLAKE3 hash chains
-- [ ] Port `Compliance` logic from libgitledger (policy verification)
+**The Fix:**
+- [ ] Create `jitos-views/` crate
+- [ ] Define Clock as a fold over events:
+
+```rust
+/// Clock is NOT a syscall. It's a pure function over events.
+pub struct ClockView {
+    /// Accumulated clock samples
+    samples: Vec<ClockSample>,
+
+    /// Current belief about time (updated by policy)
+    current: Time,
+
+    /// Policy that interprets samples
+    policy: ClockPolicyHash,
+}
+
+impl ClockView {
+    /// Pure fold - no side effects
+    pub fn apply_event(&mut self, event: &EventEnvelope) {
+        match event.kind {
+            EventKind::Claim => {
+                if let Some(sample) = parse_clock_sample(&event.payload) {
+                    self.samples.push(sample);
+                    self.current = self.policy.interpret(&self.samples);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// Query time at a specific cut (worldline position)
+    pub fn now_at_cut(events: &[EventEnvelope], cut: usize, policy: ClockPolicyHash) -> Time {
+        let mut view = ClockView::new(policy);
+        for event in &events[..cut] {
+            view.apply_event(event);
+        }
+        view.current
+    }
+}
+
+pub struct Time {
+    pub ns: u64,
+    pub uncertainty_ns: u64,
+    pub provenance: Vec<Hash>, // which events contributed
+}
+
+pub struct ClockSample {
+    pub source: ClockSource,
+    pub value_ns: u64,
+    pub uncertainty_ns: u64,
+}
+
+pub enum ClockSource {
+    Monotonic,
+    Rtc,
+    Ntp,
+    PeerClaim,
+}
+```
 
 **Acceptance Criteria:**
-- WAL can persist 1M+ ticks without corruption
-- Replay from WAL produces byte-identical state hashes
-- Compliance checks reject unsigned or policy-violating entries
+- `now()` is a query, not a syscall
+- Same events + same policy → same time belief
+- Different policy → different time belief (with delta_spec)
+- Replay never touches host clock
 
 ---
 
-## Phase 2: Resilience & Policy Layers (WEEKS 3-4)
+### 0.5.5 Implement Deterministic Timers
+
+**The Problem:** `sleep(5s)` becomes "schedule a wake at logical time T" not "wait 5s of wall-clock."
+
+**The Fix:**
+- [ ] Add to `jitos-views`:
+
+```rust
+pub struct TimerView {
+    requests: Vec<TimerRequest>,
+    fired: Vec<TimerFired>,
+}
+
+pub struct TimerRequest {
+    pub request_id: Hash,
+    pub duration_ns: u64,
+    pub requested_at: Time, // from ClockView
+}
+
+impl TimerView {
+    pub fn check_timers(&mut self, current_time: Time, scheduler: &mut Scheduler) {
+        for req in &self.requests {
+            if !self.fired.contains(&req.request_id)
+               && current_time.ns >= req.requested_at.ns + req.duration_ns {
+                // Emit a Decision event
+                scheduler.emit_event(EventKind::Decision, TimerFired {
+                    request_id: req.request_id,
+                    fired_at: current_time,
+                });
+                self.fired.push(req.request_id);
+            }
+        }
+    }
+}
+```
+
+**Acceptance Criteria:**
+- `sleep(5s)` → `timer.request` event + scheduler wake when `ClockView.now() >= start + 5s`
+- Replay fires timers at identical logical times
+- No hidden host timers
+
+---
+
+### 0.5.6 Deterministic ID Allocation
+
+**The Problem:** `slotmap` key allocation order depends on execution order → antichain swap breaks hash equality.
+
+**The Fix:**
+- [ ] Create `jitos-graph/src/ids.rs`:
+
+```rust
+/// IDs MUST be deterministic based on normalized schedule, not allocation order
+pub struct DeterministicIdAllocator {
+    tick_hash: Hash, // H(normalized_rewrite_set)
+    counter: u64,
+}
+
+impl DeterministicIdAllocator {
+    pub fn new_for_tick(rewrites: &[Rewrite]) -> Self {
+        // Sort rewrites deterministically (by scope_hash, rule_id)
+        let mut sorted = rewrites.to_vec();
+        sorted.sort_by_key(|r| (r.scope_hash, r.rule_id));
+
+        let tick_hash = blake3::hash(&canonical_encode(&sorted));
+
+        Self { tick_hash, counter: 0 }
+    }
+
+    pub fn alloc_node_id(&mut self, rewrite_id: Hash) -> NodeId {
+        let id_bytes = blake3::hash(&canonical_encode(&(
+            self.tick_hash,
+            rewrite_id,
+            self.counter,
+        )));
+        self.counter += 1;
+        NodeId::from_hash(id_bytes)
+    }
+}
+```
+
+**Acceptance Criteria:**
+- Antichain swap (same tick, different order) → identical node IDs
+- Node IDs reproducible on replay
+- Test: "swap independent rewrites 1000 times → same graph hash every time"
+
+---
+
+### 0.5.7 The 6 Foundational Commits
+
+**Before touching Phase 1, ship these:**
+
+1. **Canonical Encoding Standard** (`jitos-core/src/canonical.rs` + test vectors)
+2. **Event Envelope** (`jitos-core/src/events.rs` with DAG structure)
+3. **DeltaSpec** (`jitos-core/src/delta.rs` for counterfactuals)
+4. **Clock View** (`jitos-views/src/clock.rs` with Time as fold)
+5. **Timer Semantics** (`jitos-views/src/timers.rs` with request/fire events)
+6. **Deterministic IDs** (`jitos-graph/src/ids.rs` tied to normalized schedule)
+
+**Golden Test:**
+```rust
+#[test]
+fn end_to_end_determinism() {
+    let ledger = generate_random_event_dag(1000);
+    let mut hashes = vec![];
+
+    for _ in 0..1000 {
+        let state = replay(&ledger);
+        hashes.push(state.hash());
+    }
+
+    // ALL hashes MUST be identical
+    assert!(hashes.windows(2).all(|w| w[0] == w[1]));
+}
+```
+
+---
+
+## Phase 1: Core Infrastructure (REORDERED)
+
+**Now that foundations are locked, proceed with:**
+
+### 1.1 Port Echo Scheduler (SAME, but with deterministic IDs)
+- Use `DeterministicIdAllocator` for all node creation
+- Implement `normalize()` using canonical rewrite ordering
+
+### 1.2 Port Echo Graph (SAME, but content-addressed by canonical encoding)
+- Use canonical CBOR for all serialization
+- Implement `hash()` using sorted canonical IDs
+
+### 1.3 Implement Inversion Engine (SAME, but branch-aware)
+- Use event DAG for tracking SWS fork points
+- Merge generates multi-parent events
+
+### 1.4 Implement Provenance (SAME, but with new event format)
+- Use `EventEnvelope` as WAL entry format
+- Support DAG traversal, not just linear iteration
+
+---
+
+## Phase 2: Resilience & Policy (DEPENDS ON CLOCK VIEW)
 
 ### 2.1 Port ninelives to jitos-resilience
-**Why:** We need mature I/O patterns, but they must be deterministic.
 
-**Source:** `~/git/ninelives/src/`
-**Target:** `~/git/jitos/crates/jitos-resilience/src/`
+**Critical:** DO NOT START until Clock View exists.
 
-**Critical Refactors:**
-- [ ] Replace `std::time::Instant` with `JitosTime` trait (injected dependency)
-- [ ] Replace `rand::thread_rng()` with `DeterministicRng` (seeded from ledger)
-- [ ] Move circuit breaker state from `Mutex<State>` to WARP graph nodes
-- [ ] Make rate limiting tick-based, not wall-clock-based
-- [ ] Document all breaking changes for determinism
+**Refactors:**
+- Replace `Instant` with `ClockView.now_at_cut()`
+- Replace `rand::thread_rng()` with `DeterministicRng::from_ledger_seed()`
+- Rate limiting uses `ClockView` time, not tick counts
+- Backoff uses `ClockView` + `timer.request` events
 
-**Acceptance Criteria:**
-- Retry logic produces identical results when replayed with same seed
-- Circuit breaker state transitions are graph rewrites (logged)
+### 2.2 Implement jitos-policy (SAME)
 
----
+### 2.3 Implement jitos-io (DEPENDS ON CLOCK VIEW)
 
-### 2.2 Implement jitos-policy (Rhai Host)
-**Why:** User-defined behavior (rules, agents) must be sandboxed and deterministic.
-
-**Conceptual Source:** gatos policy engine, echo scripting vision
-**Target:** `~/git/jitos/crates/jitos-policy/src/`
-
-**Tasks:**
-- [ ] Embed Rhai engine
-- [ ] Implement instruction metering (prevent infinite loops)
-- [ ] Expose `Graph` API to scripts (read-only initially)
-- [ ] Implement `PolicyRegistry` (load scripts by hash)
-- [ ] Add versioning for script compatibility
-- [ ] Write example scripts (physics rules, camera damping)
-
-**Acceptance Criteria:**
-- Script execution is deterministic (same input → same output)
-- Scripts cannot access IO, network, or wall-clock time
-- Scripts can read graph, propose mutations (not execute directly)
+**All ports inject events:**
+- `fs.device_read` → Input event
+- `net.recv` → Input event
+- `clock.sample` → Claim event (consumed by ClockView)
 
 ---
 
-### 2.3 Implement jitos-io (Port Adapters)
-**Why:** The boundary between Pure (kernel) and Messy (world).
+## Phases 3-6: UNCHANGED
 
-**Conceptual Source:** ninelives adapters, echo networking
-**Target:** `~/git/jitos/crates/jitos-io/src/`
-
-**Tasks:**
-- [ ] Define `Port` trait (async API for external systems)
-- [ ] Implement `FilePort` (read/write with event logging)
-- [ ] Implement `NetworkPort` (send/recv with deterministic ordering)
-- [ ] Implement `ClockPort` (time samples per ARCH-0009)
-- [ ] All ports must emit `Input` events to WAL
-
-**Acceptance Criteria:**
-- File reads are logged as `fs.device_read` events
-- Network messages are logged as `net.recv` events
-- Replay never touches real filesystem or network
+Same as original plan, but now they're built on solid foundations.
 
 ---
 
-## Phase 3: Planner & WASM Bridge (WEEKS 5-6)
-
-### 3.1 Implement jitos-planner (HTN Logic)
-**Why:** High-level intent → low-level graph rewrites.
-
-**Conceptual Source:** Legacy Go planner, wesley directives
-**Target:** `~/git/jitos/crates/jitos-planner/src/`
-
-**Tasks:**
-- [ ] Define `HtnMethod` struct (goal, preconditions, decomposition)
-- [ ] Implement `decompose(slap: Slap) -> Vec<Task>`
-- [ ] Implement `TaskExecutor` (maps tasks to graph rewrites)
-- [ ] Write example methods (FixBug, DeployService, etc.)
-- [ ] Integrate with jitos-kernel (SLAPS → HTN → Scheduler)
-
-**Acceptance Criteria:**
-- `SLAP::MoveNode(A, B)` decomposes into atomic rewrites
-- Planner produces deterministic task DAGs
-
----
-
-### 3.2 Implement jitos-wasm (Browser Bridge)
-**Why:** Connect Rust kernel to JS shell.
-
-**Target:** `~/git/jitos/crates/jitos-wasm/src/`
-
-**Tasks:**
-- [ ] Use `wasm-bindgen` to expose `Kernel::step()`, `Kernel::snapshot()`
-- [ ] Expose RPC layer compatible with existing `JitBridge.js`
-- [ ] Serialize state updates as binary (not JSON) for performance
-- [ ] Add TypeScript type generation via `ts-rs`
-- [ ] Build WASM blob and copy to `shell/public/jitd.wasm`
-
-**Acceptance Criteria:**
-- JS shell can call `kernel.step()` and receive state delta
-- WASM blob is <2MB compressed
-- Kernel runs at 60 TPS in Chrome
-
----
-
-### 3.3 Migrate flyingrobots.dev to Shell
-**Why:** The JS code becomes a pure View layer.
-
-**Source:** `~/git/flyingrobots.dev/src/`
-**Target:** `~/git/jitos/shell/src/`
-
-**Tasks:**
-- [ ] Move React components to `shell/`
-- [ ] Replace `WarpKernel.js` with WASM import
-- [ ] Update `JitBridge.js` to call WASM kernel
-- [ ] Keep `EngineRoomController` (UI orchestration)
-- [ ] Keep `ThreeGraphicsPort` (renderer)
-- [ ] Delete JS `Ledger.js`, `Scheduler.js`, `WarpKernel.js` (replaced by WASM)
-
-**Acceptance Criteria:**
-- UI runs against WASM kernel
-- Time Travel Debugger still works (reading from WASM-generated WAL)
-
----
-
-## Phase 4: Storage & Performance (WEEKS 7-8)
-
-### 4.1 Implement CAS Layer (Content-Addressed Store)
-**Why:** O(1) time travel instead of O(N) replay.
-
-**Conceptual Source:** ARCH-0009, gatos opaque pointers
-**Target:** `~/git/jitos/crates/jitos-provenance/src/cas.rs`
-
-**Tasks:**
-- [ ] Implement `CasAdapter` with IndexedDB backend
-- [ ] Store `Hash → CompressedGraph` mappings
-- [ ] Implement `TickIndex` (Tick → Hash lookup)
-- [ ] Implement snapshot policy (every N ticks, exponential decay)
-- [ ] Integrate with WAL replay (load snapshot + replay tail)
-
-**Acceptance Criteria:**
-- Boot time <1s for 100k tick history
-- Time travel to arbitrary tick is <100ms
-
----
-
-### 4.2 Implement Storage Tiering
-**Why:** Browser storage is finite; long histories need archival.
-
-**Target:** `~/git/jitos/crates/jitos-provenance/src/tiers.rs`
-
-**Tasks:**
-- [ ] Tier 0 (Instant): JS heap, last 100 ticks
-- [ ] Tier 1 (Hot): IndexedDB, full session WAL + snapshots
-- [ ] Tier 2 (Warm): Reserved for future (server relay)
-- [ ] Tier 3 (Cold): Export BTR files (download/upload)
-- [ ] Implement `TierManager` (eviction policy)
-
-**Acceptance Criteria:**
-- Hot tier usage <500MB per session
-- BTR export/import round-trips successfully
-
----
-
-## Phase 5: Debugging & Tooling (WEEKS 9-10)
-
-### 5.1 Enhance Time Travel Debugger
-**Why:** The killer feature.
-
-**Target:** `~/git/jitos/shell/src/debugger/`
-
-**Tasks:**
-- [ ] Implement "Tick View" (chronological scrubbing)
-- [ ] Implement "Causality View" (DAG visualization per Slice Theorem)
-- [ ] Implement "State View" (hash-addressed state inspection)
-- [ ] Implement "Verify" (ledger hash chain validation)
-- [ ] Add search: "Find tick where property X changed"
-
-**Acceptance Criteria:**
-- Can scrub through 10k tick history smoothly
-- Can bisect to find bug introduction point
-
----
-
-### 5.2 Deprecate Echo RMG Viewer
-**Why:** Redundant with web-based debugger.
-
-**Tasks:**
-- [ ] Document migration path (viewer → web debugger)
-- [ ] Archive echo viewer code
-- [ ] Update docs to reference web debugger only
-
----
-
-## Phase 6: Compliance & Audit (WEEKS 11-12)
-
-### 6.1 Implement Compliance Layer
-**Why:** Enforce policies on ledger entries (per libgitledger).
-
-**Target:** `~/git/jitos/crates/jitos-provenance/src/compliance.rs`
-
-**Tasks:**
-- [ ] Define `Policy` trait (verify entry)
-- [ ] Implement policies: `MustBeSigned`, `NoForcePush`, `RequireApproval`
-- [ ] Implement `AuditReport` (violations + remediation)
-- [ ] Write extensive tests for policy enforcement
-
-**Acceptance Criteria:**
-- Unsigned entries are rejected
-- Policy violations produce actionable reports
-
----
-
-### 6.2 Implement Genealogy & Attribution
-**Why:** Every decision must be attributable (Paper V ethics).
-
-**Target:** `~/git/jitos/crates/jitos-core/src/attribution.rs`
-
-**Tasks:**
-- [ ] Add `agent_id` to every `Receipt`
-- [ ] Add `signature` field (Ed25519)
-- [ ] Implement `AgentWallet` (key management)
-- [ ] Add attribution to graph edges (who linked what)
-
-**Acceptance Criteria:**
-- Every ledger entry has a verified signer
-- Disputed links are flagged in UI
-
----
-
-## Critical Success Metrics
+## Updated Critical Success Metrics
 
 ### Determinism
-- [ ] Golden test: Same ledger replayed 1000x → identical hashes every time
-- [ ] Fuzz test: Random inputs + random suspend/resume → replay equality
-- [ ] Cross-platform: WASM in Chrome/Firefox/Safari produce identical hashes
+- [x] Canonical encoding test vectors pass on all platforms
+- [ ] Golden test: Same ledger replayed 1000x → identical hashes
+- [ ] Antichain swap test: Independent rewrites reordered 1000x → identical hash
+- [ ] Cross-browser: Chrome/Firefox/Safari produce identical hashes
+- [ ] Cross-platform: x86-64/ARM64 produce identical hashes
 
-### Performance
-- [ ] Kernel sustains 60 TPS in browser
-- [ ] Boot time <1s for 100k tick history (with snapshots)
-- [ ] Suspended CPU usage <0.1%
-- [ ] Wake-to-first-tick latency <16ms
+### Branching & Counterfactuals
+- [ ] Can fork worldline with explicit DeltaSpec
+- [ ] Can merge branches with multi-parent events
+- [ ] Debugger can visualize causal braid (DAG, not line)
 
-### Usability
-- [ ] Time travel scrubbing feels instant
-- [ ] UI never blocks on kernel computation
-- [ ] Error messages are actionable
-
----
-
-## Dependencies & Risks
-
-### Dependencies
-- `wasm-bindgen` (WASM bridge)
-- `rhai` (scripting)
-- `slotmap` (graph storage)
-- `serde` (serialization)
-- `blake3` (hashing)
-- `ed25519-dalek` (signing)
-
-### Risks
-1. **WASM Performance:** If kernel is too slow in browser, may need multi-threading or SharedArrayBuffer.
-2. **Determinism Drift:** Floating-point operations may diverge across platforms. May need fixed-point or explicit rounding.
-3. **Storage Limits:** IndexedDB quotas vary by browser. May need aggressive compression.
-
-### Mitigations
-1. Profile early, optimize hot paths, consider SIMD.
-2. Document platform policy, add explicit rounding at commit points.
-3. Implement tiering and eviction aggressively.
+### Time Semantics
+- [ ] `now()` is a pure query over events
+- [ ] Timers fire at identical logical times on replay
+- [ ] Clock policy changes (via DeltaSpec) produce different time beliefs
 
 ---
 
-## Stakeholder Deliverables
+## Revised Open Questions
 
-### Week 2
-- [ ] Clean documentation
-- [ ] Finalized SOTU-2025 report
-- [ ] Core infrastructure (scheduler, graph, inversion) functional
-
-### Week 6
-- [ ] WASM kernel running in browser
-- [ ] JS shell migrated
-- [ ] Basic time travel working
-
-### Week 12
-- [ ] Full feature parity with JS prototype
-- [ ] Compliance and audit features
-- [ ] Production-ready system
-
----
-
-## Open Questions for Resolution
-
-These decisions require stakeholder input as they affect scope, performance, and user experience:
-
-1. **Camera Policy:** Deterministic (Policy A) or Presentation-only (Policy B)?
-   - **Impact:** Policy A enables "visual replay" but increases ledger size ~30%. Policy B is simpler and faster.
-   - **Recommendation:** Policy B unless visual replay is a core product promise.
-
-2. **Floating-Point Policy:** Document supported platforms or use fixed-point?
-   - **Impact:** Platform restriction (x86-64, ARM64 only) simplifies determinism guarantees but limits exotic hardware support.
-   - **Recommendation:** Document platform policy to avoid cross-platform floating-point divergence.
-
-3. **Snapshot Frequency:** Every 60 ticks? Every 600? Tunable?
-   - **Impact:** More frequent snapshots = faster time travel but larger storage footprint.
-   - **Recommendation:** Tunable with sensible default (100 ticks), exposing as advanced setting.
-
-4. **BTR Format:** JSON (human-readable), CBOR (efficient), or custom binary?
-   - **Impact:** JSON aids debugging but bloats archives. CBOR balances readability and size.
-   - **Recommendation:** CBOR with optional JSON export tool for auditing.
-
-5. **Total Engineering Effort:** Estimated ~500 hours over 12 weeks (1 FTE). Acceptable?
-   - **Impact:** This assumes focused execution without major scope creep or blocking dependencies.
-   - **Recommendation:** Frontload Phase 0-1 to validate architecture before committing to full schedule.
+1. **Camera Policy:** Still recommend Policy B (presentation-only)
+2. **Floating-Point:** Still recommend platform restriction (x86-64, ARM64) OR explicit rounding at commit
+3. **Snapshot Frequency:** Adaptive (dense early, sparse later)
+4. **BTR Format:** **Canonical CBOR** (locked)
+5. **Engineering Effort:** Still ~500 hours, but Phase 0.5 is now 1-2 weeks of critical path
 
 ---
 
 ## Conclusion
 
-This plan consolidates three fragmented implementations into one rigorous system. It prioritizes **determinism** (replay equality), **performance** (60 TPS, <1s boot), and **auditability** (every decision logged). The Rust monorepo strategy eliminates the "Two-Kernel Problem" and positions JITOS as a production-grade causal operating system.
+The original roadmap had good hustle but weak foundations. This corrected version:
 
-**Next Immediate Action:** Execute Phase 0 (Documentation Cleanup) and finalize SOTU-2025 for stakeholder review.
+1. **Locks canonical encoding** before signing anything
+2. **Makes branching first-class** before building debugger
+3. **Treats time as view** before refactoring ninelives
+4. **Fixes ID allocation** before testing determinism
+
+**The axles are now solid. The rest is good hustle on good rails.**
+
+**Next Immediate Action:** Execute Phase 0.5 (all 6 foundational commits) in Week 1, THEN proceed to Phase 1.
