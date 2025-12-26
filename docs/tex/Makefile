@@ -198,16 +198,16 @@ master: arch computer adrs rfcs whitepaper aion-holography
 
 sotu-2025: init
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building SOTU-2025...$(COLOR_RESET)"
-	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025.tex
-	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025.tex > /dev/null
-	@cp $(BUILD_DIR)/SOTU-2025.pdf ../../SOTU-2025.pdf
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded.tex
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded.tex > /dev/null
+	@cp $(BUILD_DIR)/SOTU-2025-expanded.pdf ../../SOTU-2025.pdf
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ SOTU-2025.pdf created$(COLOR_RESET)"
 
 sotu-2025-dark: init
 	@echo "$(COLOR_BOLD)$(COLOR_PURPLE)Building SOTU-2025 (Dark Mode)...$(COLOR_RESET)"
-	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-dark.tex
-	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-dark.tex > /dev/null
-	@cp $(BUILD_DIR)/SOTU-2025-dark.pdf ../../SOTU-2025-DARK.pdf
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded-dark.tex
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded-dark.tex > /dev/null
+	@cp $(BUILD_DIR)/SOTU-2025-expanded-dark.pdf ../../SOTU-2025-DARK.pdf
 	@echo "$(COLOR_BOLD)$(COLOR_PURPLE)✓ SOTU-2025-DARK.pdf created$(COLOR_RESET)"
 
 # =============================================================================
