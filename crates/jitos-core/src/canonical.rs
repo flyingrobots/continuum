@@ -289,10 +289,20 @@ fn dec_value(bytes: &[u8], idx: &mut usize, strict: bool) -> Result<Value> {
                 Err(CanonicalError::NonCanonicalFloat)
             }
             27 => {
+                // Check for truncated input before reading
+                if *idx + 8 > bytes.len() {
+                    return Err(CanonicalError::Incomplete);
+                }
+
                 let bits = take_u(bytes, idx, 8);
                 let f = f64::from_bits(bits);
 
-                // Verify canonicalization
+                // Per SPEC-0001: Integral floats MUST be encoded as integers
+                if strict && float_should_be_int(f) {
+                    return Err(CanonicalError::FloatShouldBeInt);
+                }
+
+                // Verify canonicalization (NaN/±0/subnormal)
                 if strict {
                     let canonical_f = canonicalize_f64(f);
                     if canonical_f.to_bits() != f.to_bits() {
@@ -413,6 +423,20 @@ fn check_min_int(ai: u8, n: u64, _negative: bool, strict: bool) -> Result<()> {
     } else {
         Err(CanonicalError::NonCanonicalInt)
     }
+}
+
+/// Check if a float value should have been encoded as an integer.
+///
+/// Per SPEC-0001: Integral floats (f.fract() == 0.0 and fits i128) MUST be encoded as integers.
+fn float_should_be_int(f: f64) -> bool {
+    f.is_finite() && f.fract() == 0.0 && fits_i128(f)
+}
+
+/// Check if a float value fits in an i128.
+fn fits_i128(f: f64) -> bool {
+    const MAX: f64 = i128::MAX as f64;
+    const MIN: f64 = i128::MIN as f64;
+    (MIN..=MAX).contains(&f)
 }
 
 fn int_to_value(n: u128, negative: bool) -> Value {
@@ -554,5 +578,30 @@ mod tests {
         let non_canonical_nan = vec![0xfb, 0x7f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
         let res = decode_value(&non_canonical_nan);
         assert!(matches!(res, Err(CanonicalError::NonCanonicalFloat)));
+    }
+
+    #[test]
+    fn dc09_reject_float64_encoding_of_integral() {
+        // Per SPEC-0001: Integral floats MUST be encoded as integers
+        // float64(1.0) should be rejected, should be integer 1
+        let float_one = vec![0xfb, 0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        let res = decode_value(&float_one);
+        assert!(
+            matches!(res, Err(CanonicalError::FloatShouldBeInt)),
+            "Expected FloatShouldBeInt, got: {:?}",
+            res
+        );
+    }
+
+    #[test]
+    fn dc10_reject_truncated_float64() {
+        // Truncated float64 should return Incomplete, not silently decode as 0.0
+        let truncated = vec![0xfb]; // float64 marker without 8-byte payload
+        let res = decode_value(&truncated);
+        assert!(
+            matches!(res, Err(CanonicalError::Incomplete)),
+            "Expected Incomplete, got: {:?}",
+            res
+        );
     }
 }
