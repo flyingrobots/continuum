@@ -57,7 +57,7 @@ Same as before - clean docs, finalize SOTU. No changes needed here.
 **The Problem:** Linear hash chain can't explain counterfactual divergence cleanly.
 
 **The Fix:**
-- [ ] Create `jitos-core/src/events.rs` with DAG-aware envelope:
+- [x] Create `jitos-core/src/events.rs` with DAG-aware envelope (6 tests, all passing):
 
 ```rust
 /// The universal event envelope for the JITOS worldline DAG
@@ -122,10 +122,10 @@ pub enum EventKind {
 ```
 
 **Acceptance Criteria:**
-- Event DAG can represent linear history (1 parent)
-- Event DAG can represent fork (new branch_id, delta_spec)
-- Event DAG can represent merge (multiple parents)
-- `event_id` computation is deterministic and collision-resistant
+- [x] Event DAG can represent linear history (1 parent)
+- [x] Event DAG can represent fork (new branch_id, delta_spec)
+- [x] Event DAG can represent merge (multiple parents)
+- [x] `event_id` computation is deterministic and collision-resistant
 
 ---
 
@@ -343,7 +343,7 @@ impl DeterministicIdAllocator {
 **Before touching Phase 1, ship these:**
 
 1. **[DONE]** Canonical Encoding Standard (`jitos-core/src/canonical.rs` + 28 test vectors) ✅
-2. **[TODO]** Event Envelope (`jitos-core/src/events.rs` with DAG structure)
+2. **[DONE]** Event Envelope (`jitos-core/src/events.rs` with DAG structure + 6 tests) ✅
 3. **[TODO]** DeltaSpec (`jitos-core/src/delta.rs` for counterfactuals)
 4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
