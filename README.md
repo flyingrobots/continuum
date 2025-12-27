@@ -21,7 +21,7 @@ THE REVΩLUTION WILL BE DETERMINISTIC
 | `Input + Code → State Change` | `Possibilities + Constraints → Selection → History` |
 | History is implicit, overwritten | History is structural, append-only |
 | Debugging = printf/logs | Debugging = query the Umbra |
-| Race conditions are bugs | Race conditions are impossible |
+| Race conditions are bugs | Race conditions are structurally eliminated |
 | State is primary, history derived | History is primary, state derived |
 
 In Loom, history is not an incidental artifact of execution. **History is the product.**
