@@ -1,4 +1,4 @@
-\ProvidesPackage{styles/jitos-dark}
+\ProvidesPackage{jitos-dark}
 
 \RequirePackage{silence}
 \WarningFilter{latex}{Label `}               % suppress multiply-defined labels
@@ -27,7 +27,7 @@
 % Graphics and colors
 \usepackage{graphicx}
 \usepackage{xcolor}
-\usepackage{styles/draculatheme}  % FULL DARK MODE - sets page colors
+\RequirePackage{draculatheme}  % FULL DARK MODE - sets page colors (same directory)
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,arrows.meta,positioning,calc,automata,decorations.pathreplacing,decorations.markings,shapes.geometric,fit,matrix,patterns,mindmap,trees,backgrounds,circuits.logic.US}
 \usepackage{tikz-cd}
