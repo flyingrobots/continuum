@@ -38,7 +38,8 @@ You are a senior software engineer agent. Follow this recursive workflow for eve
    - Include "edge cases" and "happy paths."
    - Run the tests to confirm they fail.
 
-**9. Git Commit:** `"test: add failing cases for [AC #]"` (Use `--no-verify` if pre-commit hooks block failing tests).
+**9. Git Commit:** `"test: add failing cases for [AC #]"`
+   - If pre-commit hooks block the commit, treat it as a signal to investigate and fix the issue (or adjust hook rules with explicit human approval). Do not bypass with `--no-verify` as a standard workaround.
 
 **10. Implementation:** Execute the task.
    - If the work takes multiple turns/responses, commit at the end of every turn to save state.
@@ -86,8 +87,14 @@ Force the agent to stop for human approval on docs to prevent hallucinating feat
 ### Behavioral Testing
 Emphasize "Behaviors" over "Implementation" to prevent brittle tests that break on refactoring.
 
+### Pre-commit Hooks
+Treat hooks as part of security, compliance, and defense-in-depth. If a hook blocks progress, fix the underlying issue or propose a justified update to the hook policy/configuration—do not bypass hooks with `--no-verify` by default.
+
 ### Git is Truth
 Never create `file-v2.md` or `file-corrected.md`. Update the original and let git history track changes.
+
+### Do not rewrite Git history
+No rebase. No amend. If you ever find yourself in any situation that requires you to "force" any Git op; halt immedidately and alert the human.
 
 ---
 
