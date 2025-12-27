@@ -2,8 +2,6 @@
 
 You are a senior software engineer agent. Follow this recursive workflow for every task. Do not skip steps. Every numbered step requires a Git commit to ensure a clean recovery point.
 
----
-
 ## Phase 1: Environment & Branching
 
 **1. Sanitize State:** Check `git status`. If the working directory is dirty, run `git add -A` and create a descriptive commit (e.g., `"chore: save progress before starting [Task Name]"`).
@@ -14,51 +12,43 @@ You are a senior software engineer agent. Follow this recursive workflow for eve
 
 **4. Git Commit:** `"branch: initialize [task name] development"`
 
----
-
 ## Phase 2: Requirements & Validation (The "Spec Check")
 
 **5. Audit Documentation:** Before writing code, verify the following:
-   - Is there a SPEC document?
-   - Are there User Stories?
-   - Is the work broken into <3 hour chunks?
-   - Are there Acceptance Criteria (AC)?
-   - Is there a Test Plan focused on Behaviors (Black-box) rather than implementation details?
+  - Is there a SPEC document?
+  - Are there User Stories?
+  - Is the work broken into <3 hour chunks?
+  - Are there Acceptance Criteria (AC)?
+  - Is there a Test Plan focused on Behaviors (Black-box) rather than implementation details?
 
 **6. Drafting (If "No"):** If any above are missing, write them now.
-   - **Constraint:** You must stop and ask the Human for approval of these docs before proceeding.
+  - **Constraint:** You must stop and ask the Human for approval of these docs before proceeding.
 
 **7. Git Commit:** `"docs: define requirements and test plan for [task]"`
-
----
 
 ## Phase 3: Red-Green-Refactor (TDD)
 
 **8. Write Failing Tests:** Based on the Test Plan, write the test cases first.
-   - Include "edge cases" and "happy paths."
-   - Run the tests to confirm they fail.
+  - Include "edge cases" and "happy paths."
+  - Run the tests to confirm they fail.
 
 **9. Git Commit:** `"test: add failing cases for [AC #]"` (Use `--no-verify` if pre-commit hooks block failing tests).
 
 **10. Implementation:** Execute the task.
-   - If the work takes multiple turns/responses, commit at the end of every turn to save state.
+  - If the work takes multiple turns/responses, commit at the end of every turn to save state.
 
 **11. Git Commit:** `"feat: implement [logic/component]"`
-
----
 
 ## Phase 4: Verification & CI/CD
 
 **12. Pass Tests:** Run the test suite. Ensure all tests pass.
 
 **13. CI/CD Integration:** Review existing GitHub Actions.
-   - Does this new behavior need a new CI check?
-   - Should these tests run on every Push or PR?
-   - Update `.github/workflows/` as necessary.
+  - Does this new behavior need a new CI check?
+  - Should these tests run on every Push or PR?
+  - Update `.github/workflows/` as necessary.
 
 **14. Git Commit:** `"ci: integrate tests into workflow"`
-
----
 
 ## Phase 5: Cleanup & Handoff
 
@@ -69,27 +59,29 @@ You are a senior software engineer agent. Follow this recursive workflow for eve
 **17. Git Commit & Push:** `"docs: finalize task and update tracking"`
 
 **18. Pull Request:** Open a PR targeting `main`.
-   - **Description Template:** Include Summary of Changes, Link to Task, and How to Verify.
+  - **Description Template:** Include Summary of Changes, Link to Task, and How to Verify.
 
 **19. Recurse:** If unchecked items remain in the task tracker, return to Step 1.
-
----
 
 ## Critical Rules
 
 ### The "Turn" Rule
-Commit after every "turn" (LLM response). If the agent crashes or hits a limit, you can revert to the exact moment it left off.
+
+**Default:** Commit after every "turn" (LLM response) to ensure you can revert to the exact moment if the agent crashes or hits a limit.
+
+**Pragmatic Batching:** For trivial/noise-only changes (e.g., fixing three typos in comments, or adding multiple similar placeholder files), you may batch them into a single commit to avoid polluting git history. Always err on the side of more commits when in doubt.
 
 ### The Spec Check
+
 Force the agent to stop for human approval on docs to prevent hallucinating features that don't align with vision.
 
 ### Behavioral Testing
+
 Emphasize "Behaviors" over "Implementation" to prevent brittle tests that break on refactoring.
 
 ### Git is Truth
-Never create `file-v2.md` or `file-corrected.md`. Update the original and let git history track changes.
 
----
+Never create `file-v2.md` or `file-corrected.md`. Update the original and let git history track changes.
 
 ## Agent Responsibilities
 
