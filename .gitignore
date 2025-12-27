@@ -42,3 +42,8 @@ xcuserdata/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
