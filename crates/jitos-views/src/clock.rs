@@ -31,6 +31,11 @@ impl ClockView {
     }
 
     /// Apply one event in canonical worldline order
+    ///
+    /// # Errors
+    ///
+    /// Currently never returns an error. Events that are not clock observations
+    /// are silently ignored.
     pub fn apply_event(&mut self, event: &EventEnvelope) -> Result<(), ClockError> {
         // Only process Observation events
         if !matches!(event.kind(), jitos_core::events::EventKind::Observation) {
@@ -71,6 +76,10 @@ impl ClockView {
     }
 
     /// Pure fold over a prefix of a canonical worldline
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClockError::CutOutOfBounds`] if `cut > events.len()`.
     pub fn now_at_cut(
         events: &[EventEnvelope],
         cut: usize,
