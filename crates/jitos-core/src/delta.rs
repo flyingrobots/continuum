@@ -6,7 +6,7 @@
 //!
 //! See SPEC-0002-deltaspec.md for detailed specification.
 
-use crate::canonical::CanonicalError;
+use crate::canonical::{self, CanonicalError};
 use crate::events::{AgentId, EventId};
 use crate::Hash;
 use serde::{Deserialize, Serialize};
@@ -39,10 +39,78 @@ impl DeltaSpec {
     /// Compute the canonical hash of this DeltaSpec.
     ///
     /// INVARIANT: Same logical delta → identical hash (cross-platform, cross-runtime)
+    ///
+    /// NOTE: We hash (kind, description) to avoid circularity with the hash field.
+    /// This is the same pattern used in EventEnvelope.
     pub fn compute_hash(&self) -> Result<Hash, CanonicalError> {
-        // TODO: Implement hash computation
-        // For now, return a dummy hash to make tests compile
-        Ok(Hash([0u8; 32]))
+        // Hash only (kind, description), NOT the hash field (circular dependency)
+        let bytes = canonical::encode(&(&self.kind, &self.description))?;
+        let hash_bytes = blake3::hash(&bytes);
+
+        // Convert blake3::Hash to our Hash type
+        Ok(Hash(*hash_bytes.as_bytes()))
+    }
+
+    /// Create a new DeltaSpec with scheduler policy change
+    pub fn new_scheduler_policy(
+        new_policy: PolicyHash,
+        description: String,
+    ) -> Result<Self, CanonicalError> {
+        let spec = Self {
+            kind: DeltaKind::SchedulerPolicy { new_policy },
+            description,
+            hash: Hash([0u8; 32]), // temp
+        };
+
+        let hash = spec.compute_hash()?;
+        Ok(Self { hash, ..spec })
+    }
+
+    /// Create a new DeltaSpec with clock policy change
+    pub fn new_clock_policy(
+        new_policy: PolicyHash,
+        description: String,
+    ) -> Result<Self, CanonicalError> {
+        let spec = Self {
+            kind: DeltaKind::ClockPolicy { new_policy },
+            description,
+            hash: Hash([0u8; 32]), // temp
+        };
+
+        let hash = spec.compute_hash()?;
+        Ok(Self { hash, ..spec })
+    }
+
+    /// Create a new DeltaSpec with trust policy change
+    pub fn new_trust_policy(
+        new_trust_roots: Vec<AgentId>,
+        description: String,
+    ) -> Result<Self, CanonicalError> {
+        let spec = Self {
+            kind: DeltaKind::TrustPolicy { new_trust_roots },
+            description,
+            hash: Hash([0u8; 32]), // temp
+        };
+
+        let hash = spec.compute_hash()?;
+        Ok(Self { hash, ..spec })
+    }
+
+    /// Create a new DeltaSpec with input mutation
+    pub fn new_input_mutation(
+        insert: Vec<InputEvent>,
+        delete: Vec<EventId>,
+        modify: Vec<(EventId, InputEvent)>,
+        description: String,
+    ) -> Result<Self, CanonicalError> {
+        let spec = Self {
+            kind: DeltaKind::InputMutation { insert, delete, modify },
+            description,
+            hash: Hash([0u8; 32]), // temp
+        };
+
+        let hash = spec.compute_hash()?;
+        Ok(Self { hash, ..spec })
     }
 }
 
