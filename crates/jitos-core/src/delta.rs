@@ -25,15 +25,13 @@ pub struct InputEvent {
 ///
 /// # Security Note
 ///
-/// The `hash` field is NOT validated on deserialization in Phase 0.5.3.
-/// This means a malicious or corrupted DeltaSpec could have an arbitrary hash
-/// that doesn't match `compute_hash()`. Callers MUST use constructor methods
-/// (`new_scheduler_policy`, etc.) which guarantee correct hashes.
+/// The `hash` field IS validated on deserialization. Any DeltaSpec loaded from
+/// CBOR or JSON that has a mismatched hash will be rejected with
+/// `DeltaError::InvalidHash`. This prevents spoofed delta references in fork events.
 ///
-/// TODO(Phase 0.6): Add custom `Deserialize` impl that validates hash matches
-/// `compute_hash()` and rejects invalid specs. This requires integration with
-/// event store validation (see SPEC-0002 §7.3).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Callers should still prefer constructor methods (`new_scheduler_policy`, etc.)
+/// which guarantee correct hashes at construction time.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct DeltaSpec {
     /// What kind of counterfactual
     pub kind: DeltaKind,
@@ -147,6 +145,50 @@ impl DeltaSpec {
     }
 }
 
+// Custom Deserialize implementation that validates the hash
+impl<'de> serde::Deserialize<'de> for DeltaSpec {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        // Helper struct for deserialization (with all fields public for serde)
+        #[derive(Deserialize)]
+        struct DeltaSpecHelper {
+            kind: DeltaKind,
+            description: String,
+            hash: Hash,
+        }
+
+        // Deserialize into helper
+        let helper = DeltaSpecHelper::deserialize(deserializer)?;
+
+        // Construct DeltaSpec with deserialized values
+        let spec = DeltaSpec {
+            kind: helper.kind,
+            description: helper.description,
+            hash: helper.hash,
+        };
+
+        // Validate: recompute hash and compare
+        let computed_hash = spec.compute_hash().map_err(|e| {
+            D::Error::custom(format!("Failed to compute hash for validation: {}", e))
+        })?;
+
+        if computed_hash != spec.hash {
+            return Err(D::Error::custom(format!(
+                "Invalid hash: stored hash does not match computed hash. \
+                 This DeltaSpec may be corrupted or tampered. \
+                 Stored: {:?}, Computed: {:?}",
+                spec.hash, computed_hash
+            )));
+        }
+
+        Ok(spec)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
 pub enum DeltaKind {
@@ -171,25 +213,27 @@ pub enum DeltaKind {
 ///
 /// # Note on Unused Variants
 ///
-/// `InvalidEventRef` and `InvalidHash` are defined but not currently used in Phase 0.5.3.
-/// They are reserved for future validation logic (see SPEC-0002 §7.3):
+/// `InvalidEventRef` is defined but not currently used in Phase 0.5.3.
+/// It is reserved for future validation logic (see SPEC-0002 §7.3):
 /// - `InvalidEventRef`: Will be used when validating InputMutation against EventStore
-/// - `InvalidHash`: Will be used when validating deserialized DeltaSpec hashes
 ///
-/// These are intentionally included now to:
-/// 1. Document the error contract in the type system
-/// 2. Avoid breaking API changes when validation is added later
-/// 3. Make the SPEC-0002 examples compilable (they reference these variants)
+/// `InvalidHash` is also currently unused in direct API calls, but hash validation
+/// IS enforced during deserialization (via custom Deserialize impl). The variant
+/// exists for:
+/// 1. Future explicit validation APIs
+/// 2. Documentation of error contract
+/// 3. SPEC-0002 examples compatibility
 #[derive(Debug, thiserror::Error)]
 pub enum DeltaError {
-    /// Reserved for Phase 0.6 validation - will be used when validating
+    /// Reserved for future validation - will be used when validating
     /// InputMutation delete/modify operations against EventStore
     #[allow(dead_code)]
     #[error("Invalid event reference: {0:?}")]
     InvalidEventRef(EventId),
 
-    /// Reserved for Phase 0.6 validation - will be used when validating
-    /// deserialized DeltaSpec hashes match compute_hash()
+    /// Hash validation error - currently used internally by Deserialize impl
+    /// via serde::de::Error::custom, but this variant reserved for explicit
+    /// validation APIs
     #[allow(dead_code)]
     #[error("Invalid hash: computed hash does not match stored hash")]
     InvalidHash,
@@ -234,13 +278,12 @@ mod tests {
     /// REQUIREMENT: encode(decode(bytes)) = bytes (bijection)
     #[test]
     fn test_deltaspec_roundtrip() {
-        let original = DeltaSpec {
-            kind: DeltaKind::ClockPolicy {
-                new_policy: Hash([2u8; 32]),
-            },
-            description: "Test clock policy change".to_string(),
-            hash: Hash([0u8; 32]),
-        };
+        // Use constructor to get valid hash
+        let original = DeltaSpec::new_clock_policy(
+            Hash([2u8; 32]),
+            "Test clock policy change".to_string(),
+        )
+        .expect("construction should succeed");
 
         // Encode then decode
         let bytes = canonical::encode(&original).expect("encoding should succeed");
@@ -420,6 +463,104 @@ mod tests {
                 assert_eq!(modify[0].1.placeholder, 456, "Modified event should match");
             }
             _ => panic!("Expected InputMutation kind"),
+        }
+    }
+
+    /// Test 9: Deserialization validates hash
+    ///
+    /// REQUIREMENT: Custom Deserialize must reject DeltaSpec with invalid hash
+    #[test]
+    fn test_deserialize_validates_hash() {
+        // Create a valid DeltaSpec
+        let valid_delta = DeltaSpec::new_scheduler_policy(
+            Hash([1u8; 32]),
+            "Test policy".to_string(),
+        )
+        .expect("construction should succeed");
+
+        // Serialize it
+        let bytes = canonical::encode(&valid_delta).expect("encoding should succeed");
+
+        // Deserialize it (should succeed - hash is valid)
+        let deserialized: DeltaSpec =
+            canonical::decode(&bytes).expect("valid hash should deserialize");
+        assert_eq!(deserialized, valid_delta);
+    }
+
+    /// Test 10: Deserialization rejects tampered hash
+    ///
+    /// REQUIREMENT: Deserialize must reject DeltaSpec with spoofed/tampered hash
+    #[test]
+    fn test_deserialize_rejects_tampered_hash() {
+        // Manually construct a DeltaSpec with incorrect hash
+        // (bypassing constructors which would compute correct hash)
+        let tampered = DeltaSpec {
+            kind: DeltaKind::SchedulerPolicy {
+                new_policy: Hash([1u8; 32]),
+            },
+            description: "Test policy".to_string(),
+            hash: Hash([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Wrong hash!
+        };
+
+        // Serialize the tampered spec
+        let bytes = canonical::encode(&tampered).expect("encoding should succeed");
+
+        // Attempt to deserialize (should FAIL - hash validation)
+        let result: Result<DeltaSpec, _> = canonical::decode(&bytes);
+        assert!(
+            result.is_err(),
+            "Deserialization should reject DeltaSpec with tampered hash"
+        );
+
+        // Verify error message mentions hash mismatch
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("Invalid hash") || err_msg.contains("does not match"),
+            "Error should mention hash validation failure: {}",
+            err_msg
+        );
+    }
+
+    /// Test 11: Constructor path produces deserializable DeltaSpec
+    ///
+    /// REQUIREMENT: All constructors should produce DeltaSpec that round-trips
+    #[test]
+    fn test_constructors_produce_valid_specs() {
+        // Test all four constructors
+        let scheduler = DeltaSpec::new_scheduler_policy(
+            Hash([1u8; 32]),
+            "Scheduler test".to_string(),
+        )
+        .expect("should succeed");
+
+        let clock = DeltaSpec::new_clock_policy(
+            Hash([2u8; 32]),
+            "Clock test".to_string(),
+        )
+        .expect("should succeed");
+
+        let trust = DeltaSpec::new_trust_policy(
+            vec![AgentId::new("alice").expect("valid id")],
+            "Trust test".to_string(),
+        )
+        .expect("should succeed");
+
+        let mutation = DeltaSpec::new_input_mutation(
+            vec![],
+            vec![],
+            vec![],
+            "Mutation test".to_string(),
+        )
+        .expect("should succeed");
+
+        // All should round-trip through serialization
+        for delta in &[scheduler, clock, trust, mutation] {
+            let bytes = canonical::encode(delta).expect("encoding should succeed");
+            let decoded: DeltaSpec = canonical::decode(&bytes).expect("decoding should succeed");
+            assert_eq!(&decoded, delta, "Round-trip should preserve DeltaSpec");
         }
     }
 }

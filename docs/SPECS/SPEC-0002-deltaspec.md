@@ -84,14 +84,20 @@ pub enum DeltaKind {
 DeltaSpec MUST be canonical-encodable (per SPEC-0001):
 
 ```rust
-delta_hash = BLAKE3(canonical_cbor(DeltaSpec))
+// Hash is computed over (kind, description) to avoid circular dependency
+// The hash field itself is NOT included in the computation
+delta_hash = BLAKE3(canonical_cbor((kind, description)))
 ```
+
+**Circularity Avoidance:**
+
+The `hash` field is NOT included in its own computation to avoid circular dependency. Hashing the entire `DeltaSpec` struct would require knowing the hash value before computing it. Instead, we hash only the semantically meaningful fields `(kind, description)`.
 
 **Invariants:**
 
 1. Same logical delta → identical hash (cross-platform, cross-runtime)
 2. Different deltas → different hashes (collision resistance)
-3. Hash is computed deterministically from fields
+3. Hash is computed deterministically from `(kind, description)` only
 
 ### 3.3 Usage in Event DAG
 
@@ -420,15 +426,44 @@ impl DeltaSpec {
 }
 ```
 
-### 7.3 Validation (Future Work)
+### 7.3 Hash Validation (Implemented)
 
-**Note:** The validation function below is specified but NOT implemented in Phase 0.5.3.
-`DeltaError::InvalidEventRef` and `DeltaError::InvalidHash` are defined but not yet used.
-This will be implemented in a future phase when event store integration is added.
+**Hash validation is enforced on deserialization** via a custom `Deserialize` implementation:
 
 ```rust
-// FUTURE: Not implemented in Phase 0.5.3
-pub fn validate_deltaspec(delta: &DeltaSpec, store: &EventStore) -> Result<(), DeltaError> {
+impl<'de> serde::Deserialize<'de> for DeltaSpec {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> {
+        // Deserialize fields
+        let spec = /* ... deserialize kind, description, hash ... */;
+
+        // Validate: recompute hash and compare
+        let computed_hash = spec.compute_hash()?;
+        if computed_hash != spec.hash {
+            return Err(D::Error::custom(
+                "Invalid hash: stored hash does not match computed hash"
+            ));
+        }
+
+        Ok(spec)
+    }
+}
+```
+
+**Security Guarantee:**
+
+Any `DeltaSpec` deserialized from CBOR, JSON, or any serde-compatible format will have its hash validated. Tampered or corrupted deltas are **rejected at deserialization time**, preventing spoofed delta references in fork events.
+
+### 7.4 Event Reference Validation (Future Work)
+
+**Note:** InputMutation validation against EventStore is NOT implemented in Phase 0.5.3.
+`DeltaError::InvalidEventRef` is defined but not yet used. This will be implemented in a future phase.
+
+```rust
+// FUTURE: Not implemented - requires EventStore integration
+pub fn validate_input_mutation(
+    delta: &DeltaSpec,
+    store: &EventStore,
+) -> Result<(), DeltaError> {
     match &delta.kind {
         DeltaKind::InputMutation { delete, modify, ... } => {
             // Ensure deleted/modified events exist
@@ -437,17 +472,14 @@ pub fn validate_deltaspec(delta: &DeltaSpec, store: &EventStore) -> Result<(), D
                     return Err(DeltaError::InvalidEventRef(*id));
                 }
             }
-            ...
+            for (id, _) in modify {
+                if store.get(id).is_none() {
+                    return Err(DeltaError::InvalidEventRef(*id));
+                }
+            }
         }
-        ...
+        _ => {}
     }
-
-    // Verify hash matches
-    let computed = delta.compute_hash();
-    if computed != delta.hash {
-        return Err(DeltaError::InvalidHash);
-    }
-
     Ok(())
 }
 ```
