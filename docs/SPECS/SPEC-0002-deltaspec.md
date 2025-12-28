@@ -384,16 +384,20 @@ pub fn validate_deltaspec(delta: &DeltaSpec, store: &EventStore) -> Result<(), D
 
 ## 8. Future Extensions
 
-**Extension 1: Composite Deltas**
+### Extension 1: Composite Deltas
+
 Allow multiple deltas to be combined:
+
 ```rust
 DeltaKind::Composite {
     deltas: Vec<DeltaSpec>,
 }
 ```
 
-**Extension 2: Probabilistic Deltas**
+### Extension 2: Probabilistic Deltas
+
 For fuzzing and Monte Carlo analysis:
+
 ```rust
 DeltaKind::Probabilistic {
     distribution: Distribution,
@@ -401,8 +405,10 @@ DeltaKind::Probabilistic {
 }
 ```
 
-**Extension 3: Temporal Constraints**
+### Extension 3: Temporal Constraints
+
 Deltas that apply only within time windows:
+
 ```rust
 DeltaSpec {
     valid_from: Time,

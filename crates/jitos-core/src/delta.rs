@@ -82,10 +82,22 @@ impl DeltaSpec {
     }
 
     /// Create a new DeltaSpec with trust policy change
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeltaError::InvalidStructure` if `new_trust_roots` is empty.
+    /// An empty trust root set means "trust no one" which is a catastrophic
+    /// policy change that should be explicitly opted into (not accidental).
     pub fn new_trust_policy(
         new_trust_roots: Vec<AgentId>,
         description: String,
-    ) -> Result<Self, CanonicalError> {
+    ) -> Result<Self, DeltaError> {
+        if new_trust_roots.is_empty() {
+            return Err(DeltaError::InvalidStructure(
+                "TrustPolicy cannot have empty new_trust_roots (would mean 'trust no one')".to_string()
+            ));
+        }
+
         let spec = Self {
             kind: DeltaKind::TrustPolicy { new_trust_roots },
             description,
@@ -142,6 +154,9 @@ pub enum DeltaError {
 
     #[error("Invalid hash: computed hash does not match stored hash")]
     InvalidHash,
+
+    #[error("Invalid structure: {0}")]
+    InvalidStructure(String),
 
     #[error("Canonical encoding error: {0}")]
     CanonicalError(#[from] CanonicalError),
@@ -255,5 +270,117 @@ mod tests {
             hash1, hash2,
             "Different DeltaSpecs must produce different hashes"
         );
+    }
+
+    /// Test 5: TrustPolicy rejects empty trust roots
+    ///
+    /// REQUIREMENT: Empty new_trust_roots should be rejected (means "trust no one")
+    #[test]
+    fn test_trust_policy_rejects_empty_roots() {
+        let result = DeltaSpec::new_trust_policy(
+            vec![], // Empty vector - should be rejected
+            "Dangerous: trust no one".to_string(),
+        );
+
+        assert!(
+            result.is_err(),
+            "TrustPolicy with empty new_trust_roots should be rejected"
+        );
+
+        match result {
+            Err(DeltaError::InvalidStructure(msg)) => {
+                assert!(
+                    msg.contains("trust no one"),
+                    "Error message should explain the danger"
+                );
+            }
+            _ => panic!("Expected InvalidStructure error"),
+        }
+    }
+
+    /// Test 6: InputMutation with insert operation
+    ///
+    /// REQUIREMENT: Can express "same schedule, different inputs" (insert)
+    #[test]
+    fn test_input_mutation_insert() {
+        let insert_event = InputEvent { placeholder: 123 };
+
+        let delta = DeltaSpec::new_input_mutation(
+            vec![insert_event.clone()],
+            vec![],
+            vec![],
+            "Insert a delayed network packet".to_string(),
+        )
+        .expect("InputMutation with insert should succeed");
+
+        // Verify the kind is correct
+        match &delta.kind {
+            DeltaKind::InputMutation { insert, delete, modify } => {
+                assert_eq!(insert.len(), 1, "Should have 1 inserted event");
+                assert_eq!(delete.len(), 0, "Should have 0 deleted events");
+                assert_eq!(modify.len(), 0, "Should have 0 modified events");
+                assert_eq!(insert[0].placeholder, 123, "Inserted event should match");
+            }
+            _ => panic!("Expected InputMutation kind"),
+        }
+
+        // Hash should be computed
+        assert_ne!(delta.hash, Hash([0u8; 32]), "Hash should be computed");
+    }
+
+    /// Test 7: InputMutation with delete operation
+    ///
+    /// REQUIREMENT: Can express "same schedule, different inputs" (delete)
+    #[test]
+    fn test_input_mutation_delete() {
+        let event_to_delete = Hash([42u8; 32]);
+
+        let delta = DeltaSpec::new_input_mutation(
+            vec![],
+            vec![event_to_delete],
+            vec![],
+            "Delete a network packet".to_string(),
+        )
+        .expect("InputMutation with delete should succeed");
+
+        // Verify the kind is correct
+        match &delta.kind {
+            DeltaKind::InputMutation { insert, delete, modify } => {
+                assert_eq!(insert.len(), 0, "Should have 0 inserted events");
+                assert_eq!(delete.len(), 1, "Should have 1 deleted event");
+                assert_eq!(modify.len(), 0, "Should have 0 modified events");
+                assert_eq!(delete[0], event_to_delete, "Deleted event ID should match");
+            }
+            _ => panic!("Expected InputMutation kind"),
+        }
+    }
+
+    /// Test 8: InputMutation with modify operation
+    ///
+    /// REQUIREMENT: Can express "same schedule, different inputs" (modify)
+    #[test]
+    fn test_input_mutation_modify() {
+        let event_to_modify = Hash([99u8; 32]);
+        let modified_event = InputEvent { placeholder: 456 };
+
+        let delta = DeltaSpec::new_input_mutation(
+            vec![],
+            vec![],
+            vec![(event_to_modify, modified_event.clone())],
+            "Modify a network packet".to_string(),
+        )
+        .expect("InputMutation with modify should succeed");
+
+        // Verify the kind is correct
+        match &delta.kind {
+            DeltaKind::InputMutation { insert, delete, modify } => {
+                assert_eq!(insert.len(), 0, "Should have 0 inserted events");
+                assert_eq!(delete.len(), 0, "Should have 0 deleted events");
+                assert_eq!(modify.len(), 1, "Should have 1 modified event");
+                assert_eq!(modify[0].0, event_to_modify, "Modified event ID should match");
+                assert_eq!(modify[0].1.placeholder, 456, "Modified event should match");
+            }
+            _ => panic!("Expected InputMutation kind"),
+        }
     }
 }

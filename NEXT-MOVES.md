@@ -135,17 +135,17 @@ pub struct DeltaSpec {
 #[derive(Serialize, Deserialize, Clone)]
 pub enum DeltaKind {
     /// Change scheduler policy (e.g., FIFO → LIFO)
-    SchedulerPolicy { new_policy: SchedulerPolicyHash },
+    SchedulerPolicy { new_policy: PolicyHash },
 
     /// Inject/modify/delete input event
     InputMutation {
         insert: Vec<InputEvent>,
-        delete: Vec<Hash>,
-        modify: Vec<(Hash, InputEvent)>,
+        delete: Vec<EventId>,
+        modify: Vec<(EventId, InputEvent)>,
     },
 
     /// Change clock interpretation policy
-    ClockPolicy { new_policy: ClockPolicyHash },
+    ClockPolicy { new_policy: PolicyHash },
 
     /// Change trust assumptions
     TrustPolicy { new_trust_roots: Vec<AgentId> },
