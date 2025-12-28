@@ -22,7 +22,9 @@ impl AgentId {
     pub fn new(id: impl Into<String>) -> Result<Self, EventError> {
         let id = id.into();
         if id.is_empty() {
-            return Err(EventError::InvalidStructure("AgentId cannot be empty".to_string()));
+            return Err(EventError::InvalidStructure(
+                "AgentId cannot be empty".to_string(),
+            ));
         }
         Ok(AgentId(id))
     }
@@ -53,7 +55,9 @@ pub struct Signature(Vec<u8>);
 impl Signature {
     pub fn new(bytes: Vec<u8>) -> Result<Self, EventError> {
         if bytes.is_empty() {
-            return Err(EventError::InvalidStructure("Signature cannot be empty".to_string()));
+            return Err(EventError::InvalidStructure(
+                "Signature cannot be empty".to_string(),
+            ));
         }
         Ok(Signature(bytes))
     }
@@ -110,12 +114,12 @@ impl CanonicalBytes {
     /// This is used internally by Deserialize to reject non-canonical payloads.
     fn validate_canonical(bytes: &[u8]) -> Result<(), String> {
         // Decode the bytes to any valid CBOR value
-        let value: ciborium::Value = canonical::decode(bytes)
-            .map_err(|e| format!("Invalid CBOR: {}", e))?;
+        let value: ciborium::Value =
+            canonical::decode(bytes).map_err(|e| format!("Invalid CBOR: {}", e))?;
 
         // Re-encode using canonical encoding
-        let canonical_bytes = canonical::encode(&value)
-            .map_err(|e| format!("Re-encoding failed: {}", e))?;
+        let canonical_bytes =
+            canonical::encode(&value).map_err(|e| format!("Re-encoding failed: {}", e))?;
 
         // If the bytes don't match, the original was not canonical
         if bytes != canonical_bytes {
@@ -210,6 +214,10 @@ pub struct EventEnvelope {
 
     /// Cryptographic signature (required for Commit, optional otherwise)
     signature: Option<Signature>,
+
+    /// Observation type tag (for Observation events only)
+    /// Enables efficient filtering without decoding payloads
+    observation_type: Option<String>,
 }
 
 impl EventEnvelope {
@@ -248,9 +256,14 @@ impl EventEnvelope {
     /// Create a new Observation event.
     ///
     /// Observations are facts about the world (may be wrong, contradicted, or untrusted).
+    ///
+    /// # Arguments
+    ///
+    /// * `observation_type` - Optional type tag for efficient filtering (e.g., "OBS_CLOCK_SAMPLE_V0")
     pub fn new_observation(
         payload: CanonicalBytes,
         parents: Vec<EventId>,
+        observation_type: Option<String>,
         agent_id: Option<AgentId>,
         signature: Option<Signature>,
     ) -> Result<Self, EventError> {
@@ -264,6 +277,7 @@ impl EventEnvelope {
             parents,
             agent_id,
             signature,
+            observation_type,
         })
     }
 
@@ -286,6 +300,7 @@ impl EventEnvelope {
             parents,
             agent_id,
             signature,
+            observation_type: None,
         })
     }
 
@@ -328,6 +343,7 @@ impl EventEnvelope {
             parents,
             agent_id,
             signature,
+            observation_type: None,
         })
     }
 
@@ -355,6 +371,7 @@ impl EventEnvelope {
             parents,
             agent_id,
             signature: Some(signature),
+            observation_type: None,
         })
     }
 
@@ -398,6 +415,10 @@ impl EventEnvelope {
         self.signature.as_ref()
     }
 
+    pub fn observation_type(&self) -> Option<&str> {
+        self.observation_type.as_deref()
+    }
+
     /// Check if this event is a genesis event (no parents).
     pub fn is_genesis(&self) -> bool {
         self.parents.is_empty()
@@ -426,6 +447,7 @@ impl<'de> Deserialize<'de> for EventEnvelope {
             parents: Vec<EventId>,
             agent_id: Option<AgentId>,
             signature: Option<Signature>,
+            observation_type: Option<String>,
         }
 
         let raw = RawEventEnvelope::deserialize(deserializer)?;
@@ -448,14 +470,14 @@ impl<'de> Deserialize<'de> for EventEnvelope {
 
         if !is_canonical {
             return Err(serde::de::Error::custom(
-                "Parents must be canonically sorted and deduplicated"
+                "Parents must be canonically sorted and deduplicated",
             ));
         }
 
         // Validation 3: Commit events MUST have signature
         if raw.kind == EventKind::Commit && raw.signature.is_none() {
             return Err(serde::de::Error::custom(
-                "Commit event must have a signature"
+                "Commit event must have a signature",
             ));
         }
 
@@ -466,6 +488,7 @@ impl<'de> Deserialize<'de> for EventEnvelope {
             parents: raw.parents,
             agent_id: raw.agent_id,
             signature: raw.signature,
+            observation_type: raw.observation_type,
         })
     }
 }
@@ -493,10 +516,7 @@ pub trait EventStore {
 ///
 /// This enforces invariants that may not be checkable at construction time
 /// (e.g., when importing events from disk/network).
-pub fn validate_event<S: EventStore>(
-    event: &EventEnvelope,
-    store: &S,
-) -> Result<(), EventError> {
+pub fn validate_event<S: EventStore>(event: &EventEnvelope, store: &S) -> Result<(), EventError> {
     // Rule 1: Event ID must match computed hash
     if !event.verify_event_id()? {
         return Err(EventError::ValidationError(
@@ -596,7 +616,10 @@ pub fn validate_event<S: EventStore>(
 /// 1. Provide the existing store (may be empty)
 /// 2. Provide events in topological order (parents before children)
 /// 3. All events will be validated, allowing intra-batch references
-pub fn validate_store<S: EventStore>(store: &S, events: &[EventEnvelope]) -> Result<(), EventError> {
+pub fn validate_store<S: EventStore>(
+    store: &S,
+    events: &[EventEnvelope],
+) -> Result<(), EventError> {
     use std::collections::HashMap;
 
     // Build temporary lookup for events in this batch
@@ -626,7 +649,10 @@ struct CombinedStore<'a, S: EventStore> {
 impl<'a, S: EventStore> EventStore for CombinedStore<'a, S> {
     fn get(&self, event_id: &EventId) -> Option<&EventEnvelope> {
         // Check batch first, then base store
-        self.batch.get(event_id).copied().or_else(|| self.base.get(event_id))
+        self.batch
+            .get(event_id)
+            .copied()
+            .or_else(|| self.base.get(event_id))
     }
 }
 
@@ -649,6 +675,7 @@ mod tests {
         let event = EventEnvelope::new_observation(
             payload,
             vec![],
+            None,
             Some(test_agent_id()),
             Some(test_signature()),
         )
@@ -686,26 +713,18 @@ mod tests {
     fn test_decision_with_policy_parent() {
         // Create evidence
         let obs_payload = CanonicalBytes::from_value(&"clock_sample=6000ms").unwrap();
-        let observation = EventEnvelope::new_observation(
-            obs_payload,
-            vec![],
-            Some(test_agent_id()),
-            None,
-        )
-        .unwrap();
+        let observation =
+            EventEnvelope::new_observation(obs_payload, vec![], None, Some(test_agent_id()), None)
+                .unwrap();
 
         // Create policy
         let policy_payload = CanonicalBytes::from_value(&serde_json::json!({
             "clock_policy": "trust_ntp"
         }))
         .unwrap();
-        let policy = EventEnvelope::new_policy_context(
-            policy_payload,
-            vec![],
-            Some(test_agent_id()),
-            None,
-        )
-        .unwrap();
+        let policy =
+            EventEnvelope::new_policy_context(policy_payload, vec![], Some(test_agent_id()), None)
+                .unwrap();
 
         // Create decision referencing both
         let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
@@ -736,6 +755,7 @@ mod tests {
         let evidence = EventEnvelope::new_observation(
             CanonicalBytes::from_value(&"timer_request").unwrap(),
             vec![],
+            None,
             None,
             None,
         )
@@ -786,12 +806,14 @@ mod tests {
             vec![hash1, hash2, hash3],
             None,
             None,
+            None,
         )
         .unwrap();
 
         let event2 = EventEnvelope::new_observation(
             payload.clone(),
             vec![hash3, hash1, hash2],
+            None,
             None,
             None,
         )
@@ -807,13 +829,9 @@ mod tests {
         let payload = CanonicalBytes::from_value(&"test").unwrap();
 
         // Duplicate parents should be deduplicated
-        let event = EventEnvelope::new_observation(
-            payload,
-            vec![hash1, hash1, hash1],
-            None,
-            None,
-        )
-        .unwrap();
+        let event =
+            EventEnvelope::new_observation(payload, vec![hash1, hash1, hash1], None, None, None)
+                .unwrap();
 
         assert_eq!(event.parents().len(), 1);
         assert_eq!(event.parents()[0], hash1);
@@ -826,29 +844,20 @@ mod tests {
             "clock_policy": "trust_ntp"
         }))
         .unwrap();
-        let policy1 = EventEnvelope::new_policy_context(
-            policy1_payload,
-            vec![],
-            None,
-            None,
-        )
-        .unwrap();
+        let policy1 =
+            EventEnvelope::new_policy_context(policy1_payload, vec![], None, None).unwrap();
 
         let policy2_payload = CanonicalBytes::from_value(&serde_json::json!({
             "clock_policy": "trust_monotonic"
         }))
         .unwrap();
-        let policy2 = EventEnvelope::new_policy_context(
-            policy2_payload,
-            vec![],
-            None,
-            None,
-        )
-        .unwrap();
+        let policy2 =
+            EventEnvelope::new_policy_context(policy2_payload, vec![], None, None).unwrap();
 
         // Same evidence
         let obs_payload = CanonicalBytes::from_value(&"clock_sample=6000ms").unwrap();
-        let observation = EventEnvelope::new_observation(obs_payload, vec![], None, None).unwrap();
+        let observation =
+            EventEnvelope::new_observation(obs_payload, vec![], None, None, None).unwrap();
 
         // Same decision payload, same evidence, different policy
         let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
@@ -878,7 +887,7 @@ mod tests {
     #[test]
     fn test_tampered_event_id_fails_verification() {
         let payload = CanonicalBytes::from_value(&"test").unwrap();
-        let mut event = EventEnvelope::new_observation(payload, vec![], None, None).unwrap();
+        let mut event = EventEnvelope::new_observation(payload, vec![], None, None, None).unwrap();
 
         // Tamper with event_id
         event.event_id = Hash([0xFF; 32]);
@@ -897,6 +906,7 @@ mod tests {
             base_parents.clone(),
             None,
             None,
+            None,
         )
         .unwrap();
 
@@ -904,6 +914,7 @@ mod tests {
         let diff_parents = EventEnvelope::new_observation(
             base_payload.clone(),
             vec![Hash([1u8; 32])],
+            None,
             None,
             None,
         )
@@ -922,20 +933,16 @@ mod tests {
 
         // Different payload
         let diff_payload = CanonicalBytes::from_value(&"different").unwrap();
-        let diff_payload_event = EventEnvelope::new_observation(
-            diff_payload,
-            base_parents.clone(),
-            None,
-            None,
-        )
-        .unwrap();
+        let diff_payload_event =
+            EventEnvelope::new_observation(diff_payload, base_parents.clone(), None, None, None)
+                .unwrap();
         assert_ne!(base.event_id(), diff_payload_event.event_id());
     }
 
     #[test]
     fn test_empty_payload() {
         let payload = CanonicalBytes::from_value(&()).unwrap();
-        let event = EventEnvelope::new_observation(payload, vec![], None, None).unwrap();
+        let event = EventEnvelope::new_observation(payload, vec![], None, None, None).unwrap();
 
         assert!(event.verify_event_id().unwrap());
         assert!(event.is_genesis());
@@ -988,6 +995,7 @@ mod tests {
             vec![],
             None,
             None,
+            None,
         )
         .unwrap();
         store.insert(obs.clone());
@@ -996,7 +1004,8 @@ mod tests {
         // This bypasses the typed constructor to test validation
         let payload = CanonicalBytes::from_value(&"bad").unwrap();
         let parents = vec![obs.event_id()];
-        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+        let event_id =
+            EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
 
         let bad_decision = EventEnvelope {
             event_id,
@@ -1005,6 +1014,7 @@ mod tests {
             parents,
             agent_id: None,
             signature: None,
+            observation_type: None,
         };
 
         let result = validate_event(&bad_decision, &store);
@@ -1040,7 +1050,8 @@ mod tests {
         // Manually construct Decision with two policy parents
         let payload = CanonicalBytes::from_value(&"bad").unwrap();
         let parents = vec![policy1.event_id(), policy2.event_id()];
-        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+        let event_id =
+            EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
 
         let bad_decision = EventEnvelope {
             event_id,
@@ -1049,6 +1060,7 @@ mod tests {
             parents,
             agent_id: None,
             signature: None,
+            observation_type: None,
         };
 
         let result = validate_event(&bad_decision, &store);
@@ -1069,6 +1081,7 @@ mod tests {
             vec![],
             None,
             None,
+            None,
         )
         .unwrap();
         store.insert(obs.clone());
@@ -1076,7 +1089,8 @@ mod tests {
         // Manually construct Commit with only observation parent (no decision)
         let payload = CanonicalBytes::from_value(&"bad").unwrap();
         let parents = vec![obs.event_id()];
-        let event_id = EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
+        let event_id =
+            EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
 
         let bad_commit = EventEnvelope {
             event_id,
@@ -1085,6 +1099,7 @@ mod tests {
             parents,
             agent_id: None,
             signature: Some(test_signature()),
+            observation_type: None,
         };
 
         let result = validate_event(&bad_commit, &store);
@@ -1103,6 +1118,7 @@ mod tests {
         let evidence = EventEnvelope::new_observation(
             CanonicalBytes::from_value(&"evidence").unwrap(),
             vec![],
+            None,
             None,
             None,
         )
@@ -1131,9 +1147,11 @@ mod tests {
         // Manually construct Commit without signature
         let payload = CanonicalBytes::from_value(&"bad").unwrap();
         let parents = vec![decision.event_id()];
-        let event_id = EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
+        let event_id =
+            EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
 
         let bad_commit = EventEnvelope {
+            observation_type: None,
             event_id,
             kind: EventKind::Commit,
             payload,
@@ -1159,6 +1177,7 @@ mod tests {
             vec![],
             None,
             None,
+            None,
         )
         .unwrap();
 
@@ -1181,6 +1200,7 @@ mod tests {
         let obs = EventEnvelope::new_observation(
             CanonicalBytes::from_value(&"sample").unwrap(),
             vec![],
+            None,
             None,
             None,
         )
@@ -1238,7 +1258,8 @@ mod tests {
         // Manually construct Decision with ONLY policy parent (no evidence)
         let payload = CanonicalBytes::from_value(&"bad").unwrap();
         let parents = vec![policy.event_id()];
-        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+        let event_id =
+            EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
 
         let bad_decision = EventEnvelope {
             event_id,
@@ -1247,6 +1268,7 @@ mod tests {
             parents,
             agent_id: None,
             signature: None,
+            observation_type: None,
         };
 
         let result = validate_event(&bad_decision, &store);
@@ -1413,7 +1435,10 @@ mod tests {
 
         // Deserialize should reject empty signature
         let result: Result<Signature, _> = ciborium::de::from_reader(&buf[..]);
-        assert!(result.is_err(), "Empty Signature should be rejected during deserialization");
+        assert!(
+            result.is_err(),
+            "Empty Signature should be rejected during deserialization"
+        );
     }
 
     #[test]
@@ -1442,7 +1467,10 @@ mod tests {
 
         // Deserialize should reject empty AgentId
         let result: Result<AgentId, _> = ciborium::de::from_reader(&buf[..]);
-        assert!(result.is_err(), "Empty AgentId should be rejected during deserialization");
+        assert!(
+            result.is_err(),
+            "Empty AgentId should be rejected during deserialization"
+        );
     }
 
     #[test]
@@ -1467,6 +1495,7 @@ mod tests {
         let event = EventEnvelope::new_observation(
             payload.clone(),
             vec![],
+            None,
             Some(agent_id.clone()),
             None,
         )
@@ -1474,7 +1503,8 @@ mod tests {
 
         // Manually tamper with the event_id
         let tampered = EventEnvelope {
-            event_id: Hash([0xFF; 32]),  // Tampered hash
+            observation_type: None,
+            event_id: Hash([0xFF; 32]), // Tampered hash
             kind: event.kind.clone(),
             payload: payload.clone(),
             parents: event.parents.clone(),
@@ -1505,7 +1535,8 @@ mod tests {
         let unsorted_parents = vec![parent2, parent1];
 
         let tampered = EventEnvelope {
-            event_id: Hash([0xAA; 32]),  // Doesn't matter, will fail parent check first
+            observation_type: None,
+            event_id: Hash([0xAA; 32]), // Doesn't matter, will fail parent check first
             kind: EventKind::Observation,
             payload,
             parents: unsorted_parents,
@@ -1532,12 +1563,13 @@ mod tests {
         let decision_id = Hash([3u8; 32]);
 
         let tampered = EventEnvelope {
+            observation_type: None,
             event_id: Hash([0xBB; 32]),
             kind: EventKind::Commit,
             payload,
             parents: vec![decision_id],
             agent_id: Some(AgentId::new("agent-1").unwrap()),
-            signature: None,  // Missing signature on Commit!
+            signature: None, // Missing signature on Commit!
         };
 
         // Serialize
@@ -1562,6 +1594,7 @@ mod tests {
         let duplicate_parents = vec![parent, parent];
 
         let tampered = EventEnvelope {
+            observation_type: None,
             event_id: Hash([0xCC; 32]),
             kind: EventKind::Observation,
             payload,

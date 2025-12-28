@@ -633,8 +633,15 @@ mod tests {
         let bytes = encode_value(&Value::Float(i128_max_as_f64)).unwrap();
 
         // Should be float64 encoded (0xfb), not integer
-        assert_eq!(bytes[0], 0xfb, "i128::MAX as f64 should encode as float64, not integer");
-        assert_eq!(bytes.len(), 9, "float64 encoding is 1 byte tag + 8 bytes data");
+        assert_eq!(
+            bytes[0], 0xfb,
+            "i128::MAX as f64 should encode as float64, not integer"
+        );
+        assert_eq!(
+            bytes.len(),
+            9,
+            "float64 encoding is 1 byte tag + 8 bytes data"
+        );
 
         // Should not panic during encoding or decoding
         let decoded = decode_value(&bytes).unwrap();

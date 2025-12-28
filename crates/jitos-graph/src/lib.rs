@@ -1,7 +1,6 @@
 // @ts-check
 use jitos_core::Hash;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use slotmap::{new_key_type, SlotMap};
 
 new_key_type! { pub struct NodeKey; }
@@ -39,8 +38,7 @@ impl WarpGraph {
 
     /// Computes the BLAKE3 root hash of the graph state.
     pub fn compute_hash(&self) -> Hash {
-        let mut hasher = blake3::Hasher::new();
-        // Deterministic sorting/hashing logic would go here
+        // TODO: Implement deterministic sorting/hashing logic
         // For now, a placeholder
         Hash([0u8; 32])
     }
