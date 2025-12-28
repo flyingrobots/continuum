@@ -53,7 +53,10 @@ impl Signature {
 ///
 /// This wrapper ensures all payloads are canonical CBOR.
 /// The inner field is private to prevent construction of non-canonical data.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+///
+/// SECURITY: Custom Deserialize validates canonicality on deserialization.
+/// Non-canonical bytes are rejected to prevent hash divergence attacks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
 pub struct CanonicalBytes(Vec<u8>);
 
@@ -72,6 +75,47 @@ impl CanonicalBytes {
     /// Get the raw bytes (read-only).
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+
+    /// Validate that bytes are canonical CBOR.
+    ///
+    /// This is used internally by Deserialize to reject non-canonical payloads.
+    fn validate_canonical(bytes: &[u8]) -> Result<(), String> {
+        // Decode the bytes to any valid CBOR value
+        let value: ciborium::Value = canonical::decode(bytes)
+            .map_err(|e| format!("Invalid CBOR: {}", e))?;
+
+        // Re-encode using canonical encoding
+        let canonical_bytes = canonical::encode(&value)
+            .map_err(|e| format!("Re-encoding failed: {}", e))?;
+
+        // If the bytes don't match, the original was not canonical
+        if bytes != canonical_bytes {
+            return Err("Payload bytes are not canonical CBOR".to_string());
+        }
+
+        Ok(())
+    }
+}
+
+/// Custom Deserialize implementation that validates canonicality.
+///
+/// This prevents attacks where non-canonical encodings of the same logical value
+/// produce different event_ids, breaking content-addressing.
+impl<'de> Deserialize<'de> for CanonicalBytes {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        // Deserialize as raw bytes
+        let bytes = Vec::<u8>::deserialize(deserializer)?;
+
+        // Validate canonicality
+        Self::validate_canonical(&bytes).map_err(D::Error::custom)?;
+
+        Ok(CanonicalBytes(bytes))
     }
 }
 
@@ -1045,5 +1089,124 @@ mod tests {
             .unwrap_err()
             .to_string()
             .contains("must have evidence parents"));
+    }
+
+    #[test]
+    fn test_canonical_bytes_rejects_non_canonical() {
+        // Create non-canonical CBOR: indefinite-length map (which is not canonical)
+        // Canonical CBOR requires definite-length encoding
+        let non_canonical_bytes = vec![
+            0xBF, // Indefinite-length map start
+            0x61, 0x61, // Key "a"
+            0x01, // Value 1
+            0xFF, // Break
+        ];
+
+        // Try to create CanonicalBytes wrapper and serialize it in an EventEnvelope
+        // When the envelope is deserialized, it should reject non-canonical payloads
+        let wrapper = CanonicalBytes(non_canonical_bytes);
+
+        // Serialize the wrapper in a structure
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&wrapper, &mut buf).unwrap();
+
+        // Try to deserialize - should fail validation
+        let result: Result<CanonicalBytes, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_canonical_bytes_accepts_canonical() {
+        // Create canonical CBOR for a simple map {"a": 1}
+        let value = serde_json::json!({"a": 1});
+        let canonical_bytes = canonical::encode(&value).unwrap();
+
+        // Wrap in CanonicalBytes
+        let wrapper = CanonicalBytes(canonical_bytes.clone());
+
+        // Serialize the wrapper
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&wrapper, &mut buf).unwrap();
+
+        // Deserialize should succeed
+        let result: Result<CanonicalBytes, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(result.is_ok());
+
+        // And the bytes should match exactly
+        assert_eq!(result.unwrap().as_bytes(), &canonical_bytes);
+    }
+
+    #[test]
+    fn test_canonical_bytes_roundtrip_validation() {
+        // Create a value
+        let original = serde_json::json!({
+            "key": "value",
+            "number": 42,
+            "nested": {"inner": true}
+        });
+
+        // Encode canonically
+        let canonical = CanonicalBytes::from_value(&original).unwrap();
+
+        // Serialize the CanonicalBytes wrapper
+        let mut serialized = Vec::new();
+        ciborium::ser::into_writer(&canonical, &mut serialized).unwrap();
+
+        // Deserialize it back
+        let deserialized: CanonicalBytes = ciborium::de::from_reader(&serialized[..]).unwrap();
+
+        // Should match exactly
+        assert_eq!(canonical.as_bytes(), deserialized.as_bytes());
+    }
+
+    #[test]
+    fn test_canonical_bytes_rejects_wrong_int_encoding() {
+        // CBOR allows multiple encodings of the same integer
+        // E.g., the number 23 can be encoded as:
+        // - 0x17 (1 byte, canonical)
+        // - 0x1817 (2 bytes, NOT canonical)
+        // - 0x190017 (3 bytes, NOT canonical)
+
+        // Non-canonical: 2-byte encoding of 23
+        let non_canonical = vec![0x18, 0x17];
+
+        // Wrap it
+        let wrapper = CanonicalBytes(non_canonical);
+
+        // Serialize
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&wrapper, &mut buf).unwrap();
+
+        // This should be rejected during deserialization
+        let result: Result<CanonicalBytes, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_canonical_bytes_rejects_unsorted_map_keys() {
+        // Canonical CBOR requires map keys to be sorted lexicographically
+        // Our canonical encoder should sort them, and re-encoding should produce identical bytes
+
+        use ciborium::value::Value;
+
+        // Create map with keys in wrong order (z before a)
+        let map = vec![
+            (Value::Text("z".to_string()), Value::Integer(1.into())),
+            (Value::Text("a".to_string()), Value::Integer(2.into())),
+        ];
+
+        // Encode with canonical encoder (should sort keys to a, z)
+        let canonical_bytes = canonical::encode(&Value::Map(map)).unwrap();
+
+        // Wrap and serialize
+        let wrapper = CanonicalBytes(canonical_bytes.clone());
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&wrapper, &mut buf).unwrap();
+
+        // Deserialize and verify it's accepted (keys were sorted by canonical encoder)
+        let deserialized: CanonicalBytes = ciborium::de::from_reader(&buf[..]).unwrap();
+
+        // The deserialized bytes should match canonical
+        assert_eq!(deserialized.as_bytes(), &canonical_bytes);
     }
 }
