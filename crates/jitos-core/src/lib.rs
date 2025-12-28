@@ -1,8 +1,8 @@
-// @ts-check
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub mod canonical;
+pub mod events;
 
 /// A 256-bit BLAKE3 hash.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

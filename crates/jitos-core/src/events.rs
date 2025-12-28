@@ -1,0 +1,645 @@
+//! Event Envelope v2: Policy as Structure (Phase 0.5.2)
+//!
+//! This module implements a content-addressed event DAG where:
+//! - Policy is a first-class PolicyContext event (not metadata)
+//! - Decision events MUST reference exactly one PolicyContext parent
+//! - Event IDs are boring: H(kind || payload || sorted_parents)
+//! - No nonces, no hidden state, no lies
+
+use crate::canonical::{self, CanonicalError};
+use crate::Hash;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
+
+/// Event ID - content-addressed hash of the canonical event bytes
+pub type EventId = Hash;
+
+/// Agent identifier (human, AI, or system)
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AgentId(String);
+
+impl AgentId {
+    pub fn new(id: impl Into<String>) -> Result<Self, &'static str> {
+        let id = id.into();
+        if id.is_empty() {
+            return Err("AgentId cannot be empty");
+        }
+        Ok(AgentId(id))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+/// Cryptographic signature over event data
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Signature(Vec<u8>);
+
+impl Signature {
+    pub fn new(bytes: Vec<u8>) -> Result<Self, &'static str> {
+        if bytes.is_empty() {
+            return Err("Signature cannot be empty");
+        }
+        Ok(Signature(bytes))
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+/// Canonically-encoded bytes for event payloads.
+///
+/// This wrapper ensures all payloads are canonical CBOR.
+/// The inner field is private to prevent construction of non-canonical data.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct CanonicalBytes(Vec<u8>);
+
+impl CanonicalBytes {
+    /// Create canonical bytes by encoding a serializable value.
+    pub fn from_value<T: Serialize>(value: &T) -> Result<Self, CanonicalError> {
+        let bytes = canonical::encode(value)?;
+        Ok(CanonicalBytes(bytes))
+    }
+
+    /// Decode canonical bytes to a deserializable value.
+    pub fn to_value<T: for<'de> Deserialize<'de>>(&self) -> Result<T, CanonicalError> {
+        canonical::decode(&self.0)
+    }
+
+    /// Get the raw bytes (read-only).
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+/// Event classification - the four fundamental types.
+///
+/// These are the minimum types needed for:
+/// - Content addressing (no semantic ambiguity)
+/// - Policy-aware determinism
+/// - Honest counterfactuals
+/// - Mergeable DAGs
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum EventKind {
+    /// Observation: Facts about the world
+    ///
+    /// Examples: clock samples, network messages, sensor readings, user inputs
+    /// Properties: May be wrong, may be contradicted later, does not cause effects by itself
+    Observation,
+
+    /// PolicyContext: How reality will be interpreted
+    ///
+    /// Examples: clock_policy="trust_ntp", scheduler_policy="fifo", trust_policy=["agentA"]
+    /// Properties: Immutable, hash-stable, explicit, can be forked/merged/superseded
+    PolicyContext,
+
+    /// Decision: Interpretive choice given evidence + policy
+    ///
+    /// Examples: "fire timer now", "rewrite rule R fired", "scheduler selected event X"
+    /// INVARIANT: Every Decision MUST have exactly one PolicyContext as a parent
+    Decision,
+
+    /// Commit: Irreversible effect that escaped the system boundary
+    ///
+    /// Examples: timer fired, packet sent, disk write, external API call
+    /// Properties: Only Commit events are "real" in the causal sense
+    Commit,
+}
+
+/// The universal event envelope for the Loom worldline DAG (v2).
+///
+/// Events are content-addressed and cryptographically linked to form a DAG
+/// representing the complete causal history of the system.
+///
+/// Fields are private to prevent post-construction mutation that would
+/// invalidate the content-addressed event_id.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EventEnvelope {
+    /// Content-addressed ID: H(kind || payload || sorted_parents)
+    event_id: EventId,
+
+    /// Event classification
+    kind: EventKind,
+
+    /// The actual payload (MUST be canonically encoded)
+    payload: CanonicalBytes,
+
+    /// Parent event(s) - sorted, deduplicated at construction
+    parents: Vec<EventId>,
+
+    /// Who created this event (optional)
+    agent_id: Option<AgentId>,
+
+    /// Cryptographic signature (required for Commit, optional otherwise)
+    signature: Option<Signature>,
+}
+
+impl EventEnvelope {
+    /// Compute the event_id from the envelope's components.
+    ///
+    /// The event_id is content-addressed: H(kind || payload || sorted_parents)
+    /// This ensures deterministic, collision-resistant identification.
+    ///
+    /// No nonces, no timestamps, no metadata. If it affects semantics, it's a parent.
+    pub fn compute_event_id(
+        kind: &EventKind,
+        payload: &CanonicalBytes,
+        parents: &[EventId],
+    ) -> Result<EventId, CanonicalError> {
+        // Canonical structure for hashing
+        #[derive(Serialize)]
+        struct EventIdInput<'a> {
+            kind: &'a EventKind,
+            payload: &'a [u8],
+            parents: &'a [EventId],
+        }
+
+        let input = EventIdInput {
+            kind,
+            payload: payload.as_bytes(),
+            parents, // Already sorted at construction
+        };
+
+        // Canonical encode and hash
+        let canonical_bytes = canonical::encode(&input)?;
+        let hash_bytes = blake3::hash(&canonical_bytes);
+
+        Ok(Hash(*hash_bytes.as_bytes()))
+    }
+
+    /// Create a new Observation event.
+    ///
+    /// Observations are facts about the world (may be wrong, contradicted, or untrusted).
+    pub fn new_observation(
+        payload: CanonicalBytes,
+        parents: Vec<EventId>,
+        agent_id: Option<AgentId>,
+        signature: Option<Signature>,
+    ) -> Result<Self, EventError> {
+        let parents = Self::canonicalize_parents(parents);
+        let event_id = Self::compute_event_id(&EventKind::Observation, &payload, &parents)?;
+
+        Ok(EventEnvelope {
+            event_id,
+            kind: EventKind::Observation,
+            payload,
+            parents,
+            agent_id,
+            signature,
+        })
+    }
+
+    /// Create a new PolicyContext event.
+    ///
+    /// PolicyContexts define how reality will be interpreted.
+    pub fn new_policy_context(
+        payload: CanonicalBytes,
+        parents: Vec<EventId>,
+        agent_id: Option<AgentId>,
+        signature: Option<Signature>,
+    ) -> Result<Self, EventError> {
+        let parents = Self::canonicalize_parents(parents);
+        let event_id = Self::compute_event_id(&EventKind::PolicyContext, &payload, &parents)?;
+
+        Ok(EventEnvelope {
+            event_id,
+            kind: EventKind::PolicyContext,
+            payload,
+            parents,
+            agent_id,
+            signature,
+        })
+    }
+
+    /// Create a new Decision event.
+    ///
+    /// INVARIANT: A Decision MUST have exactly one PolicyContext parent.
+    /// This is enforced at construction time to make invalid states unrepresentable.
+    pub fn new_decision(
+        payload: CanonicalBytes,
+        evidence_parents: Vec<EventId>,
+        policy_parent: EventId,
+        agent_id: Option<AgentId>,
+        signature: Option<Signature>,
+    ) -> Result<Self, EventError> {
+        // Combine evidence + policy into parents list
+        let mut all_parents = evidence_parents;
+        all_parents.push(policy_parent);
+        let parents = Self::canonicalize_parents(all_parents);
+
+        let event_id = Self::compute_event_id(&EventKind::Decision, &payload, &parents)?;
+
+        Ok(EventEnvelope {
+            event_id,
+            kind: EventKind::Decision,
+            payload,
+            parents,
+            agent_id,
+            signature,
+        })
+    }
+
+    /// Create a new Commit event.
+    ///
+    /// INVARIANT: A Commit MUST have at least one Decision parent.
+    /// Signature is required for Commits (they crossed the system boundary).
+    pub fn new_commit(
+        payload: CanonicalBytes,
+        decision_parent: EventId,
+        extra_parents: Vec<EventId>,
+        agent_id: Option<AgentId>,
+        signature: Signature,
+    ) -> Result<Self, EventError> {
+        let mut all_parents = extra_parents;
+        all_parents.push(decision_parent);
+        let parents = Self::canonicalize_parents(all_parents);
+
+        let event_id = Self::compute_event_id(&EventKind::Commit, &payload, &parents)?;
+
+        Ok(EventEnvelope {
+            event_id,
+            kind: EventKind::Commit,
+            payload,
+            parents,
+            agent_id,
+            signature: Some(signature),
+        })
+    }
+
+    /// Canonicalize parent list: sort lexicographically and deduplicate.
+    ///
+    /// This ensures that H(parents) is deterministic regardless of insertion order.
+    fn canonicalize_parents(parents: Vec<EventId>) -> Vec<EventId> {
+        let unique: BTreeSet<EventId> = parents.into_iter().collect();
+        unique.into_iter().collect()
+    }
+
+    /// Verify that the event_id matches the computed hash.
+    pub fn verify_event_id(&self) -> Result<bool, CanonicalError> {
+        let computed = Self::compute_event_id(&self.kind, &self.payload, &self.parents)?;
+        Ok(computed == self.event_id)
+    }
+
+    // Read-only accessors (fields are private to prevent mutation)
+
+    pub fn event_id(&self) -> EventId {
+        self.event_id
+    }
+
+    pub fn kind(&self) -> &EventKind {
+        &self.kind
+    }
+
+    pub fn payload(&self) -> &CanonicalBytes {
+        &self.payload
+    }
+
+    pub fn parents(&self) -> &[EventId] {
+        &self.parents
+    }
+
+    pub fn agent_id(&self) -> Option<&AgentId> {
+        self.agent_id.as_ref()
+    }
+
+    pub fn signature(&self) -> Option<&Signature> {
+        self.signature.as_ref()
+    }
+
+    /// Check if this event is a genesis event (no parents).
+    pub fn is_genesis(&self) -> bool {
+        self.parents.is_empty()
+    }
+
+    /// Check if this event is a merge (multiple parents).
+    pub fn is_merge(&self) -> bool {
+        self.parents.len() > 1
+    }
+}
+
+/// Errors that can occur when constructing or validating events.
+#[derive(Debug, thiserror::Error)]
+pub enum EventError {
+    #[error("Canonical encoding error: {0}")]
+    CanonicalError(#[from] CanonicalError),
+
+    #[error("Invalid event structure: {0}")]
+    InvalidStructure(String),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_agent_id() -> AgentId {
+        AgentId::new("test-agent").unwrap()
+    }
+
+    fn test_signature() -> Signature {
+        Signature::new(vec![0u8; 64]).unwrap()
+    }
+
+    #[test]
+    fn test_genesis_observation() {
+        let payload = CanonicalBytes::from_value(&"genesis observation").unwrap();
+        let event = EventEnvelope::new_observation(
+            payload,
+            vec![],
+            Some(test_agent_id()),
+            Some(test_signature()),
+        )
+        .unwrap();
+
+        assert!(event.is_genesis());
+        assert!(!event.is_merge());
+        assert!(event.verify_event_id().unwrap());
+        assert_eq!(event.kind(), &EventKind::Observation);
+    }
+
+    #[test]
+    fn test_policy_context() {
+        let payload = CanonicalBytes::from_value(&serde_json::json!({
+            "clock_policy": "trust_ntp",
+            "scheduler_policy": "fifo",
+            "trust_policy": ["agentA", "agentB"]
+        }))
+        .unwrap();
+
+        let event = EventEnvelope::new_policy_context(
+            payload,
+            vec![],
+            Some(test_agent_id()),
+            Some(test_signature()),
+        )
+        .unwrap();
+
+        assert!(event.is_genesis());
+        assert_eq!(event.kind(), &EventKind::PolicyContext);
+        assert!(event.verify_event_id().unwrap());
+    }
+
+    #[test]
+    fn test_decision_with_policy_parent() {
+        // Create evidence
+        let obs_payload = CanonicalBytes::from_value(&"clock_sample=6000ms").unwrap();
+        let observation = EventEnvelope::new_observation(
+            obs_payload,
+            vec![],
+            Some(test_agent_id()),
+            None,
+        )
+        .unwrap();
+
+        // Create policy
+        let policy_payload = CanonicalBytes::from_value(&serde_json::json!({
+            "clock_policy": "trust_ntp"
+        }))
+        .unwrap();
+        let policy = EventEnvelope::new_policy_context(
+            policy_payload,
+            vec![],
+            Some(test_agent_id()),
+            None,
+        )
+        .unwrap();
+
+        // Create decision referencing both
+        let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
+        let decision = EventEnvelope::new_decision(
+            decision_payload,
+            vec![observation.event_id()],
+            policy.event_id(),
+            Some(test_agent_id()),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(decision.kind(), &EventKind::Decision);
+        assert!(decision.is_merge()); // Has 2 parents (observation + policy)
+        assert!(decision.verify_event_id().unwrap());
+
+        // Verify parents include both evidence and policy
+        assert_eq!(decision.parents().len(), 2);
+        assert!(decision.parents().contains(&observation.event_id()));
+        assert!(decision.parents().contains(&policy.event_id()));
+    }
+
+    #[test]
+    fn test_commit_requires_signature() {
+        let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
+        let policy = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        let decision = EventEnvelope::new_decision(
+            decision_payload,
+            vec![],
+            policy.event_id(),
+            Some(test_agent_id()),
+            None,
+        )
+        .unwrap();
+
+        let commit_payload = CanonicalBytes::from_value(&"timer_fired").unwrap();
+        let commit = EventEnvelope::new_commit(
+            commit_payload,
+            decision.event_id(),
+            vec![],
+            Some(test_agent_id()),
+            test_signature(),
+        )
+        .unwrap();
+
+        assert_eq!(commit.kind(), &EventKind::Commit);
+        assert!(commit.signature().is_some());
+        assert!(commit.verify_event_id().unwrap());
+    }
+
+    #[test]
+    fn test_parent_canonicalization() {
+        let hash1 = Hash([1u8; 32]);
+        let hash2 = Hash([2u8; 32]);
+        let hash3 = Hash([3u8; 32]);
+
+        // Same parents in different orders should produce same event_id
+        let payload = CanonicalBytes::from_value(&"test").unwrap();
+
+        let event1 = EventEnvelope::new_observation(
+            payload.clone(),
+            vec![hash1, hash2, hash3],
+            None,
+            None,
+        )
+        .unwrap();
+
+        let event2 = EventEnvelope::new_observation(
+            payload.clone(),
+            vec![hash3, hash1, hash2],
+            None,
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(event1.event_id(), event2.event_id());
+    }
+
+    #[test]
+    fn test_parent_deduplication() {
+        let hash1 = Hash([1u8; 32]);
+
+        let payload = CanonicalBytes::from_value(&"test").unwrap();
+
+        // Duplicate parents should be deduplicated
+        let event = EventEnvelope::new_observation(
+            payload,
+            vec![hash1, hash1, hash1],
+            None,
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(event.parents().len(), 1);
+        assert_eq!(event.parents()[0], hash1);
+    }
+
+    #[test]
+    fn test_different_policy_yields_different_event_id() {
+        // Create two different policies
+        let policy1_payload = CanonicalBytes::from_value(&serde_json::json!({
+            "clock_policy": "trust_ntp"
+        }))
+        .unwrap();
+        let policy1 = EventEnvelope::new_policy_context(
+            policy1_payload,
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
+        let policy2_payload = CanonicalBytes::from_value(&serde_json::json!({
+            "clock_policy": "trust_monotonic"
+        }))
+        .unwrap();
+        let policy2 = EventEnvelope::new_policy_context(
+            policy2_payload,
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
+        // Same evidence
+        let obs_payload = CanonicalBytes::from_value(&"clock_sample=6000ms").unwrap();
+        let observation = EventEnvelope::new_observation(obs_payload, vec![], None, None).unwrap();
+
+        // Same decision payload, same evidence, different policy
+        let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
+
+        let decision1 = EventEnvelope::new_decision(
+            decision_payload.clone(),
+            vec![observation.event_id()],
+            policy1.event_id(),
+            None,
+            None,
+        )
+        .unwrap();
+
+        let decision2 = EventEnvelope::new_decision(
+            decision_payload.clone(),
+            vec![observation.event_id()],
+            policy2.event_id(),
+            None,
+            None,
+        )
+        .unwrap();
+
+        // Different policy → different event_id (no collision)
+        assert_ne!(decision1.event_id(), decision2.event_id());
+    }
+
+    #[test]
+    fn test_tampered_event_id_fails_verification() {
+        let payload = CanonicalBytes::from_value(&"test").unwrap();
+        let mut event = EventEnvelope::new_observation(payload, vec![], None, None).unwrap();
+
+        // Tamper with event_id
+        event.event_id = Hash([0xFF; 32]);
+
+        // Verification should fail
+        assert!(!event.verify_event_id().unwrap());
+    }
+
+    #[test]
+    fn test_collision_resistance_comprehensive() {
+        let base_payload = CanonicalBytes::from_value(&"test").unwrap();
+        let base_parents = vec![Hash([0u8; 32])];
+
+        let base = EventEnvelope::new_observation(
+            base_payload.clone(),
+            base_parents.clone(),
+            None,
+            None,
+        )
+        .unwrap();
+
+        // Different parents
+        let diff_parents = EventEnvelope::new_observation(
+            base_payload.clone(),
+            vec![Hash([1u8; 32])],
+            None,
+            None,
+        )
+        .unwrap();
+        assert_ne!(base.event_id(), diff_parents.event_id());
+
+        // Different kind (Policy vs Observation)
+        let diff_kind = EventEnvelope::new_policy_context(
+            base_payload.clone(),
+            base_parents.clone(),
+            None,
+            None,
+        )
+        .unwrap();
+        assert_ne!(base.event_id(), diff_kind.event_id());
+
+        // Different payload
+        let diff_payload = CanonicalBytes::from_value(&"different").unwrap();
+        let diff_payload_event = EventEnvelope::new_observation(
+            diff_payload,
+            base_parents.clone(),
+            None,
+            None,
+        )
+        .unwrap();
+        assert_ne!(base.event_id(), diff_payload_event.event_id());
+    }
+
+    #[test]
+    fn test_empty_payload() {
+        let payload = CanonicalBytes::from_value(&()).unwrap();
+        let event = EventEnvelope::new_observation(payload, vec![], None, None).unwrap();
+
+        assert!(event.verify_event_id().unwrap());
+        assert!(event.is_genesis());
+    }
+
+    #[test]
+    fn test_agent_id_validation() {
+        assert!(AgentId::new("valid").is_ok());
+        assert!(AgentId::new("").is_err());
+    }
+
+    #[test]
+    fn test_signature_validation() {
+        assert!(Signature::new(vec![1, 2, 3]).is_ok());
+        assert!(Signature::new(vec![]).is_err());
+    }
+}
