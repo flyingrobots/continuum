@@ -484,12 +484,49 @@ pub fn validate_event<S: EventStore>(
     Ok(())
 }
 
-/// Validate an entire event store for global consistency.
+/// Validate a batch of events for structural consistency.
+///
+/// This function validates events against a base store, allowing events in the
+/// batch to reference other events in the same batch. Events are validated in
+/// the order provided, and parent lookups check both the base store and
+/// previously validated events in the batch.
+///
+/// **Usage**: For validating a complete event set from import/migration:
+/// 1. Provide the existing store (may be empty)
+/// 2. Provide events in topological order (parents before children)
+/// 3. All events will be validated, allowing intra-batch references
 pub fn validate_store<S: EventStore>(store: &S, events: &[EventEnvelope]) -> Result<(), EventError> {
+    use std::collections::HashMap;
+
+    // Build temporary lookup for events in this batch
+    let mut batch_events: HashMap<EventId, &EventEnvelope> = HashMap::new();
+
     for event in events {
-        validate_event(event, store)?;
+        // Create a combined store view (base + batch so far)
+        let combined_store = CombinedStore {
+            base: store,
+            batch: &batch_events,
+        };
+
+        validate_event(event, &combined_store)?;
+
+        // Add to batch lookup for subsequent events
+        batch_events.insert(event.event_id(), event);
     }
     Ok(())
+}
+
+/// Temporary combined view of base store + batch events for validation.
+struct CombinedStore<'a, S: EventStore> {
+    base: &'a S,
+    batch: &'a std::collections::HashMap<EventId, &'a EventEnvelope>,
+}
+
+impl<'a, S: EventStore> EventStore for CombinedStore<'a, S> {
+    fn get(&self, event_id: &EventId) -> Option<&EventEnvelope> {
+        // Check batch first, then base store
+        self.batch.get(event_id).copied().or_else(|| self.base.get(event_id))
+    }
 }
 
 #[cfg(test)]
