@@ -116,7 +116,8 @@ impl DeltaSpec {
     ) -> Result<Self, DeltaError> {
         if new_trust_roots.is_empty() {
             return Err(DeltaError::InvalidStructure(
-                "TrustPolicy cannot have empty new_trust_roots (would mean 'trust no one')".to_string()
+                "TrustPolicy cannot have empty new_trust_roots (would mean 'trust no one')"
+                    .to_string(),
             ));
         }
 
@@ -137,7 +138,11 @@ impl DeltaSpec {
         description: String,
     ) -> Result<Self, CanonicalError> {
         Self {
-            kind: DeltaKind::InputMutation { insert, delete, modify },
+            kind: DeltaKind::InputMutation {
+                insert,
+                delete,
+                modify,
+            },
             description,
             hash: Hash([0u8; 32]), // temp
         }
@@ -267,10 +272,7 @@ mod tests {
         let bytes2 = canonical::encode(&delta).expect("encoding should succeed");
 
         // Must be deterministic
-        assert_eq!(
-            bytes1, bytes2,
-            "Canonical encoding must be deterministic"
-        );
+        assert_eq!(bytes1, bytes2, "Canonical encoding must be deterministic");
     }
 
     /// Test 2: Round-Trip (from SPEC-0002 Section 6.1)
@@ -279,11 +281,9 @@ mod tests {
     #[test]
     fn test_deltaspec_roundtrip() {
         // Use constructor to get valid hash
-        let original = DeltaSpec::new_clock_policy(
-            Hash([2u8; 32]),
-            "Test clock policy change".to_string(),
-        )
-        .expect("construction should succeed");
+        let original =
+            DeltaSpec::new_clock_policy(Hash([2u8; 32]), "Test clock policy change".to_string())
+                .expect("construction should succeed");
 
         // Encode then decode
         let bytes = canonical::encode(&original).expect("encoding should succeed");
@@ -313,8 +313,12 @@ mod tests {
         };
 
         // Compute hash twice
-        let hash1 = delta.compute_hash().expect("hash computation should succeed");
-        let hash2 = delta.compute_hash().expect("hash computation should succeed");
+        let hash1 = delta
+            .compute_hash()
+            .expect("hash computation should succeed");
+        let hash2 = delta
+            .compute_hash()
+            .expect("hash computation should succeed");
 
         // Must be stable
         assert_eq!(
@@ -397,7 +401,11 @@ mod tests {
 
         // Verify the kind is correct
         match &delta.kind {
-            DeltaKind::InputMutation { insert, delete, modify } => {
+            DeltaKind::InputMutation {
+                insert,
+                delete,
+                modify,
+            } => {
                 assert_eq!(insert.len(), 1, "Should have 1 inserted event");
                 assert_eq!(delete.len(), 0, "Should have 0 deleted events");
                 assert_eq!(modify.len(), 0, "Should have 0 modified events");
@@ -427,7 +435,11 @@ mod tests {
 
         // Verify the kind is correct
         match &delta.kind {
-            DeltaKind::InputMutation { insert, delete, modify } => {
+            DeltaKind::InputMutation {
+                insert,
+                delete,
+                modify,
+            } => {
                 assert_eq!(insert.len(), 0, "Should have 0 inserted events");
                 assert_eq!(delete.len(), 1, "Should have 1 deleted event");
                 assert_eq!(modify.len(), 0, "Should have 0 modified events");
@@ -455,11 +467,18 @@ mod tests {
 
         // Verify the kind is correct
         match &delta.kind {
-            DeltaKind::InputMutation { insert, delete, modify } => {
+            DeltaKind::InputMutation {
+                insert,
+                delete,
+                modify,
+            } => {
                 assert_eq!(insert.len(), 0, "Should have 0 inserted events");
                 assert_eq!(delete.len(), 0, "Should have 0 deleted events");
                 assert_eq!(modify.len(), 1, "Should have 1 modified event");
-                assert_eq!(modify[0].0, event_to_modify, "Modified event ID should match");
+                assert_eq!(
+                    modify[0].0, event_to_modify,
+                    "Modified event ID should match"
+                );
                 assert_eq!(modify[0].1.placeholder, 456, "Modified event should match");
             }
             _ => panic!("Expected InputMutation kind"),
@@ -472,11 +491,9 @@ mod tests {
     #[test]
     fn test_deserialize_validates_hash() {
         // Create a valid DeltaSpec
-        let valid_delta = DeltaSpec::new_scheduler_policy(
-            Hash([1u8; 32]),
-            "Test policy".to_string(),
-        )
-        .expect("construction should succeed");
+        let valid_delta =
+            DeltaSpec::new_scheduler_policy(Hash([1u8; 32]), "Test policy".to_string())
+                .expect("construction should succeed");
 
         // Serialize it
         let bytes = canonical::encode(&valid_delta).expect("encoding should succeed");
@@ -499,10 +516,11 @@ mod tests {
                 new_policy: Hash([1u8; 32]),
             },
             description: "Test policy".to_string(),
-            hash: Hash([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Wrong hash!
+            hash: Hash([
+                0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+            ]), // Wrong hash!
         };
 
         // Serialize the tampered spec
@@ -530,17 +548,12 @@ mod tests {
     #[test]
     fn test_constructors_produce_valid_specs() {
         // Test all four constructors
-        let scheduler = DeltaSpec::new_scheduler_policy(
-            Hash([1u8; 32]),
-            "Scheduler test".to_string(),
-        )
-        .expect("should succeed");
+        let scheduler =
+            DeltaSpec::new_scheduler_policy(Hash([1u8; 32]), "Scheduler test".to_string())
+                .expect("should succeed");
 
-        let clock = DeltaSpec::new_clock_policy(
-            Hash([2u8; 32]),
-            "Clock test".to_string(),
-        )
-        .expect("should succeed");
+        let clock = DeltaSpec::new_clock_policy(Hash([2u8; 32]), "Clock test".to_string())
+            .expect("should succeed");
 
         let trust = DeltaSpec::new_trust_policy(
             vec![AgentId::new("alice").expect("valid id")],
@@ -548,13 +561,9 @@ mod tests {
         )
         .expect("should succeed");
 
-        let mutation = DeltaSpec::new_input_mutation(
-            vec![],
-            vec![],
-            vec![],
-            "Mutation test".to_string(),
-        )
-        .expect("should succeed");
+        let mutation =
+            DeltaSpec::new_input_mutation(vec![], vec![], vec![], "Mutation test".to_string())
+                .expect("should succeed");
 
         // All should round-trip through serialization
         for delta in &[scheduler, clock, trust, mutation] {

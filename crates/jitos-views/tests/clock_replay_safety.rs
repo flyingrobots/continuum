@@ -56,7 +56,10 @@ fn t4_no_host_clock_dependency() {
     }
 
     for result in &results {
-        assert_eq!(result, &time1, "all now() calls must return identical values");
+        assert_eq!(
+            result, &time1,
+            "all now() calls must return identical values"
+        );
     }
 }
 
@@ -69,7 +72,13 @@ fn test_now_at_cut_bounds_checking() {
     // Scenario: now_at_cut() validates cut bounds
     // Given: Event sequence of length 5
     let events: Vec<EventEnvelope> = (0..5)
-        .map(|i| make_clock_event(ClockSource::Monotonic, 1_000_000_000 + i * 1_000_000, 100_000))
+        .map(|i| {
+            make_clock_event(
+                ClockSource::Monotonic,
+                1_000_000_000 + i * 1_000_000,
+                100_000,
+            )
+        })
         .collect();
 
     // When: cut > events.len()
@@ -106,8 +115,8 @@ fn test_malformed_observation_handling() {
     let malformed_event = EventEnvelope::new_observation(
         CanonicalBytes::from_value(&vec![1, 2, 3, 4]).expect("encode bytes"),
         vec![],
-        None,  // agent_id
-        None,  // signature
+        None, // agent_id
+        None, // signature
     )
     .expect("create malformed event");
 
@@ -115,7 +124,10 @@ fn test_malformed_observation_handling() {
     let result = view.apply_event(&malformed_event);
 
     // Then: Returns Ok(()) - silently ignored (lenient decoding for Phase 0.5.4)
-    assert!(result.is_ok(), "malformed observations should be silently ignored");
+    assert!(
+        result.is_ok(),
+        "malformed observations should be silently ignored"
+    );
 
     // Verify time is still unknown (no samples applied)
     assert_eq!(view.now().domain(), TimeDomain::Unknown);

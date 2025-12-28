@@ -39,7 +39,7 @@ impl ClockView {
     pub fn apply_event(&mut self, event: &EventEnvelope) -> Result<(), ClockError> {
         // Only process Observation events
         if !matches!(event.kind(), jitos_core::events::EventKind::Observation) {
-            return Ok(());  // Ignore non-observation events
+            return Ok(()); // Ignore non-observation events
         }
 
         // Try to decode payload as ClockSample
@@ -182,9 +182,9 @@ impl Time {
 /// Time domain (semantic context for time values)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TimeDomain {
-    Monotonic,  // Monotonic time (relative, no wall-clock meaning)
-    Unix,       // Unix epoch time (1970-01-01 00:00:00 UTC)
-    Unknown,    // No time information available
+    Monotonic, // Monotonic time (relative, no wall-clock meaning)
+    Unix,      // Unix epoch time (1970-01-01 00:00:00 UTC)
+    Unknown,   // No time information available
 }
 
 /// Clock sample with provenance
@@ -205,10 +205,10 @@ pub struct ClockSample {
 /// Clock source type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ClockSource {
-    Monotonic,  // Monotonic clock (safe, no jumps)
-    Rtc,        // Real-time clock (can jump)
-    Ntp,        // Network time protocol
-    PeerClaim,  // Time claim from another agent
+    Monotonic, // Monotonic clock (safe, no jumps)
+    Rtc,       // Real-time clock (can jump)
+    Ntp,       // Network time protocol
+    PeerClaim, // Time claim from another agent
 }
 
 /// Latest samples by source (O(1) cache)
@@ -223,8 +223,8 @@ pub struct LatestSamples {
 /// Clock policy selector
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ClockPolicyId {
-    TrustMonotonicLatest,  // Use latest monotonic sample only
-    TrustNtpLatest,        // Use latest NTP sample only
+    TrustMonotonicLatest, // Use latest monotonic sample only
+    TrustNtpLatest,       // Use latest NTP sample only
 }
 
 /// Clock view errors

@@ -27,13 +27,23 @@ impl fmt::Display for Hash {
 #[serde(tag = "op", content = "payload")]
 pub enum Slap {
     /// Create a new node in the graph.
-    CreateNode { node_type: String, data: serde_json::Value },
+    CreateNode {
+        node_type: String,
+        data: serde_json::Value,
+    },
     /// Delete an existing node.
     DeleteNode { id: String },
     /// Connect two nodes.
-    Connect { source: String, target: String, edge_type: String },
+    Connect {
+        source: String,
+        target: String,
+        edge_type: String,
+    },
     /// Invoke a sandboxed Rhai script.
-    InvokeScript { script_id: Hash, args: Vec<serde_json::Value> },
+    InvokeScript {
+        script_id: Hash,
+        args: Vec<serde_json::Value>,
+    },
     /// Set the logical time.
     SetTime { tick: u64, dt: f64 },
     /// Collapse a Shadow Working Set (SWS).

@@ -1,7 +1,6 @@
 // @ts-check
 use jitos_core::Hash;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use slotmap::{new_key_type, SlotMap};
 
 new_key_type! { pub struct NodeKey; }

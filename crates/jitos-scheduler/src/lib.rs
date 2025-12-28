@@ -1,5 +1,5 @@
 // @ts-check
-use jitos_core::{Slap, Hash};
+use jitos_core::Slap;
 use jitos_graph::WarpGraph;
 
 /// Footprint of a SLAP operation (Read/Write sets).
@@ -16,6 +16,12 @@ pub struct EchoScheduler {
     pub footprint_cache: std::collections::HashMap<String, Footprint>,
 }
 
+impl Default for EchoScheduler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EchoScheduler {
     pub fn new() -> Self {
         Self {
@@ -24,7 +30,7 @@ impl EchoScheduler {
     }
 
     /// Sorts and batches SLAPS into a deterministic, independent execution set.
-    pub fn schedule(&self, graph: &WarpGraph, proposals: Vec<Slap>) -> Vec<Slap> {
+    pub fn schedule(&self, _graph: &WarpGraph, proposals: Vec<Slap>) -> Vec<Slap> {
         // 1. Sort by Hash (Radix Sort logic would go here)
         // 2. Check Footprint overlap
         // 3. Return independent batch

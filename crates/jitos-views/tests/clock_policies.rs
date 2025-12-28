@@ -21,9 +21,9 @@ fn t3_different_policies_produce_different_beliefs() {
     // Given: Event sequence with both Monotonic and Ntp samples
     let events = vec![
         make_clock_event(ClockSource::Monotonic, 1_000_000_000, 100_000),
-        make_clock_event(ClockSource::Ntp, 1_735_387_200_000_000_000, 50_000_000),  // 2024-12-28 12:00:00 UTC
+        make_clock_event(ClockSource::Ntp, 1_735_387_200_000_000_000, 50_000_000), // 2024-12-28 12:00:00 UTC
         make_clock_event(ClockSource::Monotonic, 2_000_000_000, 100_000),
-        make_clock_event(ClockSource::Ntp, 1_735_387_205_000_000_000, 50_000_000),  // +5s
+        make_clock_event(ClockSource::Ntp, 1_735_387_205_000_000_000, 50_000_000), // +5s
     ];
 
     // When: Replay with TrustMonotonicLatest
@@ -42,19 +42,22 @@ fn t3_different_policies_produce_different_beliefs() {
 
     // Then: Time beliefs differ (monotonic-only vs ntp-only)
     assert_ne!(
-        time_mono.ns(), time_ntp.ns(),
+        time_mono.ns(),
+        time_ntp.ns(),
         "different policies must produce different time values"
     );
 
     // Verify TrustMonotonicLatest used the latest monotonic sample
     assert_eq!(
-        time_mono.ns(), 2_000_000_000,
+        time_mono.ns(),
+        2_000_000_000,
         "TrustMonotonicLatest should use latest monotonic value"
     );
 
     // Verify TrustNtpLatest used the latest NTP sample
     assert_eq!(
-        time_ntp.ns(), 1_735_387_205_000_000_000,
+        time_ntp.ns(),
+        1_735_387_205_000_000_000,
         "TrustNtpLatest should use latest NTP value"
     );
 
@@ -87,7 +90,8 @@ fn t6_event_integration_policy_aware() {
 
     let time_after_mono = view.now().clone();
     assert_eq!(
-        time_after_mono.ns(), 1_000_000_000,
+        time_after_mono.ns(),
+        1_000_000_000,
         "current updated for relevant source"
     );
 
@@ -97,7 +101,8 @@ fn t6_event_integration_policy_aware() {
 
     let time_after_ntp = view.now().clone();
     assert_eq!(
-        time_after_ntp.ns(), 1_000_000_000,
+        time_after_ntp.ns(),
+        1_000_000_000,
         "current unchanged for irrelevant source"
     );
 
@@ -127,7 +132,8 @@ fn t6_event_integration_both_policies() {
 
     let time_after_ntp = view.now().clone();
     assert_eq!(
-        time_after_ntp.ns(), 1_735_387_200_000_000_000,
+        time_after_ntp.ns(),
+        1_735_387_200_000_000_000,
         "current updated for relevant NTP source"
     );
     assert_eq!(time_after_ntp.domain(), TimeDomain::Unix);

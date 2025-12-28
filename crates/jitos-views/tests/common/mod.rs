@@ -16,9 +16,9 @@ pub fn make_clock_event(source: ClockSource, value_ns: u64, uncertainty_ns: u64)
 
     EventEnvelope::new_observation(
         CanonicalBytes::from_value(&sample).expect("encode sample"),
-        vec![],  // no parents for test
-        None,    // agent_id
-        None,    // signature
+        vec![], // no parents for test
+        None,   // agent_id
+        None,   // signature
     )
     .expect("create observation event")
 }

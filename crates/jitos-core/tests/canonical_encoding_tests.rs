@@ -166,7 +166,7 @@ fn test_simple_types_roundtrip() {
     assert_eq!(decoded, val);
 
     // f64
-    let val = 3.14f64;
+    let val = 3.25f64;
     let bytes = canonical::encode(&val).unwrap();
     let decoded: f64 = canonical::decode(&bytes).unwrap();
     assert_eq!(decoded, val);
@@ -265,7 +265,7 @@ fn test_encoding_determinism() {
     let value = TestStruct {
         field1: "deterministic".to_string(),
         field2: 123456789,
-        field3: 3.141592653589793,
+        field3: 3.25,
         field4: vec![1, 2, 3, 4, 5],
     };
 
@@ -273,9 +273,6 @@ fn test_encoding_determinism() {
     let first_encoding = canonical::encode(&value).unwrap();
     for _ in 0..10 {
         let encoding = canonical::encode(&value).unwrap();
-        assert_eq!(
-            encoding, first_encoding,
-            "Encoding must be deterministic"
-        );
+        assert_eq!(encoding, first_encoding, "Encoding must be deterministic");
     }
 }
