@@ -1,6 +1,6 @@
 # SPEC-0003: Clock View - Time as Materialized View
 
-**Status:** Revised - Ready for Approval (v2)
+**Status:** Approved (v2.1)
 **Related:** NEXT-MOVES.md Phase 0.5.4, THEORY.md Paper II
 **Estimated Effort:** 2-3 hours
 
@@ -56,6 +56,7 @@ Where:
   - `ntp: Option<ClockSampleRecord>`
   - `rtc: Option<ClockSampleRecord>`
   - `peer: Option<ClockSampleRecord>`
+  - **Definition:** "latest" means the most recently applied sample in canonical worldline order (not the greatest `value_ns`)
 
 #### Time Type
 
@@ -66,7 +67,7 @@ Time is a belief, not a fact.
 - `domain: TimeDomain` – { Monotonic, Unix, Unknown }
 - `provenance: Vec<Hash>` – event IDs actually used by the policy (typically 0–2)
 
-`Time::unknown()` MUST set `uncertainty_ns = u64::MAX` and empty provenance.
+`Time::unknown()` MUST set `uncertainty_ns = u64::MAX`, `domain = TimeDomain::Unknown`, and empty provenance.
 
 **Key invariant:** `ClockView::now()` returns the current belief as-of the last applied event. If no new clock observation events occur, `now()` stays constant. Time does not "flow" between events.
 
@@ -98,8 +99,10 @@ Time is a belief, not a fact.
 
 Errors that can occur during clock view operations:
 
-- `InvalidObservation` - observation payload is not a valid ClockSample
-- `DecodingError` - canonical decoding failed
+- `DecodingError` - canonical decoding failed for a tagged clock sample
+- `CutOutOfBounds { cut: usize, len: usize }` - `now_at_cut()` called with `cut > events.len()`
+
+**Note:** For Phase 0.5.4, semantic validation (e.g., excessive uncertainty bounds) succeeds but may log warnings. Only decode failures produce errors.
 
 #### Event Integration
 
@@ -121,7 +124,10 @@ let sample_event = EventEnvelope::new_observation(
 )?;
 ```
 
-**Note:** The observation type tag allows `apply_event()` to efficiently filter for clock samples without attempting to decode every observation event.
+**Observation Type Filtering (MUST):**
+- `apply_event()` MUST only attempt to decode observations whose type tag equals `OBS_CLOCK_SAMPLE_V0`
+- All other observation events (untagged or different tags) MUST be ignored with `Ok(())`
+- For Phase 0.5.4: untagged clock samples are NOT supported (strict enforcement)
 
 #### Query Interface
 
@@ -136,6 +142,7 @@ impl ClockView {
 
     /// Pure fold over a prefix of a canonical worldline.
     /// `cut` is the number of events applied (prefix length).
+    /// Returns `Err(CutOutOfBounds)` if `cut > events.len()`.
     pub fn now_at_cut(
         events: &[EventEnvelope],
         cut: usize,
@@ -261,9 +268,12 @@ jitos-views/
 ### T6: Event Integration (AC1)
 
 **Scenario:** ClockView correctly parses Observation events
-**Given:** EventEnvelope with ClockSample payload
+**Given:** EventEnvelope with tagged ClockSample payload
 **When:** `apply_event()` called
-**Then:** Sample added to ClockView.samples, current time updated
+**Then:**
+- Sample appended to `ClockView.samples`
+- Corresponding field in `latest` updated
+- `current` updated iff sample's source is relevant to active policy; otherwise `current` remains unchanged
 
 ### T7: Unknown State Initialization (AC1)
 
@@ -302,13 +312,21 @@ jitos-views/
 ### Migration Path
 
 Current code using `std::time::Instant`:
+
 ```rust
 // BEFORE (nondeterministic)
 let start = Instant::now();
 
-// AFTER (deterministic)
-let start = clock_view.now();
+// AFTER (deterministic - recommended for interval timing)
+let start_ns = clock_view.now().ns;
+
+// Alternative (if uncertainty + provenance needed)
+let start = clock_view.now().clone();  // allocates if provenance grows
 ```
+
+**Recommendation:** Use `now().ns` for interval timing. For Phase 0.5.4, `provenance: Vec<Hash>` is heap-allocated.
+
+**Future optimization:** Consider `SmallVec<[Hash; 2]>` or inline storage for provenance to avoid allocation on `clone()`.
 
 This migration will happen in **Phase 2.1** (port ninelives).
 
