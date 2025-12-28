@@ -270,6 +270,13 @@ impl EventEnvelope {
         agent_id: Option<AgentId>,
         signature: Option<Signature>,
     ) -> Result<Self, EventError> {
+        // Enforce: Decision must have at least one evidence parent
+        if evidence_parents.is_empty() {
+            return Err(EventError::InvalidStructure(
+                "Decision must have at least one evidence parent".to_string(),
+            ));
+        }
+
         // Combine evidence + policy into parents list
         let mut all_parents = evidence_parents;
         all_parents.push(policy_parent);
@@ -585,6 +592,16 @@ mod tests {
     #[test]
     fn test_commit_requires_signature() {
         let decision_payload = CanonicalBytes::from_value(&"fire_timer").unwrap();
+
+        // Create evidence (observation)
+        let evidence = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"timer_request").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
         let policy = EventEnvelope::new_policy_context(
             CanonicalBytes::from_value(&"policy").unwrap(),
             vec![],
@@ -594,7 +611,7 @@ mod tests {
         .unwrap();
         let decision = EventEnvelope::new_decision(
             decision_payload,
-            vec![],
+            vec![evidence.event_id()],
             policy.event_id(),
             Some(test_agent_id()),
             None,
@@ -943,6 +960,15 @@ mod tests {
     fn test_validate_commit_without_signature() {
         let mut store = TestStore::new();
 
+        // Create evidence (observation)
+        let evidence = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"evidence").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
         // Create valid decision chain
         let policy = EventEnvelope::new_policy_context(
             CanonicalBytes::from_value(&"policy").unwrap(),
@@ -953,12 +979,13 @@ mod tests {
         .unwrap();
         let decision = EventEnvelope::new_decision(
             CanonicalBytes::from_value(&"decide").unwrap(),
-            vec![],
+            vec![evidence.event_id()],
             policy.event_id(),
             None,
             None,
         )
         .unwrap();
+        store.insert(evidence);
         store.insert(policy);
         store.insert(decision.clone());
 
