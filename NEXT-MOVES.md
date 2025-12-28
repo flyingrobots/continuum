@@ -52,80 +52,62 @@ Same as before - clean docs, finalize SOTU. No changes needed here.
 
 ---
 
-### 0.5.2 Define Event Envelope with DAG Structure
+### 0.5.2 Define Event Envelope with DAG Structure (v2 - Policy as Structure)
 
-**The Problem:** Linear hash chain can't explain counterfactual divergence cleanly.
+**The Problem (v1):** Linear hash chain can't explain counterfactual divergence cleanly.
 
-**The Fix:**
-- [ ] Create `jitos-core/src/events.rs` with DAG-aware envelope:
+**The DEEPER Problem (Discovered in PR #7 Review):**
+- policy_hashes stored in event but not hashed → breaks content-addressing
+- Nonce creates non-deterministic IDs for replay
+- No structural enforcement of policy-decision relationship
+
+**The v2 Fix (Policy as First-Class Event):**
+- [x] Create `jitos-core/src/events.rs` with 4 event types (MINIMUM VIABLE):
 
 ```rust
-/// The universal event envelope for the JITOS worldline DAG
-#[derive(Serialize, Deserialize, Clone)]
-pub struct EventEnvelope {
-    /// Content-addressed ID: H(parents || canonical_payload || nonce)
-    pub event_id: Hash,
-
-    /// Parent event(s) - normally 1, >1 for merge/anchor
-    pub parents: Vec<Hash>,
-
-    /// Optional branch identifier (can be derived from parents but useful)
-    pub branch_id: Option<BranchId>,
-
-    /// Event classification
-    pub kind: EventKind,
-
-    /// The actual payload (MUST be canonically encoded)
-    pub payload: CanonicalBytes,
-
-    /// Who created this event
-    pub agent_id: AgentId,
-
-    /// Cryptographic signature over (event_id || payload)
-    pub signature: Signature,
-
-    /// Which policy/observer interpreted reality (for now() queries)
-    pub policy_hashes: Vec<Hash>,
-
-    /// Nonce for uniqueness (prevents duplicate event_id collisions)
-    pub nonce: u64,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
+/// Four fundamental event types - no more, no less
 pub enum EventKind {
-    /// External input (user, device, network)
-    Input,
+    /// Observation: Facts about the world (may be wrong/contradicted)
+    /// Examples: clock samples, network messages, user inputs
+    Observation,
 
-    /// Kernel decision (schedule choice, timer fire)
+    /// PolicyContext: How reality is interpreted (immutable rulebook)
+    /// Examples: clock_policy="trust_ntp", scheduler_policy="fifo"
+    PolicyContext,
+
+    /// Decision: Interpretive choice given evidence + policy
+    /// INVARIANT: Must have exactly ONE PolicyContext parent
+    /// Examples: "fire timer", "apply rewrite R", "select event X"
     Decision,
 
-    /// Untrusted assertion (clock sample, peer claim)
-    Claim,
-
-    /// Derived computation (rule application result)
-    Derivation,
-
-    /// Trust boundary crossing (signature verification, BTR anchor)
-    Anchor,
-
-    /// Branch fork
-    BranchFork {
-        base_event: Hash,
-        delta_spec_hash: Hash,
-    },
-
-    /// Branch merge (multiple parents)
-    BranchMerge {
-        strategy: MergeStrategy,
-    },
+    /// Commit: Irreversible effect (crossed system boundary)
+    /// INVARIANT: Must have at least ONE Decision parent + signature
+    /// Examples: timer fired, packet sent, disk write
+    Commit,
 }
+
+/// Event ID: BORING HASHING (no nonces, no timestamps, no metadata)
+/// event_id = H(kind || payload || sorted_parents)
+///
+/// If it affects semantics, it's a parent. If it's not a parent, it doesn't affect identity.
 ```
 
+**Key Design Decisions:**
+1. **Policy is structural (parent event) not metadata**: Decisions reference PolicyContext as parent
+2. **No nonces**: Event uniqueness comes from causal structure (parents), not entropy
+3. **Typed constructors enforce invariants**: `new_decision(evidence, policy_parent)` requires policy
+4. **Private fields prevent mutation**: Can't change event_id after construction
+5. **Validation pass**: `validate_event()` catches invalid structures from imports/migrations
+
 **Acceptance Criteria:**
-- Event DAG can represent linear history (1 parent)
-- Event DAG can represent fork (new branch_id, delta_spec)
-- Event DAG can represent merge (multiple parents)
-- `event_id` computation is deterministic and collision-resistant
+- [x] Event DAG can represent linear history (1 parent) - 20 tests passing
+- [x] Decisions structurally depend on PolicyContext (enforced at construction)
+- [x] Event DAG can represent merge (multiple parents) - parent canonicalization tested
+- [x] `event_id` computation is deterministic and collision-resistant - comprehensive test
+- [x] Different policy → different event_id (no hash collision) - explicit test
+- [x] CanonicalBytes prevents non-canonical data - private field enforced
+- [x] Validation catches invalid structures - 8 negative tests
+- [x] All tests passing (47 total: 35 events + 12 canonical encoding)
 
 ---
 
@@ -343,11 +325,13 @@ impl DeterministicIdAllocator {
 **Before touching Phase 1, ship these:**
 
 1. **[DONE]** Canonical Encoding Standard (`jitos-core/src/canonical.rs` + 28 test vectors) ✅
-2. **[TODO]** Event Envelope (`jitos-core/src/events.rs` with DAG structure)
+2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 47 tests) ✅
 3. **[TODO]** DeltaSpec (`jitos-core/src/delta.rs` for counterfactuals)
 4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
 6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
+
+**Progress: 2/6 foundational commits complete (33.3%)**
 
 **Golden Test:**
 ```rust

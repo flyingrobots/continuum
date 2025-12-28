@@ -89,7 +89,20 @@ Never create `file-v2.md` or `file-corrected.md`. Update the original and let gi
 
 ### Do not rewrite Git history
 
-No rebase. No amend. If you ever find yourself in any situation that requires you to "force" any Git op; halt immediately and alert the human.
+**ALWAYS** use `git commit`. **NEVER** use:
+- `git commit --amend`
+- `git rebase`
+- `git rebase -i` (interactive rebase)
+- `git reset --hard` (to rewrite commits)
+- Any squashing, fixup, or history rewriting operations
+
+**Rule**: We never rewrite git history. Always move forward with fixes, never look back and rewrite.
+
+If you make a mistake in a commit:
+- Create a new commit that fixes it
+- Reference the previous commit in the message (e.g., "fix: correct typo from commit abc123")
+
+If you ever find yourself in any situation that requires you to "force" any Git op (`git push --force`, `git push -f`); halt immediately and alert the human.
 
 ## Agent Responsibilities
 
