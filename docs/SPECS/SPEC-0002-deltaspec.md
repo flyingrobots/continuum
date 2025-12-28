@@ -47,7 +47,7 @@ pub struct DeltaSpec {
 
     /// Content-addressed hash of this spec
     /// Used to reference this delta in fork events
-    pub hash: Blake3Hash,
+    pub hash: Hash,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -103,7 +103,7 @@ Fork event structure:
 Fork {
     base_cut: EventId,      // Where to diverge (E2)
     delta_spec: DeltaSpec,  // What to change
-    delta_hash: Blake3Hash, // For referencing
+    delta_hash: Hash, // For referencing
 }
 ```
 
@@ -311,15 +311,19 @@ fn prop_replay_determinism(delta: DeltaSpec, cut: EventId) {
 }
 ```
 
-**Property 2: Hash Uniqueness**
+**Property 2: Content-Addressing Correctness**
 ```rust
 #[quickcheck]
-fn prop_hash_uniqueness(d1: DeltaSpec, d2: DeltaSpec) {
-    if d1 != d2 {
-        assert_ne!(d1.hash, d2.hash);
-    }
+fn prop_content_addressing(delta: DeltaSpec) {
+    // Recompute hash and verify it matches stored hash
+    let computed = delta.compute_hash();
+    assert_eq!(computed, delta.hash, "Stored hash must match computed hash");
 }
 ```
+
+**Note:** Hash collision resistance cannot be tested as an absolute property (collisions are
+theoretically possible). Instead, we rely on BLAKE3's cryptographic guarantees and validate
+that identical content produces identical hashes (determinism).
 
 ## 7. Implementation Notes
 
@@ -327,10 +331,10 @@ fn prop_hash_uniqueness(d1: DeltaSpec, d2: DeltaSpec) {
 
 ```rust
 impl DeltaSpec {
-    pub fn compute_hash(&self) -> Blake3Hash {
-        let bytes = canonical::encode(self)
+    pub fn compute_hash(&self) -> Hash {
+        let bytes = canonical::encode(&(&self.kind, &self.description))
             .expect("DeltaSpec must be canonically encodable");
-        Blake3Hash::from(blake3::hash(&bytes))
+        Hash(*blake3::hash(&bytes).as_bytes())
     }
 }
 ```
@@ -346,7 +350,7 @@ impl DeltaSpec {
         let spec = Self {
             kind: DeltaKind::SchedulerPolicy { new_policy },
             description,
-            hash: Blake3Hash::default(), // temp
+            hash: Hash([0u8; 32]), // temp
         };
 
         let hash = spec.compute_hash();
