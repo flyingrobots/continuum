@@ -329,11 +329,121 @@ pub enum EventError {
 
     #[error("Invalid event structure: {0}")]
     InvalidStructure(String),
+
+    #[error("Validation error: {0}")]
+    ValidationError(String),
+}
+
+/// Event store abstraction for validation.
+pub trait EventStore {
+    /// Get an event by its ID.
+    fn get(&self, event_id: &EventId) -> Option<&EventEnvelope>;
+}
+
+/// Validate a single event against structural rules.
+///
+/// This enforces invariants that may not be checkable at construction time
+/// (e.g., when importing events from disk/network).
+pub fn validate_event<S: EventStore>(
+    event: &EventEnvelope,
+    store: &S,
+) -> Result<(), EventError> {
+    // Rule 1: Event ID must match computed hash
+    if !event.verify_event_id()? {
+        return Err(EventError::ValidationError(
+            "Event ID does not match computed hash".to_string(),
+        ));
+    }
+
+    // Rule 2: Parents must be canonical (sorted, unique)
+    let canonical_parents = EventEnvelope::canonicalize_parents(event.parents.clone());
+    if event.parents != canonical_parents {
+        return Err(EventError::ValidationError(
+            "Parents are not canonically sorted/deduplicated".to_string(),
+        ));
+    }
+
+    // Rule 3: Decision must have exactly one PolicyContext parent
+    if matches!(event.kind, EventKind::Decision) {
+        let mut policy_count = 0;
+        let mut has_non_policy_parent = false;
+
+        for parent_id in &event.parents {
+            if let Some(parent) = store.get(parent_id) {
+                if matches!(parent.kind, EventKind::PolicyContext) {
+                    policy_count += 1;
+                } else {
+                    has_non_policy_parent = true;
+                }
+            } else {
+                return Err(EventError::ValidationError(format!(
+                    "Decision references unknown parent: {:?}",
+                    parent_id
+                )));
+            }
+        }
+
+        if policy_count != 1 {
+            return Err(EventError::ValidationError(format!(
+                "Decision must have exactly one PolicyContext parent, found {}",
+                policy_count
+            )));
+        }
+
+        if !has_non_policy_parent && event.parents.len() == 1 {
+            return Err(EventError::ValidationError(
+                "Decision must have evidence parents in addition to policy".to_string(),
+            ));
+        }
+    }
+
+    // Rule 4: Commit must have at least one Decision parent
+    if matches!(event.kind, EventKind::Commit) {
+        let mut has_decision_parent = false;
+
+        for parent_id in &event.parents {
+            if let Some(parent) = store.get(parent_id) {
+                if matches!(parent.kind, EventKind::Decision) {
+                    has_decision_parent = true;
+                    break;
+                }
+            } else {
+                return Err(EventError::ValidationError(format!(
+                    "Commit references unknown parent: {:?}",
+                    parent_id
+                )));
+            }
+        }
+
+        if !has_decision_parent {
+            return Err(EventError::ValidationError(
+                "Commit must have at least one Decision parent".to_string(),
+            ));
+        }
+    }
+
+    // Rule 5: Commit must have a signature
+    if matches!(event.kind, EventKind::Commit) && event.signature.is_none() {
+        return Err(EventError::ValidationError(
+            "Commit must have a signature".to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
+/// Validate an entire event store for global consistency.
+pub fn validate_store<S: EventStore>(store: &S, events: &[EventEnvelope]) -> Result<(), EventError> {
+    for event in events {
+        validate_event(event, store)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     fn test_agent_id() -> AgentId {
         AgentId::new("test-agent").unwrap()
@@ -641,5 +751,299 @@ mod tests {
     fn test_signature_validation() {
         assert!(Signature::new(vec![1, 2, 3]).is_ok());
         assert!(Signature::new(vec![]).is_err());
+    }
+
+    // Validation tests - negative cases
+
+    /// Simple in-memory event store for testing validation
+    struct TestStore {
+        events: HashMap<EventId, EventEnvelope>,
+    }
+
+    impl TestStore {
+        fn new() -> Self {
+            TestStore {
+                events: HashMap::new(),
+            }
+        }
+
+        fn insert(&mut self, event: EventEnvelope) {
+            self.events.insert(event.event_id(), event);
+        }
+    }
+
+    impl EventStore for TestStore {
+        fn get(&self, event_id: &EventId) -> Option<&EventEnvelope> {
+            self.events.get(event_id)
+        }
+    }
+
+    #[test]
+    fn test_validate_decision_without_policy_parent() {
+        let mut store = TestStore::new();
+
+        // Create observation (no policy)
+        let obs = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"test").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        store.insert(obs.clone());
+
+        // Manually construct a Decision with only observation parent (no policy)
+        // This bypasses the typed constructor to test validation
+        let payload = CanonicalBytes::from_value(&"bad").unwrap();
+        let parents = vec![obs.event_id()];
+        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+
+        let bad_decision = EventEnvelope {
+            event_id,
+            kind: EventKind::Decision,
+            payload,
+            parents,
+            agent_id: None,
+            signature: None,
+        };
+
+        let result = validate_event(&bad_decision, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("exactly one PolicyContext parent"));
+    }
+
+    #[test]
+    fn test_validate_decision_with_two_policies() {
+        let mut store = TestStore::new();
+
+        // Create two policies
+        let policy1 = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy1").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        let policy2 = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy2").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        store.insert(policy1.clone());
+        store.insert(policy2.clone());
+
+        // Manually construct Decision with two policy parents
+        let payload = CanonicalBytes::from_value(&"bad").unwrap();
+        let parents = vec![policy1.event_id(), policy2.event_id()];
+        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+
+        let bad_decision = EventEnvelope {
+            event_id,
+            kind: EventKind::Decision,
+            payload,
+            parents,
+            agent_id: None,
+            signature: None,
+        };
+
+        let result = validate_event(&bad_decision, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("exactly one PolicyContext parent"));
+    }
+
+    #[test]
+    fn test_validate_commit_without_decision_parent() {
+        let mut store = TestStore::new();
+
+        // Create observation (not a decision)
+        let obs = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"test").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        store.insert(obs.clone());
+
+        // Manually construct Commit with only observation parent (no decision)
+        let payload = CanonicalBytes::from_value(&"bad").unwrap();
+        let parents = vec![obs.event_id()];
+        let event_id = EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
+
+        let bad_commit = EventEnvelope {
+            event_id,
+            kind: EventKind::Commit,
+            payload,
+            parents,
+            agent_id: None,
+            signature: Some(test_signature()),
+        };
+
+        let result = validate_event(&bad_commit, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("at least one Decision parent"));
+    }
+
+    #[test]
+    fn test_validate_commit_without_signature() {
+        let mut store = TestStore::new();
+
+        // Create valid decision chain
+        let policy = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        let decision = EventEnvelope::new_decision(
+            CanonicalBytes::from_value(&"decide").unwrap(),
+            vec![],
+            policy.event_id(),
+            None,
+            None,
+        )
+        .unwrap();
+        store.insert(policy);
+        store.insert(decision.clone());
+
+        // Manually construct Commit without signature
+        let payload = CanonicalBytes::from_value(&"bad").unwrap();
+        let parents = vec![decision.event_id()];
+        let event_id = EventEnvelope::compute_event_id(&EventKind::Commit, &payload, &parents).unwrap();
+
+        let bad_commit = EventEnvelope {
+            event_id,
+            kind: EventKind::Commit,
+            payload,
+            parents,
+            agent_id: None,
+            signature: None, // Missing signature!
+        };
+
+        let result = validate_event(&bad_commit, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("must have a signature"));
+    }
+
+    #[test]
+    fn test_validate_tampered_event_id() {
+        let store = TestStore::new();
+
+        let mut event = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"test").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
+        // Tamper with event_id
+        event.event_id = Hash([0xFF; 32]);
+
+        let result = validate_event(&event, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("does not match computed hash"));
+    }
+
+    #[test]
+    fn test_validate_valid_store() {
+        let mut store = TestStore::new();
+
+        // Create a valid event chain
+        let obs = EventEnvelope::new_observation(
+            CanonicalBytes::from_value(&"sample").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
+        let policy = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+
+        let decision = EventEnvelope::new_decision(
+            CanonicalBytes::from_value(&"decide").unwrap(),
+            vec![obs.event_id()],
+            policy.event_id(),
+            None,
+            None,
+        )
+        .unwrap();
+
+        let commit = EventEnvelope::new_commit(
+            CanonicalBytes::from_value(&"commit").unwrap(),
+            decision.event_id(),
+            vec![],
+            None,
+            test_signature(),
+        )
+        .unwrap();
+
+        store.insert(obs.clone());
+        store.insert(policy.clone());
+        store.insert(decision.clone());
+        store.insert(commit.clone());
+
+        let events = vec![obs, policy, decision, commit];
+        let result = validate_store(&store, &events);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_decision_policy_only_parent_invalid() {
+        let mut store = TestStore::new();
+
+        let policy = EventEnvelope::new_policy_context(
+            CanonicalBytes::from_value(&"policy").unwrap(),
+            vec![],
+            None,
+            None,
+        )
+        .unwrap();
+        store.insert(policy.clone());
+
+        // Manually construct Decision with ONLY policy parent (no evidence)
+        let payload = CanonicalBytes::from_value(&"bad").unwrap();
+        let parents = vec![policy.event_id()];
+        let event_id = EventEnvelope::compute_event_id(&EventKind::Decision, &payload, &parents).unwrap();
+
+        let bad_decision = EventEnvelope {
+            event_id,
+            kind: EventKind::Decision,
+            payload,
+            parents,
+            agent_id: None,
+            signature: None,
+        };
+
+        let result = validate_event(&bad_decision, &store);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("must have evidence parents"));
     }
 }
