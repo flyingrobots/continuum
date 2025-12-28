@@ -1350,7 +1350,7 @@ mod tests {
     }
 
     #[test]
-    fn test_canonical_bytes_rejects_unsorted_map_keys() {
+    fn test_canonical_encoder_sorts_map_keys() {
         // Canonical CBOR requires map keys to be sorted lexicographically
         // Our canonical encoder should sort them, and re-encoding should produce identical bytes
 
@@ -1375,6 +1375,31 @@ mod tests {
 
         // The deserialized bytes should match canonical
         assert_eq!(deserialized.as_bytes(), &canonical_bytes);
+    }
+
+    #[test]
+    fn test_canonical_bytes_rejects_manually_unsorted_keys() {
+        // Manually construct CBOR with keys in wrong order: {"z": 1, "a": 2}
+        // This tests that deserialization rejects non-canonical CBOR
+        let unsorted_cbor = vec![
+            0xA2, // map(2)
+            0x61, 0x7A, // text(1) "z"
+            0x01, // unsigned(1)
+            0x61, 0x61, // text(1) "a"
+            0x02, // unsigned(2)
+        ];
+
+        // Try to deserialize the raw unsorted CBOR into CanonicalBytes
+        let wrapper = CanonicalBytes(unsorted_cbor);
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&wrapper, &mut buf).unwrap();
+
+        // Deserialization should reject unsorted map keys
+        let result: Result<CanonicalBytes, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(
+            result.is_err(),
+            "Unsorted map keys should be rejected during deserialization"
+        );
     }
 
     #[test]
