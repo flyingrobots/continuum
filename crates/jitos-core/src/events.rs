@@ -415,23 +415,29 @@ pub fn validate_event<S: EventStore>(
         ));
     }
 
+    // Rule 2.5: All parents must exist in the store (data integrity)
+    // This applies to ALL event types, not just Decision/Commit
+    for parent_id in &event.parents {
+        if store.get(parent_id).is_none() {
+            return Err(EventError::ValidationError(format!(
+                "{:?} event references unknown parent: {:?}",
+                event.kind, parent_id
+            )));
+        }
+    }
+
     // Rule 3: Decision must have exactly one PolicyContext parent
     if matches!(event.kind, EventKind::Decision) {
         let mut policy_count = 0;
         let mut has_non_policy_parent = false;
 
         for parent_id in &event.parents {
-            if let Some(parent) = store.get(parent_id) {
-                if matches!(parent.kind, EventKind::PolicyContext) {
-                    policy_count += 1;
-                } else {
-                    has_non_policy_parent = true;
-                }
+            // Parent existence already validated in Rule 2.5
+            let parent = store.get(parent_id).unwrap();
+            if matches!(parent.kind, EventKind::PolicyContext) {
+                policy_count += 1;
             } else {
-                return Err(EventError::ValidationError(format!(
-                    "Decision references unknown parent: {:?}",
-                    parent_id
-                )));
+                has_non_policy_parent = true;
             }
         }
 
@@ -454,16 +460,11 @@ pub fn validate_event<S: EventStore>(
         let mut has_decision_parent = false;
 
         for parent_id in &event.parents {
-            if let Some(parent) = store.get(parent_id) {
-                if matches!(parent.kind, EventKind::Decision) {
-                    has_decision_parent = true;
-                    break;
-                }
-            } else {
-                return Err(EventError::ValidationError(format!(
-                    "Commit references unknown parent: {:?}",
-                    parent_id
-                )));
+            // Parent existence already validated in Rule 2.5
+            let parent = store.get(parent_id).unwrap();
+            if matches!(parent.kind, EventKind::Decision) {
+                has_decision_parent = true;
+                break;
             }
         }
 
