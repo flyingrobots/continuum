@@ -1,3 +1,4 @@
+# JITOS is now Loom
 
 Just to set the record straight: "JITOS" was never an acronym. In fact, it didn't mean anything. It was always supposed to just be a placeholder for something else, especially because everybody who sees "JITOS" thinks "JIT? OK, must mean: *Just-In-Time* OS". I was waiting for the right name to come to me, and last night, it did.
 
@@ -29,7 +30,7 @@ And, of course. Pretty much IMMEDIATELY someone said "JITOS, Eh? Obviously, that
 
 ## Loom?
 
-First, let's get this out of the way: Yes, I know there's already an app called "Loom". I am aware of the screen-casting tool. But guess what? That Loom was absorbed into Atlassian, which means that long-term, that "Loom" likely gets rebranded. I don't know why they chose the name "Loom" for a screen-casting tool, but I do know why "Loom" is the perfect name for this project, so let me expalin:
+First, let's get this out of the way: Yes, I know there's already an app called "Loom". I am aware of the screen-casting tool. But guess what? That Loom was absorbed into Atlassian, which means that long-term, that "Loom" likely gets rebranded. I don't know why they chose the name "Loom" for a screen-casting tool, but I do know why "Loom" is the perfect name for this project, so let me explain:
 
 Over the last few weeks, the system’s vocabulary converged on something fundamental. As the architecture crystalized, the old name just stopped working and I realized the name that describes what the system actually _is_.
 ## Learning to see what was always there

@@ -13,12 +13,15 @@ It treats computation not as the transformation of values, but as the constructi
 Loom separates the enumeration of possibility from the commitment of reality.
 
 ### Classical systems
-```
+
+```text
 Input + Code → State Change
 (history is implicit and overwritten)
 ```
+
 ### Loom
-```
+
+```text
 Possibilities + Constraints → Selection → History
 (history is structural and append-only)
 ```
