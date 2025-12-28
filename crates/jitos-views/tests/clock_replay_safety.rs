@@ -6,25 +6,11 @@
 //! These tests verify that ClockView NEVER touches system time functions.
 //! Time is a pure view over events - no syscalls, no side effects.
 
+mod common;
+
+use common::make_clock_event;
 use jitos_core::events::{CanonicalBytes, EventEnvelope};
-use jitos_views::{ClockError, ClockPolicyId, ClockSample, ClockSource, ClockView};
-
-/// Helper: Create a clock sample observation event
-fn make_clock_event(source: ClockSource, value_ns: u64, uncertainty_ns: u64) -> EventEnvelope {
-    let sample = ClockSample {
-        source,
-        value_ns,
-        uncertainty_ns,
-    };
-
-    EventEnvelope::new_observation(
-        CanonicalBytes::from_value(&sample).expect("encode sample"),
-        vec![],
-        None,  // agent_id
-        None,  // signature
-    )
-    .expect("create observation event")
-}
+use jitos_views::{ClockError, ClockPolicyId, ClockSource, ClockView};
 
 // ============================================================================
 // T4: No Host Clock Dependency (AC5)

@@ -6,25 +6,11 @@
 //! These tests verify that ClockView is a pure, deterministic function over
 //! event sequences - no syscalls, identical results on replay.
 
-use jitos_core::events::{CanonicalBytes, EventEnvelope};
-use jitos_views::{ClockPolicyId, ClockSample, ClockSource, ClockView};
+mod common;
 
-/// Helper: Create a clock sample observation event
-fn make_clock_event(source: ClockSource, value_ns: u64, uncertainty_ns: u64) -> EventEnvelope {
-    let sample = ClockSample {
-        source,
-        value_ns,
-        uncertainty_ns,
-    };
-
-    EventEnvelope::new_observation(
-        CanonicalBytes::from_value(&sample).expect("encode sample"),
-        vec![],  // no parents for test
-        None,    // agent_id
-        None,    // signature
-    )
-    .expect("create observation event")
-}
+use common::make_clock_event;
+use jitos_core::events::EventEnvelope;
+use jitos_views::{ClockPolicyId, ClockSource, ClockView};
 
 // ============================================================================
 // T1: Pure Query Behavior (AC2)
