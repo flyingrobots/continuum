@@ -54,10 +54,10 @@ fn t1_now_is_deterministic() {
     // Then: All 1000 calls return identical Time value
     let first = &results[0];
     for result in &results {
-        assert_eq!(result.ns, first.ns, "ns must be identical");
-        assert_eq!(result.uncertainty_ns, first.uncertainty_ns, "uncertainty must be identical");
-        assert_eq!(result.domain, first.domain, "domain must be identical");
-        assert_eq!(result.provenance, first.provenance, "provenance must be identical");
+        assert_eq!(result.ns(), first.ns(), "ns must be identical");
+        assert_eq!(result.uncertainty_ns(), first.uncertainty_ns(), "uncertainty must be identical");
+        assert_eq!(result.domain(), first.domain(), "domain must be identical");
+        assert_eq!(result.provenance().to_vec(), first.provenance().to_vec(), "provenance must be identical");
     }
 }
 
@@ -128,7 +128,7 @@ fn t5_now_at_cut_queries_historical_time() {
 
     // Then: Returns time belief as-of event 10 (not current cut)
     // At cut=10, latest monotonic sample is event[9] with value 1_000_000_000 + 9*5_000_000
-    assert_eq!(time_at_10.ns, 1_000_000_000 + 9 * 5_000_000);
+    assert_eq!(time_at_10.ns(), 1_000_000_000 + 9 * 5_000_000);
 
     // Also verify cut=20 gives different result (latest sample)
     let time_at_20 = ClockView::now_at_cut(
@@ -138,8 +138,8 @@ fn t5_now_at_cut_queries_historical_time() {
     )
     .expect("now_at_cut succeeded");
 
-    assert_eq!(time_at_20.ns, 1_000_000_000 + 19 * 5_000_000);
-    assert_ne!(time_at_10.ns, time_at_20.ns, "different cuts should yield different times");
+    assert_eq!(time_at_20.ns(), 1_000_000_000 + 19 * 5_000_000);
+    assert_ne!(time_at_10.ns(), time_at_20.ns(), "different cuts should yield different times");
 }
 
 // ============================================================================
@@ -156,8 +156,8 @@ fn t7_unknown_state_initialization() {
     let time = view.now();
 
     // Then: Returns Time::unknown() with uncertainty_ns = u64::MAX and empty provenance
-    assert_eq!(time.ns, 0, "unknown time has ns=0");
-    assert_eq!(time.uncertainty_ns, u64::MAX, "unknown time has max uncertainty");
-    assert_eq!(time.provenance.len(), 0, "unknown time has empty provenance");
-    assert_eq!(time.domain, jitos_views::TimeDomain::Unknown, "unknown time has Unknown domain");
+    assert_eq!(time.ns(), 0, "unknown time has ns=0");
+    assert_eq!(time.uncertainty_ns(), u64::MAX, "unknown time has max uncertainty");
+    assert_eq!(time.provenance().len(), 0, "unknown time has empty provenance");
+    assert_eq!(time.domain(), jitos_views::TimeDomain::Unknown, "unknown time has Unknown domain");
 }

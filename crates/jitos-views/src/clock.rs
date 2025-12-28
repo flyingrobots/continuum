@@ -132,10 +132,10 @@ impl ClockView {
 /// Time is a belief, not a fact
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Time {
-    pub ns: u64,
-    pub uncertainty_ns: u64,
-    pub domain: TimeDomain,
-    pub provenance: Vec<Hash>,
+    ns: u64,
+    uncertainty_ns: u64,
+    domain: TimeDomain,
+    provenance: Vec<Hash>,
 }
 
 impl Time {
@@ -147,6 +147,26 @@ impl Time {
             domain: TimeDomain::Unknown,
             provenance: vec![],
         }
+    }
+
+    /// Time value in nanoseconds
+    pub fn ns(&self) -> u64 {
+        self.ns
+    }
+
+    /// Uncertainty in nanoseconds
+    pub fn uncertainty_ns(&self) -> u64 {
+        self.uncertainty_ns
+    }
+
+    /// Time domain
+    pub fn domain(&self) -> TimeDomain {
+        self.domain
+    }
+
+    /// Event IDs contributing to this belief
+    pub fn provenance(&self) -> &[Hash] {
+        &self.provenance
     }
 }
 
