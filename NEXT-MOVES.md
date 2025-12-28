@@ -107,7 +107,7 @@ pub enum EventKind {
 - [x] Different policy → different event_id (no hash collision) - explicit test
 - [x] CanonicalBytes prevents non-canonical data - private field enforced
 - [x] Validation catches invalid structures - 8 negative tests
-- [x] All tests passing (47 total: 35 events + 12 canonical encoding)
+- [x] All tests passing (61 total: 49 events + 12 canonical encoding)
 
 ---
 
@@ -325,7 +325,7 @@ impl DeterministicIdAllocator {
 **Before touching Phase 1, ship these:**
 
 1. **[DONE]** Canonical Encoding Standard (`jitos-core/src/canonical.rs` + 28 test vectors) ✅
-2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 47 tests) ✅
+2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 61 tests) ✅
 3. **[TODO]** DeltaSpec (`jitos-core/src/delta.rs` for counterfactuals)
 4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
