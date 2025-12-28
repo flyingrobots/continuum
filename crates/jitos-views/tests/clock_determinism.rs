@@ -10,7 +10,7 @@ mod common;
 
 use common::make_clock_event;
 use jitos_core::events::EventEnvelope;
-use jitos_views::{ClockPolicyId, ClockSource, ClockView};
+use jitos_views::{ClockPolicyId, ClockSource, ClockView, TimeDomain};
 
 // ============================================================================
 // T1: Pure Query Behavior (AC2)
@@ -145,5 +145,5 @@ fn t7_unknown_state_initialization() {
     assert_eq!(time.ns(), 0, "unknown time has ns=0");
     assert_eq!(time.uncertainty_ns(), u64::MAX, "unknown time has max uncertainty");
     assert_eq!(time.provenance().len(), 0, "unknown time has empty provenance");
-    assert_eq!(time.domain(), jitos_views::TimeDomain::Unknown, "unknown time has Unknown domain");
+    assert_eq!(time.domain(), TimeDomain::Unknown, "unknown time has Unknown domain");
 }

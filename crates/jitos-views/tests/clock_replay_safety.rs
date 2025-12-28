@@ -10,7 +10,7 @@ mod common;
 
 use common::make_clock_event;
 use jitos_core::events::{CanonicalBytes, EventEnvelope};
-use jitos_views::{ClockError, ClockPolicyId, ClockSource, ClockView};
+use jitos_views::{ClockError, ClockPolicyId, ClockSource, ClockView, TimeDomain};
 
 // ============================================================================
 // T4: No Host Clock Dependency (AC5)
@@ -118,5 +118,5 @@ fn test_malformed_observation_handling() {
     assert!(result.is_ok(), "malformed observations should be silently ignored");
 
     // Verify time is still unknown (no samples applied)
-    assert_eq!(view.now().domain(), jitos_views::TimeDomain::Unknown);
+    assert_eq!(view.now().domain(), TimeDomain::Unknown);
 }
