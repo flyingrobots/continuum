@@ -441,16 +441,13 @@ impl<'de> Deserialize<'de> for EventEnvelope {
             )));
         }
 
-        // Validation 2: Verify parents are sorted (canonical order)
-        let is_canonical = raw.parents.len() <= 1
-            || raw
-                .parents
-                .windows(2)
-                .all(|pair| pair[0] <= pair[1]);
+        // Validation 2: Verify parents are sorted and unique (canonical order)
+        // Strict inequality ensures both sorted AND unique (no duplicates)
+        let is_canonical = raw.parents.windows(2).all(|w| w[0] < w[1]);
 
-        if !is_canonical {
+        if !is_canonical && raw.parents.len() > 1 {
             return Err(serde::de::Error::custom(
-                "Parents must be in sorted order (canonical)"
+                "Parents must be canonically sorted and deduplicated"
             ));
         }
 
@@ -521,7 +518,8 @@ pub fn validate_event<S: EventStore>(
     for parent_id in &event.parents {
         if store.get(parent_id).is_none() {
             return Err(EventError::ValidationError(format!(
-                "{:?} event references unknown parent: {:?}",
+                "{:?} event references unknown parent: {:?}. \
+                 Ensure events are provided in topological order (parents before children).",
                 event.kind, parent_id
             )));
         }
@@ -1550,6 +1548,36 @@ mod tests {
         assert!(
             result.is_err(),
             "Deserialization should reject Commit without signature"
+        );
+    }
+
+    #[test]
+    fn test_event_envelope_deserialize_rejects_duplicate_parents() {
+        // Create event with duplicate parents (bypassing constructor)
+        let payload = CanonicalBytes::from_value(&serde_json::json!({"data": "test"})).unwrap();
+        let parent = Hash([1u8; 32]);
+
+        // Duplicate parent
+        let duplicate_parents = vec![parent, parent];
+
+        let tampered = EventEnvelope {
+            event_id: Hash([0xCC; 32]),
+            kind: EventKind::Observation,
+            payload,
+            parents: duplicate_parents,
+            agent_id: Some(AgentId::new("agent-1").unwrap()),
+            signature: None,
+        };
+
+        // Serialize
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&tampered, &mut buf).unwrap();
+
+        // Deserialize should reject duplicate parents
+        let result: Result<EventEnvelope, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(
+            result.is_err(),
+            "Deserialization should reject duplicate parents"
         );
     }
 }

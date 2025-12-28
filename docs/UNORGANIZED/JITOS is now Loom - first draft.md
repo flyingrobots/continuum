@@ -10,7 +10,7 @@ It all started one evening as I realized that *every project* I had been working
 
 OK, but what about the "JIT" part?
 
-Well, at the time, I was on this "make Git do things Git isn't supposed to do" kick. Let's turn Git into a distributed key value store. Let's turn git into a semantic graph database. Let's turn Git into a deployment ledger.
+Well, at the time, I was on this "make Git do things Git isn't supposed to do" kick. Let's turn Git into a distributed key-value store. Let's turn Git into a semantic graph database. Let's turn Git into a deployment ledger.
 
 Then I had an absurd idea: *Linus Torvalds created both Git and Linux. What if we made Git into a Linux distro?*
 
