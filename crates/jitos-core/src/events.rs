@@ -443,9 +443,10 @@ impl<'de> Deserialize<'de> for EventEnvelope {
 
         // Validation 2: Verify parents are sorted and unique (canonical order)
         // Strict inequality ensures both sorted AND unique (no duplicates)
+        // Note: windows(2) is empty when len <= 1, so all() returns true (correct behavior)
         let is_canonical = raw.parents.windows(2).all(|w| w[0] < w[1]);
 
-        if !is_canonical && raw.parents.len() > 1 {
+        if !is_canonical {
             return Err(serde::de::Error::custom(
                 "Parents must be canonically sorted and deduplicated"
             ));
