@@ -50,19 +50,19 @@ impl ClockView {
         // Create sample record with provenance
         let record = ClockSampleRecord {
             event_id: event.event_id(),
-            sample: sample.clone(),
+            sample,
         };
 
-        // Append to full sample history
-        self.samples.push(record.clone());
-
         // Update latest cache (O(1) per source)
-        match sample.source {
-            ClockSource::Monotonic => self.latest.monotonic = Some(record),
-            ClockSource::Ntp => self.latest.ntp = Some(record),
-            ClockSource::Rtc => self.latest.rtc = Some(record),
-            ClockSource::PeerClaim => self.latest.peer = Some(record),
+        match record.sample.source {
+            ClockSource::Monotonic => self.latest.monotonic = Some(record.clone()),
+            ClockSource::Ntp => self.latest.ntp = Some(record.clone()),
+            ClockSource::Rtc => self.latest.rtc = Some(record.clone()),
+            ClockSource::PeerClaim => self.latest.peer = Some(record.clone()),
         }
+
+        // Append to full sample history
+        self.samples.push(record);
 
         // Recompute current time based on policy
         self.current = self.compute_current_time();
