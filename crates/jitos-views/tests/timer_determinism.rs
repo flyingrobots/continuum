@@ -11,8 +11,7 @@ mod common;
 use common::make_clock_event;
 use jitos_core::events::{CanonicalBytes, EventEnvelope};
 use jitos_views::{
-    ClockPolicyId, ClockSource, ClockView, Time, TimerRequest, TimerView,
-    OBS_TIMER_REQUEST_V0,
+    ClockPolicyId, ClockSource, ClockView, Time, TimerRequest, TimerView, OBS_TIMER_REQUEST_V0,
 };
 
 /// Helper: Create a timer request observation event
