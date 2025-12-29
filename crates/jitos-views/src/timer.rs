@@ -68,17 +68,20 @@ impl TimerView {
         if matches!(event.kind(), jitos_core::events::EventKind::Decision) {
             // Attempt to decode as timer fire
             if let Ok(fire) = event.payload().to_value::<TimerFire>() {
+                // Extract request_id (Copy) before moving fire into record
+                let request_id = fire.request_id;
+
                 // Create fire record with provenance
                 let record = TimerFireRecord {
                     event_id: event.event_id(),
-                    fire: fire.clone(),
+                    fire,
                 };
 
                 // Track the fire event
                 self.fired.push(record);
 
                 // Maintain fired_ids index for O(1) lookup
-                self.fired_ids.insert(fire.request_id);
+                self.fired_ids.insert(request_id);
             }
             // Silently ignore decisions that aren't timer fires
         }
@@ -159,6 +162,6 @@ pub struct TimerFire {
 pub enum TimerError {
     #[error("malformed timer request payload in event {0}")]
     MalformedRequest(Hash),
-    #[error("malformed timer fire payload in event {0}")]
-    MalformedFire(Hash),
+    // Note: MalformedFire not needed - Decision decode failures are silently
+    // ignored until decision_type tagging is implemented
 }

@@ -1,10 +1,11 @@
 // Copyright 2025 James Ross
 // SPDX-License-Identifier: Apache-2.0
 
-//! Timer View Determinism Tests
+//! Timer View Functional Behavior Tests
 //!
-//! These tests verify that TimerView behaves as a pure, deterministic fold
-//! over events.
+//! Tests for TimerView functional behavior: request tracking, fire timing,
+//! and multiple timer handling. Determinism and replay safety tests are in
+//! timer_replay_safety.rs.
 
 mod common;
 
@@ -18,9 +19,15 @@ use jitos_views::{ClockPolicyId, ClockSource, ClockView, TimerView};
 #[test]
 fn t1_timer_request_is_tracked() {
     // Scenario: Timer request event is applied to TimerView
-    // Given: Empty TimerView
+    // Given: Empty TimerView with clock initialized to known time
     let mut timer_view = TimerView::new();
     let mut clock_view = ClockView::new(ClockPolicyId::TrustMonotonicLatest);
+
+    // Initialize clock to time before timer request
+    let init_clock_event = make_clock_event(ClockSource::Monotonic, 500_000_000, 100_000);
+    clock_view
+        .apply_event(&init_clock_event)
+        .expect("apply initial clock event");
 
     // When: Timer request observation event is applied
     let request_event = make_timer_request([1u8; 32], 5_000_000_000, 1_000_000_000);
@@ -90,7 +97,23 @@ fn t2_timer_fires_at_correct_time() {
     // Then: Timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 1, "timer ready at fire time");
-    assert_eq!(pending[0].request.request_id, jitos_core::Hash([1u8; 32]));
+    let ids: Vec<_> = pending.iter().map(|r| r.request.request_id).collect();
+    assert!(ids.contains(&jitos_core::Hash([1u8; 32])), "timer 1 ready");
+
+    // When: Time is after fire time (7s > 6s fire time)
+    let clock_event4 = make_clock_event(ClockSource::Monotonic, 7_000_000_000, 100_000);
+    clock_view
+        .apply_event(&clock_event4)
+        .expect("apply clock event");
+
+    // Then: Timer is still pending (late processing scenario)
+    let pending = timer_view.pending_timers(clock_view.now());
+    assert_eq!(pending.len(), 1, "timer still pending after fire time");
+    let ids: Vec<_> = pending.iter().map(|r| r.request.request_id).collect();
+    assert!(
+        ids.contains(&jitos_core::Hash([1u8; 32])),
+        "timer 1 still ready"
+    );
 }
 
 // ============================================================================
@@ -130,7 +153,8 @@ fn t3_multiple_timers() {
     // Then: Only first timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 1, "only first timer ready at 1.5s");
-    assert_eq!(pending[0].request.request_id, jitos_core::Hash([1u8; 32]));
+    let ids: Vec<_> = pending.iter().map(|r| r.request.request_id).collect();
+    assert!(ids.contains(&jitos_core::Hash([1u8; 32])), "timer 1 ready");
 
     // When: Time is at 2.5s
     let clock_event3 = make_clock_event(ClockSource::Monotonic, 2_500_000_000, 100_000);

@@ -128,12 +128,12 @@ fn t2_replay_determinism() {
 }
 
 // ============================================================================
-// T3: No Host Clock Dependency
+// T3: pending_timers() Idempotency
 // ============================================================================
 
 #[test]
-fn t3_no_host_clock_dependency() {
-    // Scenario: pending_timers() is pure - no syscall dependency
+fn t3_pending_timers_idempotent() {
+    // Scenario: pending_timers() is deterministic/idempotent for fixed clock input
     // Given: TimerView with requests
     let mut timer_view = TimerView::new();
     let mut clock_view = ClockView::new(ClockPolicyId::TrustMonotonicLatest);
@@ -152,11 +152,11 @@ fn t3_no_host_clock_dependency() {
     let pending2 = timer_view.pending_timers(clock_view.now());
     let pending3 = timer_view.pending_timers(clock_view.now());
 
-    // Then: Results are identical (pure function)
-    assert_eq!(pending1, pending2, "pending_timers must be pure");
-    assert_eq!(pending2, pending3, "pending_timers must be pure");
+    // Then: Results are identical (idempotent - does not mutate view/state)
+    assert_eq!(pending1, pending2, "pending_timers must be idempotent");
+    assert_eq!(pending2, pending3, "pending_timers must be idempotent");
 
-    // Call 1000x to verify no syscall timing effects
+    // Call 1000x to verify determinism for fixed clock input
     let mut results = Vec::new();
     for _ in 0..1000 {
         results.push(timer_view.pending_timers(clock_view.now()));
