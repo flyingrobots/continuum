@@ -186,24 +186,23 @@ This DAG is the execution ordering for Milestone 2. It exists to prevent “para
 
 ```mermaid
 flowchart TD
-  A[Freeze snapshotId semantics] --> B[Update SPEC-NET-0001 M2 subset]
-  A --> C[Kernel: implement snapshotId generation]
-  C --> D[API: graph(view) returns snapshotId + digest]
+  %% Status is auto-updated by scripts/update_roadmap_dags.py
+  P0[Phase 0: Freeze semantics<br/>snapshotId + cursors + spec] --> P1[Phase 1: Snapshot identity<br/>stable snapshotId]
+  P1 --> P2[Phase 2: Deterministic paging<br/>first+after on ids/idx]
+  P2 --> P3[Phase 3: Rewrite registry<br/>allowlist + validation]
+  P3 --> P4[Phase 4: Tests<br/>unit + HTTP e2e]
+  P4 --> Gate[Milestone Gate (DoD)]
 
-  D --> E[Kernel: deterministic node/edge paging (first+after)]
-  E --> F[API: expose nodesPage/edgesPage with stable cursors]
+  classDef done fill:#dcfce7,stroke:#166534,color:#052e16,stroke-width:2px;
+  classDef inprogress fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px;
+  classDef blocked fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px;
 
-  D --> G[Kernel: rewrites log paging by idx (after)]
-  G --> H[API: rewrites(view,page) supports after cursor]
-
-  B --> I[Kernel: rewrite op registry/allowlist]
-  I --> J[Kernel: applyRewrite validates ops via registry]
-  J --> K[Unit tests: snapshotId/paging/registry]
-  F --> L[HTTP integration test: snapshot paging]
-  H --> M[HTTP integration test: rewrite paging]
-  K --> N[Milestone gate: viewer-stable + deterministic]
-  L --> N
-  M --> N
+  class P0 blocked;
+  class P1 blocked;
+  class P2 blocked;
+  class P3 blocked;
+  class P4 blocked;
+  class Gate blocked;
 ```
 
 Notes:

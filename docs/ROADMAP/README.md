@@ -22,6 +22,7 @@ Legend (node status):
 
 ```mermaid
 flowchart TD
+  %% Status is auto-updated by scripts/update_roadmap_dags.py
   M1[M1: Kernel Genesis<br/>determinism + overlays + control plane] --> M2[M2: Reality Layer<br/>snapshots + cursors + registry]
   M2 --> M3[M3: Collapse & Commit<br/>SWS → System]
   M3 --> M4[M4: Persistence & Replay<br/>WAL + restart]
@@ -38,7 +39,12 @@ flowchart TD
   classDef blocked fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px;
 
   class M1 inprogress;
-  class M2,M3,M4,M5,M6,M7 blocked;
+  class M2 blocked;
+  class M3 blocked;
+  class M4 blocked;
+  class M5 blocked;
+  class M6 blocked;
+  class M7 blocked;
 ```
 
 Interpretation of edges:

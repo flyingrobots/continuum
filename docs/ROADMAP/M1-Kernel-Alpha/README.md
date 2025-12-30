@@ -89,7 +89,7 @@ Node IDs are derived from canonical content, not self-referential fields.
 
 This milestone uses the ARCH-0001 “Monolith with Seams” stance: start monolithic enough to ship, but keep boundaries crisp so we can split later.
 
-```bash
+```
 crates/
 ├── jitos-core       # (Existing) hash types + canonical helpers (or re-export)
 ├── jitos-warp-core  # (New) WARP graph engine: Node/Edge/Graph + deterministic digests
@@ -433,24 +433,23 @@ This DAG is the execution ordering for Milestone 1. It exists to keep determinis
 
 ```mermaid
 flowchart TD
-  A[Freeze M1 frozen contracts<br/>hash encoding + AddNode schema + receipt + errors] --> B[Spec: lock M1 subset in SPEC-NET-0001]
-  A --> C[Warp core: NodeId/EdgeId/GraphDigest + sorted folds]
+  %% Status is auto-updated by scripts/update_roadmap_dags.py
+  P0[Phase 0: Lock the Laws<br/>freeze contracts + spec alignment] --> P1[Phase 1: Warp Core<br/>ids + digest + unit tests]
+  P1 --> P2[Phase 2: Kernel<br/>single-writer + SWS + rewrite log]
+  P2 --> P3[Phase 3: Net/API<br/>GraphQL v0 subset]
+  P3 --> P4[Phase 4: jitosd + e2e + report]
+  P4 --> Gate[Milestone Gate (DoD)]
 
-  C --> D[Warp-core unit tests<br/>stable ids + digest under permuted insertion order]
-  C --> E[Kernel: single-writer loop + SwsId allocator]
+  classDef done fill:#dcfce7,stroke:#166534,color:#052e16,stroke-width:2px;
+  classDef inprogress fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px;
+  classDef blocked fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px;
 
-  E --> F[Kernel: SWS overlay semantics<br/>overlay-only writes + view digests]
-  F --> G[Kernel: rewrite log + ReceiptV0<br/>idx + viewDigest]
-
-  G --> H[Net: GraphQL v0 subset<br/>graph(view).digest + applyRewrite + rewrites query]
-  H --> I[jitosd: daemon wiring<br/>CLI flags + server boot]
-
-  D --> J[HTTP integration test<br/>script + determinism assertions]
-  I --> J
-  G --> J
-
-  J --> K[Milestone gate (DoD)]
-  J --> L[Milestone report PDF]
+  class P0 inprogress;
+  class P1 blocked;
+  class P2 blocked;
+  class P3 blocked;
+  class P4 blocked;
+  class Gate blocked;
 ```
 
 Notes:
