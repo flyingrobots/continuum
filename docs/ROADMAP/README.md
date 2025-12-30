@@ -6,6 +6,7 @@ This directory contains the approval-ready milestone plans for JITOS/JITOSD. Eac
 - Treat each milestone doc as the canonical “what we are building” contract for that phase.
 - When starting a milestone, freeze its remaining “contract choices” (hash/cursor formats, record schemas, etc.) *before* implementation.
 - Prefer shipping irreversibles in a controlled order: snapshot semantics → collapse semantics → WAL format → time model → workers/task model → typed APIs.
+- Mermaid node status coloring is derived from checklist progress; see `docs/ROADMAP/AUTOMATION.md`.
 
 ---
 
