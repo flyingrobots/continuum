@@ -227,6 +227,7 @@ These choices are frozen for Milestone 1 to prevent “interpretation drift” b
 
 - **Hash encoding:** `Hash` strings are lowercase hex, length 64, representing 32-byte BLAKE3 digests. No `0x` prefix.
 - **Rewrite ops:** `RewriteInput.ops: [JSON!]!` contains JSON objects. Milestone 1 supports exactly one op:
+  - `rewrite.ops` must contain exactly 1 element in M1 (batching deferred).
 
   ```json
   {

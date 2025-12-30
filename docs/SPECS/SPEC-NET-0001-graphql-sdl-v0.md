@@ -74,6 +74,54 @@ Notes:
 - unsupported op variants → `NOT_IMPLEMENTED` (not `INVALID_INPUT`).
 - malformed JSON / schema mismatch / bad base64 → `INVALID_INPUT`.
 
+### Milestone 1 implementation notes (Codex-proof)
+
+This section defines deterministic error mapping so implementations can’t “interpret” their way into divergent clients/tests.
+
+General rules:
+- Prefer **rejecting** ambiguous inputs over silently ignoring them.
+- When a capability is deliberately deferred (cursoring, snapshots, multi-op batching), use `NOT_IMPLEMENTED`.
+- When input violates a frozen schema/format, use `INVALID_INPUT`.
+- Always include `extensions.code` on GraphQL errors.
+
+#### View routing (`ViewRefInput`) error mapping
+
+- `view.kind == SYSTEM` and `view.swsId` is provided → `INVALID_INPUT`
+- `view.kind == SWS` and `view.swsId` is missing → `INVALID_INPUT`
+- `view.snapshotId` is provided (Milestone 1 has no snapshots) → `NOT_IMPLEMENTED`
+- `view.kind == SWS` and referenced SWS does not exist → `NOT_FOUND`
+
+#### Pagination (`PageInput`) error mapping (Milestone 1)
+
+- `page.after` is provided → `NOT_IMPLEMENTED`
+- `page.first` missing → use default
+- `page.first <= 0` → `INVALID_INPUT`
+
+#### `applyRewrite(view, rewrite)` error mapping (Milestone 1)
+
+Routing:
+- view errors follow the rules above.
+
+`rewrite.ops` shape:
+- `rewrite.ops` is empty → `INVALID_INPUT`
+- `rewrite.ops` has more than 1 element → `NOT_IMPLEMENTED` (batching deferred)
+
+For the single op in `rewrite.ops[0]`:
+- JSON is not an object, or missing `op`/`data` → `INVALID_INPUT`
+- unknown fields at any level (violates `additionalProperties: false`) → `INVALID_INPUT`
+- `"op"` is not `"AddNode"` → `NOT_IMPLEMENTED`
+- `"data.kind"` violates pattern/length → `INVALID_INPUT`
+- `"data.payload_b64"` is not valid base64 → `INVALID_INPUT`
+
+Side effects:
+- Any wall-clock timestamps in responses must be `null` (Milestone 1).
+
+#### Other stubbed operations (Milestone 1)
+
+- `collapseSws(...)` → `NOT_IMPLEMENTED`
+- `submitIntent(...)` → `NOT_IMPLEMENTED`
+- `ticks` / `taskEvents` subscriptions → `NOT_IMPLEMENTED`
+
 ---
 
 ## SDL v0
