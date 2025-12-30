@@ -68,6 +68,8 @@ Rule of thumb:
 
 Primary gate: `docs/ROADMAP/M1-Kernel-Alpha/README.md` (Definition of Done).
 
+- Runnable smoke script: `python3 scripts/smoke_m1_graphql.py` (expects `jitosd` already running).
+
 - **P1 (History):** `rewrites(...)` returns an append-only, monotone `idx` sequence since boot.
   - Manual probe: apply a rewrite, then query `rewrites` twice and assert the prefix is stable and indices are ascending.
 - **P2 (Determinism):** re-running the same ordered mutation script in a fresh process yields identical outputs.
