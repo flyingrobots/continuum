@@ -15,18 +15,30 @@ This directory contains the approval-ready milestone plans for JITOS/JITOSD. Eac
 
 This is a milestone-level dependency graph. It is intentionally “irreversibles-first”: we lock view identity and paging before collapse, collapse before durability, durability before time/scheduling, and scheduling before tasks/workers and typed APIs.
 
+Legend (node status):
+- **In progress:** blue
+- **Blocked:** red
+- **Done:** green
+
 ```mermaid
 flowchart TD
-  M1[M1: Kernel Genesis<br/>(determinism + overlays + control plane)] --> M2[M2: Reality Layer<br/>(snapshots + cursors + registry)]
-  M2 --> M3[M3: Collapse & Commit<br/>(SWS → System)]
-  M3 --> M4[M4: Persistence & Replay<br/>(WAL + restart)]
-  M4 --> M5[M5: Time & Scheduling<br/>(clock view + ticks)]
-  M5 --> M6[M6: Tasks / Slaps / Workers<br/>(intent → execution)]
-  M6 --> M7[M7: Typed API v1 + Wesley<br/>(schema-driven)]
+  M1[M1: Kernel Genesis<br/>determinism + overlays + control plane] --> M2[M2: Reality Layer<br/>snapshots + cursors + registry]
+  M2 --> M3[M3: Collapse & Commit<br/>SWS → System]
+  M3 --> M4[M4: Persistence & Replay<br/>WAL + restart]
+  M4 --> M5[M5: Time & Scheduling<br/>clock view + ticks]
+  M5 --> M6[M6: Tasks / Slaps / Workers<br/>intent → execution]
+  M6 --> M7[M7: Typed API v1 + Wesley<br/>schema-driven]
 
   %% Optional “side edges” that can be pulled earlier if needed
   M2 -.-> M4
   M1 -.-> M4
+
+  classDef done fill:#dcfce7,stroke:#166534,color:#052e16,stroke-width:2px;
+  classDef inprogress fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px;
+  classDef blocked fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px;
+
+  class M1 inprogress;
+  class M2,M3,M4,M5,M6,M7 blocked;
 ```
 
 Interpretation of edges:

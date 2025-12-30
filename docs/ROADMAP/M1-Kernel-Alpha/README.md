@@ -89,7 +89,7 @@ Node IDs are derived from canonical content, not self-referential fields.
 
 This milestone uses the ARCH-0001 “Monolith with Seams” stance: start monolithic enough to ship, but keep boundaries crisp so we can split later.
 
-```
+```bash
 crates/
 ├── jitos-core       # (Existing) hash types + canonical helpers (or re-export)
 ├── jitos-warp-core  # (New) WARP graph engine: Node/Edge/Graph + deterministic digests
@@ -427,7 +427,39 @@ Goal: prove the system boots, is inspectable, and replay-deterministic end-to-en
 
 ---
 
-## 11. Explicit Non-Goals (to prevent scope creep)
+## 11. Sequenced Task DAG (Dependencies)
+
+This DAG is the execution ordering for Milestone 1. It exists to keep determinism-critical choices ahead of implementation and prevent “parallel work” from creating incompatible semantics.
+
+```mermaid
+flowchart TD
+  A[Freeze M1 frozen contracts<br/>hash encoding + AddNode schema + receipt + errors] --> B[Spec: lock M1 subset in SPEC-NET-0001]
+  A --> C[Warp core: NodeId/EdgeId/GraphDigest + sorted folds]
+
+  C --> D[Warp-core unit tests<br/>stable ids + digest under permuted insertion order]
+  C --> E[Kernel: single-writer loop + SwsId allocator]
+
+  E --> F[Kernel: SWS overlay semantics<br/>overlay-only writes + view digests]
+  F --> G[Kernel: rewrite log + ReceiptV0<br/>idx + viewDigest]
+
+  G --> H[Net: GraphQL v0 subset<br/>graph(view).digest + applyRewrite + rewrites query]
+  H --> I[jitosd: daemon wiring<br/>CLI flags + server boot]
+
+  D --> J[HTTP integration test<br/>script + determinism assertions]
+  I --> J
+  G --> J
+
+  J --> K[Milestone gate (DoD)]
+  J --> L[Milestone report PDF]
+```
+
+Notes:
+- The “Spec” node may already be complete; the ordering remains: spec freezes precede code changes.
+- Keep API outputs deterministic: ordering is always sorted, timestamps are `null`, and pagination is `first` only in M1.
+
+---
+
+## 12. Explicit Non-Goals (to prevent scope creep)
 
 These are out of scope for Milestone 1 unless explicitly pulled into the gate:
 
