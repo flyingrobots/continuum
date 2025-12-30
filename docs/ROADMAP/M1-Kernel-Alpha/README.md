@@ -269,7 +269,7 @@ Milestone 1 is **DONE** when all are true:
 
 ## 10. Task Checklist (Inline)
 
-This section replaces the standalone `TASKS.md`. It is the execution checklist for the milestone, sequenced to protect determinism (laws → hashes → kernel → network → e2e proof).
+This section is the execution checklist for the milestone, sequenced to protect determinism (laws → hashes → kernel → network → e2e proof).
 
 Primary docs (must not contradict):
 - [ARCH-0001](../../ARCH/ARCH-0001-universal-job-fabric.md)
