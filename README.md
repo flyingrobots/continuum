@@ -43,6 +43,7 @@ See [NEXT-MOVES.md](./NEXT-MOVES.md) for the daily execution plan.
 ## 📚 Documentation
 
 *   **[Docs Tour](docs/TOUR.md)** - Where things live (Theory → Arch → Specs → Roadmap).
+*   **[Docs Index (MOC)](docs/INDEX.md)** - High-signal map of content.
 *   **[Milestone Roadmap (MOC)](docs/ROADMAP/README.md)** - Approval-ready milestone plans + DAGs.
 *   **[ARCH-0001: Universal Job Fabric](docs/ARCH/ARCH-0001-universal-job-fabric.md)** - The Blueprint.
 *   **[ARCH-0002: Architectural Invariants](docs/ARCH/ARCH-0002-architectural-invariants.md)** - The Constitution.

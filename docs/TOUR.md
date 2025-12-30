@@ -4,6 +4,10 @@ This is a lightweight map of “where to look” in the repository. It exists to
 
 If you are about to implement kernel semantics (especially anything that touches determinism, replay, collapse, or time), start with **Theory → Architecture → Specs → Roadmap** in that order.
 
+If you’re feeling lost in doc sprawl, start with:
+- `docs/INDEX.md` (map of content)
+- `docs/DOCS-GOVERNANCE.md` (what is normative vs directional)
+
 ---
 
 ## 0) The non-negotiable foundations
