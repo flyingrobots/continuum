@@ -11,6 +11,34 @@ This directory contains the approval-ready milestone plans for JITOS/JITOSD. Eac
 
 ## Milestones
 
+## Cross-milestone dependency DAG (high-level)
+
+This is a milestone-level dependency graph. It is intentionally “irreversibles-first”: we lock view identity and paging before collapse, collapse before durability, durability before time/scheduling, and scheduling before tasks/workers and typed APIs.
+
+```mermaid
+flowchart TD
+  M1[M1: Kernel Genesis<br/>(determinism + overlays + control plane)] --> M2[M2: Reality Layer<br/>(snapshots + cursors + registry)]
+  M2 --> M3[M3: Collapse & Commit<br/>(SWS → System)]
+  M3 --> M4[M4: Persistence & Replay<br/>(WAL + restart)]
+  M4 --> M5[M5: Time & Scheduling<br/>(clock view + ticks)]
+  M5 --> M6[M6: Tasks / Slaps / Workers<br/>(intent → execution)]
+  M6 --> M7[M7: Typed API v1 + Wesley<br/>(schema-driven)]
+
+  %% Optional “side edges” that can be pulled earlier if needed
+  M2 -.-> M4
+  M1 -.-> M4
+```
+
+Interpretation of edges:
+- **M1 → M2:** before scaling a viewer, lock snapshot identity + deterministic cursor semantics.
+- **M2 → M3:** collapse/commit needs stable “what exactly are we committing?” snapshot semantics and predictable view materialization.
+- **M3 → M4:** WAL schema must persist commit boundaries and System mutation events; committing before durability avoids a “log of overlays” dead end.
+- **M4 → M5:** deterministic time/ticks must be replayable; time semantics without WAL becomes a fork of reality.
+- **M5 → M6:** task/work execution needs a scheduler/tick boundary and stable policy pins in receipts.
+- **M6 → M7:** typed APIs and generators are only safe once the domain objects and kinds exist in practice.
+
+The dashed edges indicate that durability (M4) can be pulled earlier if you decide “survive restart” is more urgent than collapse, but it should still follow the frozen v0 contracts from M1/M2.
+
 ### M1 — Kernel Genesis (Alpha)
 - **Doc:** `docs/ROADMAP/M1-Kernel-Alpha/README.md`
 - **Focus:** deterministic in-memory kernel + SWS overlays (overlay-only writes) + GraphQL control plane
