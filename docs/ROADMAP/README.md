@@ -12,6 +12,46 @@ This directory contains the approval-ready milestone plans for JITOS/JITOSD. Eac
 
 ## Milestones
 
+## Vision pillars (landmarks)
+
+These are the recurring “north-star” constraints that the milestone ladder is intended to make real, one irreversible step at a time.
+
+Normative source of truth for invariants: `docs/ARCH/ARCH-0002-architectural-invariants.md`.
+
+**P1 — History is the system**
+- authoritative record is events/rewrites (not mutable state)
+- state is a derived view
+
+**P2 — Determinism is non-negotiable**
+- same inputs + same policy pins ⇒ identical replay outputs
+- no ambient nondeterminism (wall clock, RNG, scheduling) leaks into truth without explicit modeling
+
+**P3 — Speculation is default (SWS)**
+- risky work happens in overlays by default
+- overlays are cheap and isolated
+
+**P4 — Collapse is transactional**
+- truth changes only through explicit, deterministic collapse/commit semantics
+- aborts still become observable history (at least as receipts/events)
+
+**P5 — Observability is first-class**
+- if it affects outcomes, it is queryable (why it ran, why it didn’t, what blocked it)
+- operator-grade introspection is not an afterthought
+
+### Pillars × Milestones (traceability)
+
+This table is a sanity check: each milestone should make at least one pillar materially true in a new way.
+
+| Milestone | P1 History | P2 Determinism | P3 SWS | P4 Collapse | P5 Observability |
+| --- | --- | --- | --- | --- | --- |
+| M1 Kernel Genesis | ✓ | ✓ | ✓ | (prep) | ✓ |
+| M2 Reality Layer | ✓ | ✓ | ✓ | (prep) | ✓ |
+| M3 Collapse & Commit | ✓ | ✓ | ✓ | ✓ | ✓ |
+| M4 Persistence & Replay | ✓ | ✓ | ✓ | ✓ | ✓ |
+| M5 Time & Scheduling | ✓ | ✓ | ✓ | ✓ | ✓ |
+| M6 Tasks / Slaps / Workers | ✓ | ✓ | ✓ | ✓ | ✓ |
+| M7 Typed API + Wesley | ✓ | ✓ | ✓ | ✓ | ✓ |
+
 ## Cross-milestone dependency DAG (high-level)
 
 This is a milestone-level dependency graph. It is intentionally “irreversibles-first”: we lock view identity and paging before collapse, collapse before durability, durability before time/scheduling, and scheduling before tasks/workers and typed APIs.
