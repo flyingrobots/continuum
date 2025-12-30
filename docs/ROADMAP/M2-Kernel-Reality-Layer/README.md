@@ -180,7 +180,39 @@ Primary docs (must not contradict):
 
 ---
 
-## 11. Frozen Contract Choices (Milestone 2)
+## 11. Sequenced Task DAG (Dependencies)
+
+This DAG is the execution ordering for Milestone 2. It exists to prevent “parallel work” that later turns into incompatible semantics.
+
+```mermaid
+flowchart TD
+  A[Freeze snapshotId semantics] --> B[Update SPEC-NET-0001 M2 subset]
+  A --> C[Kernel: implement snapshotId generation]
+  C --> D[API: graph(view) returns snapshotId + digest]
+
+  D --> E[Kernel: deterministic node/edge paging (first+after)]
+  E --> F[API: expose nodesPage/edgesPage with stable cursors]
+
+  D --> G[Kernel: rewrites log paging by idx (after)]
+  G --> H[API: rewrites(view,page) supports after cursor]
+
+  B --> I[Kernel: rewrite op registry/allowlist]
+  I --> J[Kernel: applyRewrite validates ops via registry]
+  J --> K[Unit tests: snapshotId/paging/registry]
+  F --> L[HTTP integration test: snapshot paging]
+  H --> M[HTTP integration test: rewrite paging]
+  K --> N[Milestone gate: viewer-stable + deterministic]
+  L --> N
+  M --> N
+```
+
+Notes:
+- Do not implement cursoring until ordering keys are frozen (ID/idx ordering law).
+- Do not accept multi-op batching in M2 unless explicitly added to the contract; keep M1/M2 op semantics strict.
+
+---
+
+## 12. Frozen Contract Choices (Milestone 2)
 
 These choices are frozen in Milestone 2:
 
@@ -194,7 +226,7 @@ These choices are frozen in Milestone 2:
 
 ---
 
-## 12. Explicit Non-Goals
+## 13. Explicit Non-Goals
 - collapse/commit
 - persistence/WAL
 - worker execution
