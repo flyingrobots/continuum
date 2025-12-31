@@ -38,6 +38,7 @@ fn graph_hash_is_invariant_under_insertion_order() {
         source: a1,
         target: b1,
         edge_type: "demo.edge".to_string(),
+        payload_bytes: None,
         attachment: None,
     });
 
@@ -49,6 +50,7 @@ fn graph_hash_is_invariant_under_insertion_order() {
         source: a2,
         target: b2,
         edge_type: "demo.edge".to_string(),
+        payload_bytes: None,
         attachment: None,
     });
 

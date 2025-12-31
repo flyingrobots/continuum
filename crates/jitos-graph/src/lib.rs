@@ -42,7 +42,9 @@ pub struct WarpNode {
     pub node_type: String,
     /// Opaque payload bytes (SPEC-WARP-0001).
     ///
-    /// The kernel MUST NOT interpret these bytes for hashing or identity.
+    /// These bytes are hashed as-is for graph commit digest computation.
+    /// The kernel MUST NOT parse, decode, normalize, or otherwise interpret
+    /// the structure or semantics of these bytes.
     pub payload_bytes: Vec<u8>,
     pub attachment: Option<Hash>, // Reference to another WARP graph
 }
@@ -53,6 +55,10 @@ pub struct WarpEdge {
     pub source: NodeKey,
     pub target: NodeKey,
     pub edge_type: String,
+    /// Optional opaque payload bytes for edge-level data (SPEC-WARP-0001).
+    ///
+    /// If present, these bytes are hashed as-is for the graph commit digest.
+    pub payload_bytes: Option<Vec<u8>>,
     pub attachment: Option<Hash>,
 }
 
@@ -109,7 +115,14 @@ impl WarpGraph {
             })?;
 
             // Domain-separated edge id input to avoid accidental ambiguity if fields evolve.
-            let edge_id_input = ("warp-edge-v0", from, to, e.edge_type.as_str(), e.attachment);
+            let edge_id_input = (
+                "warp-edge-v0",
+                from,
+                to,
+                e.edge_type.as_str(),
+                e.attachment,
+                &e.payload_bytes,
+            );
             let edge_id = jitos_core::canonical::hash_canonical(&edge_id_input)?;
 
             edges.push(EdgeCommitV0 {
@@ -117,7 +130,7 @@ impl WarpGraph {
                 from,
                 to,
                 kind: e.edge_type.clone(),
-                payload_bytes: None,
+                payload_bytes: e.payload_bytes.clone(),
                 attachment: e.attachment,
             });
         }
