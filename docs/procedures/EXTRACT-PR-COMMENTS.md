@@ -207,6 +207,7 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 **Solution:** Always check the actual comments on the latest commit, not the PR-level review status.
 
 ### Pitfall 1b: CodeRabbitAI approves but doesn’t clear “changes requested”
+
 **Issue:** CodeRabbitAI posts an approving review, but the PR remains blocked (e.g., “changes requested” not cleared).
 **Why:** Bot status sync occasionally gets stuck or fails to update GitHub’s gate.
 **Solution:** Nudge the bot with an explicit unblock request comment:
