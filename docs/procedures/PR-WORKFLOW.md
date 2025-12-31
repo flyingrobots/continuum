@@ -99,6 +99,12 @@ Occasionally CodeRabbitAI will post an approving review but GitHub / the bot sta
 If that happens, post this comment on the PR:
 
 ```text
+@coderabbitai Please review the latest commit and clear the "changes requested" status since you have already approved the changes.
+```
+
+Optional (lighter tone; avoid emoji if your tooling mangles Unicode):
+
+```text
 @coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
 ```
 

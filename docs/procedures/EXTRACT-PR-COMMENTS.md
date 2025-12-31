@@ -213,13 +213,21 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 **Why:** Bot status sync occasionally gets stuck or fails to update GitHub’s gate.
 **Solution:** Nudge the bot with an explicit unblock request comment:
 
+Preferred (copy/paste safe for logs and automation):
+
+```text
+@coderabbitai Please review the latest commit and clear the "changes requested" status since you have already approved the changes.
+```
+
+Optional (lighter tone; avoid emoji if your tooling mangles Unicode):
+
 ```text
 @coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
 ```
 
 ### Pitfall 3: Missing Stale Comment Detection
 
-**Issue:** Fixing issues that were already fixed, wasting time.
+**Issue:** Spending time fixing issues that have already been addressed.
 **Why:** Didn't check `original_commit_id` vs `commit_id`.
 **Solution:** Always use Step 4 to identify stale comments.
 
