@@ -1,4 +1,3 @@
-// @ts-check
 use jitos_core::Hash;
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
@@ -40,7 +39,12 @@ struct EdgeCommitV0 {
 pub struct WarpNode {
     pub id: NodeId,
     pub node_type: String,
-    pub data: serde_json::Value,
+    /// Opaque payload bytes (SPEC-WARP-0001).
+    ///
+    /// These bytes are hashed as-is for graph commit digest computation.
+    /// The kernel MUST NOT parse, decode, normalize, or otherwise interpret
+    /// the structure or semantics of these bytes.
+    pub payload_bytes: Vec<u8>,
     pub attachment: Option<Hash>, // Reference to another WARP graph
 }
 
@@ -50,6 +54,17 @@ pub struct WarpEdge {
     pub source: NodeKey,
     pub target: NodeKey,
     pub edge_type: String,
+    /// Optional opaque payload bytes for edge-level data (SPEC-WARP-0001).
+    ///
+    /// Rationale: nodes always carry an atomic payload slot, but edges are primarily
+    /// structural relations and often carry no payload at all. Using `Option<Vec<u8>>`
+    /// represents absence explicitly without forcing empty allocations.
+    ///
+    /// If present, these bytes are hashed as-is for the graph commit digest.
+    ///
+    /// **Identity impact:** these bytes are included in deterministic `edge_id` derivation.
+    /// As a result, `None` and `Some(vec![])` are distinct at the identity level.
+    pub payload_bytes: Option<Vec<u8>>,
     pub attachment: Option<Hash>,
 }
 
@@ -81,11 +96,10 @@ impl WarpGraph {
         // Nodes: sort by NodeId bytes ascending.
         let mut nodes: Vec<NodeCommitV0> = Vec::with_capacity(self.nodes.len());
         for (_k, n) in self.nodes.iter() {
-            let payload_bytes = jitos_core::canonical::encode(&n.data)?;
             nodes.push(NodeCommitV0 {
                 node_id: n.id,
                 kind: n.node_type.clone(),
-                payload_bytes,
+                payload_bytes: n.payload_bytes.clone(),
                 attachment: n.attachment,
             });
         }
@@ -107,7 +121,14 @@ impl WarpGraph {
             })?;
 
             // Domain-separated edge id input to avoid accidental ambiguity if fields evolve.
-            let edge_id_input = ("warp-edge-v0", from, to, e.edge_type.as_str(), e.attachment);
+            let edge_id_input = (
+                "warp-edge-v0",
+                from,
+                to,
+                e.edge_type.as_str(),
+                e.attachment,
+                &e.payload_bytes,
+            );
             let edge_id = jitos_core::canonical::hash_canonical(&edge_id_input)?;
 
             edges.push(EdgeCommitV0 {
@@ -115,7 +136,7 @@ impl WarpGraph {
                 from,
                 to,
                 kind: e.edge_type.clone(),
-                payload_bytes: None,
+                payload_bytes: e.payload_bytes.clone(),
                 attachment: e.attachment,
             });
         }
