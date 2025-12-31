@@ -14,12 +14,12 @@ fn insert_node(
     graph: &mut WarpGraph,
     id: NodeId,
     node_type: &str,
-    data: serde_json::Value,
+    payload_bytes: Vec<u8>,
 ) -> NodeKey {
     graph.nodes.insert(WarpNode {
         id,
         node_type: node_type.to_string(),
-        data,
+        payload_bytes,
         attachment: None,
     })
 }
@@ -32,8 +32,8 @@ fn graph_hash_is_invariant_under_insertion_order() {
 
     // Graph A: insert A then B
     let mut g1 = WarpGraph::new();
-    let a1 = insert_node(&mut g1, node_id(1), "demo.A", serde_json::json!({"k": "A"}));
-    let b1 = insert_node(&mut g1, node_id(2), "demo.B", serde_json::json!({"k": "B"}));
+    let a1 = insert_node(&mut g1, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b1 = insert_node(&mut g1, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
     g1.edges.insert(WarpEdge {
         source: a1,
         target: b1,
@@ -43,8 +43,8 @@ fn graph_hash_is_invariant_under_insertion_order() {
 
     // Graph B: insert B then A
     let mut g2 = WarpGraph::new();
-    let b2 = insert_node(&mut g2, node_id(2), "demo.B", serde_json::json!({"k": "B"}));
-    let a2 = insert_node(&mut g2, node_id(1), "demo.A", serde_json::json!({"k": "A"}));
+    let b2 = insert_node(&mut g2, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    let a2 = insert_node(&mut g2, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
     g2.edges.insert(WarpEdge {
         source: a2,
         target: b2,
@@ -62,18 +62,44 @@ fn graph_hash_is_invariant_under_insertion_order() {
 #[test]
 fn graph_hash_changes_when_node_payload_changes() {
     let mut g1 = WarpGraph::new();
-    insert_node(&mut g1, node_id(1), "demo.A", serde_json::json!({"k": "A"}));
+    insert_node(&mut g1, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+
+    let mut g2 = WarpGraph::new();
+    insert_node(&mut g2, node_id(1), "demo.A", br#"{"k":"A2"}"#.to_vec());
+
+    let h1 = g1.compute_hash();
+    let h2 = g2.compute_hash();
+
+    assert_ne!(h1, h2, "payload changes must change the graph hash");
+}
+
+#[test]
+fn graph_hash_depends_on_payload_bytes_not_json_semantics() {
+    // The WARP graph commit digest treats payload as opaque bytes (SPEC-WARP-0001).
+    // If two payloads are "JSON-equivalent" but differ at the byte level, the digest MUST differ.
+    //
+    // This test protects against accidental re-introduction of JSON canonicalization in hashing.
+    let mut g1 = WarpGraph::new();
+    insert_node(
+        &mut g1,
+        node_id(1),
+        "demo.A",
+        br#"{"a":1,"b":2}"#.to_vec(),
+    );
 
     let mut g2 = WarpGraph::new();
     insert_node(
         &mut g2,
         node_id(1),
         "demo.A",
-        serde_json::json!({"k": "A2"}),
+        br#"{"b":2,"a":1}"#.to_vec(),
     );
 
     let h1 = g1.compute_hash();
     let h2 = g2.compute_hash();
 
-    assert_ne!(h1, h2, "payload changes must change the graph hash");
+    assert_ne!(
+        h1, h2,
+        "hash must treat payload as bytes (not canonicalized JSON semantics)"
+    );
 }
