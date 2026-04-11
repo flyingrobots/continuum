@@ -60,8 +60,8 @@ Shared contract surfaces do not all belong in one repo.
 
 Today the canonical authored homes are split:
 
-- **Wesley-authored families**
-  - Continuum receipt/witness family work
+- **Continuum-authored shared families**
+  - shared observer/debugger and witness/receipt family work under `schemas/`
 - **`warp-ttd`-authored families**
   - debugger/session/browser protocol surfaces
 - **host-local runtime schemas**
@@ -108,14 +108,14 @@ This is the layer that says how a noun is **seen and operated on**.
 | `Braid` | Continuum | missing | no first-class runtime owner yet | future `warp-ttd` / host adapters | still math-first |
 | `Footprint` | Continuum | host-local today | Echo + `git-warp` | `warp-ttd` should consume summaries, not own semantics | focus-boundary-rich footprint not yet shared |
 | `Observer` | Continuum | `warp-ttd` protocol/design vocabulary | host adapters synthesize from runtime truth | `warp-ttd` | host-local observer-trace shape missing |
-| `Receipt` | Continuum | Wesley receipt family + host-local realizations | Echo + `git-warp` | `warp-ttd` summaries | core vs shell split still uneven |
-| `Witness` | Continuum | Wesley receipt/witness family work | partial in Echo + `git-warp` | `warp-ttd` consumes summaries | witness-core families not fully authored |
+| `Receipt` | Continuum | `schemas/continuum-receipt-family.graphql` + host-local realizations | Echo + `git-warp` | `warp-ttd` summaries | core vs shell split still uneven |
+| `Witness` | Continuum | `schemas/continuum-receipt-family.graphql` and later shared witness families | partial in Echo + `git-warp` | `warp-ttd` consumes summaries | witness-core families not fully authored |
 | `NeighborhoodCore` | Continuum | missing shared family today; first target is `warp-ttd` protocol | synthesized in hosts | `warp-ttd` | needs contract + adapter cutover |
 | `ReintegrationDetail` | Continuum | missing shared family today; first target is `warp-ttd` protocol | synthesized in hosts | `warp-ttd` | needs `R_core`-shaped summaries |
 | `ReceiptShell` | Continuum | split between Wesley receipt family and `warp-ttd` summaries | Echo + `git-warp` | `warp-ttd` | shell/core boundary still uneven |
 | `EffectEmission` | Continuum | `warp-ttd` protocol summaries | Echo finalized channels / `git-warp` effect nodes | `warp-ttd` | summary contract exists; host semantics still differ |
 | `ObserverTrace` | Continuum | missing shared family | not first-class in hosts yet | `warp-ttd` | needs explicit contract + adapter work |
-| `DeliveryObservation` | Continuum | Wesley receipt family and `warp-ttd` summary surfaces | host/policy-layer truth | `warp-ttd` | dual-home split needs tightening |
+| `DeliveryObservation` | Continuum | `schemas/continuum-receipt-family.graphql` and `warp-ttd` summary surfaces | host/policy-layer truth | `warp-ttd` | dual-home split needs tightening |
 | `SessionMode` / `SessionSignal` | Continuum semantic framing | `warp-ttd` protocol + design | above substrate | `warp-ttd` | host adapters must surface mode/signal honestly |
 
 ## Immediate Consequences
@@ -123,7 +123,10 @@ This is the layer that says how a noun is **seen and operated on**.
 ### 1. Continuum should stop trying to own every schema
 
 Continuum owns the semantic and coordination map. It should not become a shadow
-schema repo next to Wesley or `warp-ttd`.
+schema repo for **every** contract next to Wesley or `warp-ttd`.
+
+It should, however, own the authored home for shared cross-engine families that
+need one canonical semantic source. Those live under [schemas](../../../schemas/README.md).
 
 ### 2. Wesley should compile family boundaries, not flatten them
 
@@ -156,7 +159,7 @@ contract already exists.
 ### Wesley
 
 - separate witness core from receipt shell in compiled contract thinking
-- define which families belong to Wesley-authored schemas vs `warp-ttd`-authored schemas
+- compile Continuum-authored shared families without re-owning their authored source
 
 ### Echo
 

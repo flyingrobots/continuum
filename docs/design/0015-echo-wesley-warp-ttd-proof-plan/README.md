@@ -130,7 +130,7 @@ For this proof slice:
 
 ## Smallest Honest Artifact
 
-One narrow "Echo proof slice" family, authored in Wesley, with:
+One narrow "Echo proof slice" family, authored in Continuum, with:
 
 - one node kind
 - one edge kind
@@ -143,6 +143,14 @@ One narrow "Echo proof slice" family, authored in Wesley, with:
 The exact domain nouns can stay narrow and boring. The important thing is that
 the slice exercises graph shape, rewrite behavior, footprint law, codec law,
 and debugger visibility.
+
+Current authored shared family home:
+
+- [schemas/continuum-receipt-family.graphql](../../../schemas/continuum-receipt-family.graphql)
+
+That file is intentionally still narrower than the full graph/runtime proof
+slice. It is the first real Continuum-owned authored family on disk, not the
+final proof-family endpoint.
 
 ## Proof Plan
 

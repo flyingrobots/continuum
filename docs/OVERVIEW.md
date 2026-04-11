@@ -215,6 +215,9 @@ Detailed packets:
 The current ownership law is:
 
 - **Continuum** owns semantic vocabulary and coordination truth
+- **Continuum** also owns the authored home for shared cross-engine contract
+  families under [schemas](../schemas/README.md) when those families are truly
+  shared
 - **Wesley** owns compilation, publication, schema hashes, codecs, and witness
   lanes for shared contract families
 - **Echo** and **`git-warp`** own runtime truth
