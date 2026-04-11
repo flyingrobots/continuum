@@ -25,6 +25,14 @@ Prove one narrow end-to-end Continuum slice where:
 5. the wire path uses Wesley-owned codecs so TypeScript and Rust are speaking
    one authored contract instead of mirrored folklore
 
+The intended lane is:
+
+1. declare the shared GraphQL family in Continuum
+2. compile that family with Wesley into Rust, TypeScript, and codec artifacts
+3. run Echo against the generated Rust side
+4. have `warp-ttd` talk to Echo through the generated TypeScript side of the
+   same family
+
 This cycle does **not** claim the stack already does this. It defines the
 smallest honest proof plan that would make the claim true.
 
@@ -113,7 +121,8 @@ slice must be just large enough to exercise:
 
 For this proof slice:
 
-- the canonical authored contract home should be Wesley
+- the canonical authored contract home should be Continuum
+- Wesley should compile that authored family into concrete artifacts
 - Echo should consume generated Rust-facing artifacts for the slice
 - `warp-ttd` should consume generated TypeScript-facing artifacts for the same
   slice
@@ -151,9 +160,9 @@ Choose one tiny runtime family that is sufficient to demonstrate:
 The first slice should be judged on proof value, not product ambition. It does
 not need to represent the whole Echo runtime.
 
-### Phase 1: Wesley authors and compiles the family
+### Phase 1: Continuum authors the family and Wesley compiles it
 
-Author a new Wesley-owned schema family for the proof slice containing:
+Author a new Continuum-owned shared family for the proof slice containing:
 
 - node and edge surface types
 - operator input/output types
@@ -246,8 +255,9 @@ CLI truth count before UI polish.
 
 The proof is done when one scripted scenario demonstrates all of these at once:
 
-1. one GraphQL family is authored once in Wesley
-2. Wesley emits Rust and TypeScript artifacts plus one schema hash
+1. one GraphQL family is authored once in Continuum
+2. Wesley emits Rust and TypeScript artifacts plus one schema hash from that
+   Continuum-authored family
 3. Echo compiles a valid rewrite against the generated footprint-shaped API
 4. Echo rejects an invalid rewrite at compile time via a compile-fail fixture
 5. TypeScript encodes a payload with Wesley-generated codecs and Echo decodes
