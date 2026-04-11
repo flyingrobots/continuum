@@ -22,6 +22,7 @@ It does **not** own:
 Current authored family:
 
 - `continuum-receipt-family.graphql`
+- `continuum-settlement-family.graphql`
 
 Wesley compiles the schemas in this directory into Rust, TypeScript, manifests,
 and codec artifacts. Echo, `git-warp`, and `warp-ttd` should consume generated

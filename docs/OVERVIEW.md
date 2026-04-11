@@ -274,6 +274,7 @@ It is related to all three, but it is not reducible to any of them.
 Detailed packet:
 
 - [0017-settlement-publication-and-shared-reintegration](design/0017-settlement-publication-and-shared-reintegration/README.md)
+- authored family: [schemas/continuum-settlement-family.graphql](../schemas/continuum-settlement-family.graphql)
 
 ## 9. The Current Proof Target
 

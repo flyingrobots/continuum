@@ -247,6 +247,10 @@ It can refine settlement, but not replace it.
 Continuum should now treat settlement as one of the shared observer/debugger
 families, not a local extension point.
 
+Current authored family home:
+
+- [schemas/continuum-settlement-family.graphql](../../../schemas/continuum-settlement-family.graphql)
+
 ### Echo
 
 Echo should publish:
@@ -265,7 +269,7 @@ alone.
 
 ### Wesley
 
-Wesley should eventually own the shared family cut for:
+Wesley should compile and witness the shared family cut for:
 
 - settlement request
 - settlement delta
