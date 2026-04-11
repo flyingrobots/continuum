@@ -276,24 +276,6 @@ Detailed packet:
 - [0017-settlement-publication-and-shared-reintegration](design/0017-settlement-publication-and-shared-reintegration/README.md)
 - authored family: [schemas/continuum-settlement-family.graphql](../schemas/continuum-settlement-family.graphql)
 
-## 9. The Current Proof Target
-
-The active integration proof target is one narrow end-to-end slice where:
-
-- Wesley authors one GraphQL family
-- Wesley generates Rust and TypeScript artifacts plus codec metadata
-- Echo consumes the generated Rust side for one real graph/rewrite slice
-- invalid rewrite code fails at compile time for that slice
-- `warp-ttd` connects to Echo and inspects the same slice via the generated
-  TypeScript side
-
-That proof should be small, concrete, and witnessed. It is the current bridge
-from theory into active repo changes.
-
-Detailed packet:
-
-- [0015-echo-wesley-warp-ttd-proof-plan](design/0015-echo-wesley-warp-ttd-proof-plan/README.md)
-
 ## 10. Interoperability Law
 
 The newest clarification is:
@@ -314,7 +296,57 @@ Detailed packet:
 
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
 
-## 11. The Short Version
+## 11. One Graph, Two Temperatures
+
+The current Continuum direction is not "two engines that maybe interoperate."
+
+The stronger claim is:
+
+- the client should experience **one logical graph**
+- Echo and `git-warp` are two **execution temperatures** over that graph
+- crossing between hot and cold must become an **inspectable causal event**
+
+That means:
+
+- hot/cold is a runtime and publication distinction, not permission for the
+  published nouns to diverge
+- a shared binary carrier helps only if both engines also agree on the same
+  contracts and interpretation
+- a future Continuum runtime facade must stay thin and honest: it may route
+  work, but it may not invent semantics that the engines themselves do not
+  publish
+
+The practical invariants are:
+
+- one graph
+- published-noun parity
+- engine-local freedom below the boundary
+- explicit temperature handoff
+- no silent translation in adapters or tools
+
+Detailed packet:
+
+- [0018-one-graph-two-temperatures-and-runtime-handoff](design/0018-one-graph-two-temperatures-and-runtime-handoff/README.md)
+
+## 12. The Current Proof Target
+
+The active integration proof target is one narrow end-to-end slice where:
+
+- Wesley authors one GraphQL family
+- Wesley generates Rust and TypeScript artifacts plus codec metadata
+- Echo consumes the generated Rust side for one real graph/rewrite slice
+- invalid rewrite code fails at compile time for that slice
+- `warp-ttd` connects to Echo and inspects the same slice via the generated
+  TypeScript side
+
+That proof should be small, concrete, and witnessed. It is the current bridge
+from theory into active repo changes.
+
+Detailed packet:
+
+- [0015-echo-wesley-warp-ttd-proof-plan](design/0015-echo-wesley-warp-ttd-proof-plan/README.md)
+
+## 13. The Short Version
 
 If you need the whole theory compressed into a few lines:
 
