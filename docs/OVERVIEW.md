@@ -1,7 +1,7 @@
 # OVERVIEW
 
 This document is the brief synthesis of Continuum design packets `0001` through
-`0015`.
+`0016`.
 
 It is not the place for full proofs. It is the place to remember what the
 current theory says, what the important nouns mean, and how that theory cashes
@@ -233,9 +233,10 @@ The goal is:
 - same contract family where semantics are shared
 - engine-local detail only below that boundary
 
-Detailed packet:
+Detailed packets:
 
 - [0014-shared-noun-ownership-map](design/0014-shared-noun-ownership-map/README.md)
+- [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
 
 ## 9. The Current Proof Target
 
@@ -255,7 +256,27 @@ Detailed packet:
 
 - [0015-echo-wesley-warp-ttd-proof-plan](design/0015-echo-wesley-warp-ttd-proof-plan/README.md)
 
-## 10. The Short Version
+## 10. Interoperability Law
+
+The newest clarification is:
+
+- Echo and `git-warp` do **not** need identical internal engine nouns
+- Continuum tools **do** need one shared observer/debugger contract family
+
+So the stack now distinguishes:
+
+- engine-local runtime nouns
+- shared engine-published observer nouns
+- shared session/control nouns
+
+That is the law that keeps interoperability from collapsing into adapter
+folklore.
+
+Detailed packet:
+
+- [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
+
+## 11. The Short Version
 
 If you need the whole theory compressed into a few lines:
 
