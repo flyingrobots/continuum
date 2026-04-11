@@ -10,6 +10,8 @@ Right now that means:
 - extracting the strongest salvage from old Continuum into active design work
 - establishing METHOD lanes and signposts
 - deciding the first real coordination artifacts this repo should own
+- freezing the first explicit Continuum invariants so hot/cold runtime work and
+  shared contract work do not drift apart in different repos
 
 ## Not This Hill
 

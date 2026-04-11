@@ -42,6 +42,9 @@ Continuum succeeds when a developer or agent can answer these questions in one
 - what scenarios prove Echo and `git-warp` tell one story through `warp-ttd`?
 - what changed in the shared coordination surface?
 
+The canonical invariant surface for those answers lives in
+[docs/invariants/CONTINUUM.md](invariants/CONTINUUM.md).
+
 ## Failure Mode To Avoid
 
 Continuum fails if it becomes another runtime, another shadow engine SDK, or

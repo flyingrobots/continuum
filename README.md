@@ -35,4 +35,5 @@ Current direction lives in:
 
 - [docs/BEARING.md](docs/BEARING.md)
 - [docs/VISION.md](docs/VISION.md)
+- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
 - [METHOD.md](METHOD.md)
