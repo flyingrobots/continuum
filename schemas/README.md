@@ -27,3 +27,12 @@ Current authored family:
 Wesley compiles the schemas in this directory into Rust, TypeScript, manifests,
 and codec artifacts. Echo, `git-warp`, and `warp-ttd` should consume generated
 artifacts instead of re-authoring the same contracts by hand.
+
+Apps should follow the same rule:
+
+- author app-local domain families in the app repo
+- compose them with Continuum shared families and engine-local families
+- consume Wesley-generated artifacts in the app's chosen target language
+
+The stable extension surface is the authored GraphQL family and its generated
+artifacts, not one blessed implementation language.
