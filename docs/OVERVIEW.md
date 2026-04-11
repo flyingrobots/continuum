@@ -1,7 +1,7 @@
 # OVERVIEW
 
 This document is the brief synthesis of Continuum design packets `0001` through
-`0016`.
+`0017`.
 
 It is not the place for full proofs. It is the place to remember what the
 current theory says, what the important nouns mean, and how that theory cashes
@@ -237,6 +237,40 @@ Detailed packets:
 
 - [0014-shared-noun-ownership-map](design/0014-shared-noun-ownership-map/README.md)
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
+
+## 9. Settlement Is A Shared Contract Family
+
+The next convergence step after `0016` is settlement publication.
+
+Now that Echo has a real settlement runway, Continuum treats settlement as a
+first-class shared observer/debugger family rather than an engine-local quirk.
+
+That means Continuum tools should eventually be able to ask both Echo and
+`git-warp` for the same top-level settlement categories:
+
+- settlement request
+- settlement delta
+- settlement plan
+- settlement decision
+- import candidate
+- conflict artifact
+- settlement result
+
+This does **not** force both engines to compute settlement the same way
+internally. It does require them to publish the same observer-facing category
+stack, with engine-specific elaboration pushed down into shell and drill-down.
+
+Settlement sits between:
+
+- neighborhood core
+- reintegration detail
+- receipt shell
+
+It is related to all three, but it is not reducible to any of them.
+
+Detailed packet:
+
+- [0017-settlement-publication-and-shared-reintegration](design/0017-settlement-publication-and-shared-reintegration/README.md)
 
 ## 9. The Current Proof Target
 
