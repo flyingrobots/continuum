@@ -22,6 +22,22 @@ That is enough structure to stop doing more math for a bit and ask:
 
 ## Concrete Next Cuts
 
+### Echo
+
+- Separate the hot-runtime minimum from richer execution narration:
+  - replay / admission-bearing core
+  - reintegration-bearing core where applicable
+  - richer runtime explanation / audit / delivery shell
+- Stop flattening runtime truth into one catch-all tick/event envelope when the
+  semantics really contains:
+  - lawful committed step
+  - hidden seam obligations or anchor correspondences
+  - richer execution / scheduling / delivery explanation
+- Align Echo runtime surfaces with the witness ladder so adapters and shared
+  contracts can ask:
+  - what is the minimal law-bearing carrier here?
+  - what is extra runtime shell?
+
 ### `warp-ttd`
 
 - Add an explicit split between:
@@ -58,6 +74,10 @@ That is enough structure to stop doing more math for a bit and ask:
 
 ## Done When
 
+- Echo has a design or backlog slice that maps hot-runtime tick/admission
+  surfaces onto:
+  - witness core
+  - optional receipt / runtime shell
 - one real `warp-ttd` design slice uses the new core/shell split
 - Wesley has a backlog/design note for core-vs-shell compilation surfaces
 - `git-warp` has a noun audit or design note that maps `TickPatch` and
