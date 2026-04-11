@@ -106,7 +106,7 @@ where:
 - `S` = subject anchor set
 - `R` = read boundary
 - `W` = write boundary
-- `E` = affect/effect boundary
+- `E` = affect boundary
 - `B` = reintegration boundary
 
 This does not mean every implementation surface must expose five separate

@@ -84,7 +84,7 @@ where:
 - `S` = subject anchor set
 - `R` = read boundary
 - `W` = write boundary
-- `E` = effect/affect boundary
+- `E` = affect boundary
 - `B` = reintegration boundary
 
 The names are provisional. The roles are the important part.
@@ -136,7 +136,7 @@ This matters for:
 
 So `W` is necessary.
 
-### 4. Effect / affect boundary `E`
+### 4. Affect boundary `E`
 
 This says what is materially changed or semantically affected, even if it is
 not written directly as a primitive field update.
