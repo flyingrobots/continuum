@@ -19,9 +19,13 @@ Milestone 1 is a strict, deterministic subset of this SDL. This section is norma
 ### Frozen contract choices (M1)
 
 - **Hash encoding:** `Hash` strings are lowercase hex, length 64, representing 32-byte BLAKE3 digests. No `0x` prefix.
+- **ID encoding (M1):** all GraphQL `ID` values that refer to kernel identities (`Sws.id`, `GraphNode.id`, `GraphEdge.id`, `ViewRef.swsId`, `ViewRefInput.swsId`, `parentSnapshotId`, `snapshotId`, `tickId`, event `id`, etc.) are lowercase hex strings of length 64 representing 32-byte identifiers. No `0x` prefix. Any other format → `INVALID_INPUT`.
+- **Digest algorithm (M1):** `GraphSnapshot.digest` is computed from the kernel’s canonical node/edge records (ordered bytes), **not** from GraphQL JSON serialization. See “Deterministic digest algorithm (M1)” below.
 - **Routing:** `applyRewrite` routes **only** via the `view: ViewRefInput!` argument. `RewriteInput` contains ops only; there is no secondary routing source of truth.
 - **Digest surface:** `graph(view)` returns `GraphSnapshot.digest: Hash!` as the canonical digest for external determinism validation.
-- **Timestamps:** all `Timestamp` fields return `null` in Milestone 1.
+- **JSON fields are non-authoritative (M1):** `GraphNode.data` / `GraphEdge.data` are presentation-only and MUST NOT affect `GraphSnapshot.digest`. In Milestone 1, the digest depends only on canonical node/edge identity + kind + opaque payload bytes (if any), per the algorithm below.
+- **Canonical payload surface (M1):** `GraphNode.payload_b64` / `GraphEdge.payload_b64` are the canonical deterministic payload bytes for clients and MUST match the `payload_bytes` used in `GraphSnapshot.digest`.
+- **Timestamps:** all `Timestamp` fields return `null` in Milestone 1 (including every `createdAt` and every event `at`).
 - **Pagination:** `PageInput.first` is supported; `PageInput.after` returns `NOT_IMPLEMENTED` in Milestone 1.
 - **Rewrite ops (M1 supports exactly one op):** `RewriteInput.ops` contains JSON objects conforming to the “AddNode” schema below.
 - **Receipts (M1):** `applyRewrite` returns a deterministic `ReceiptV0` with:
@@ -33,6 +37,52 @@ Milestone 1 is a strict, deterministic subset of this SDL. This section is norma
   - `NOT_FOUND` (SWS id doesn’t exist)
   - `NOT_IMPLEMENTED` (unsupported op variant, `after` cursor, `collapseSws`, `submitIntent`, etc.)
   - `INTERNAL` (kernel loop down, invariant violated, unexpected errors)
+
+### Deterministic digest algorithm (M1)
+
+`GraphSnapshot.digest` MUST be computed from a canonical byte encoding of the kernel snapshot contents. **Implementations MUST NOT hash GraphQL/JSON output.**
+
+**Digest:** BLAKE3 over the concatenation of canonical node records followed by canonical edge records.
+
+#### Canonical node records
+
+Let `nodes` be the full set of nodes in the snapshot for the requested view.
+
+1. Sort `nodes` by raw `node_id_bytes` ascending.
+2. For each node, append to the digest buffer:
+   - `node_id_bytes` (32 bytes)
+   - `kind_len` (u32 little-endian) + `kind_utf8` (exact bytes)
+   - `payload_len` (u32 little-endian) + `payload_bytes`
+
+Notes:
+- `payload_bytes` are the kernel’s opaque bytes for the node payload (may be empty). They are **not** the GraphQL `data: JSON` presentation.
+
+#### Canonical edge records
+
+Let `edges` be the full set of edges in the snapshot for the requested view.
+
+1. Sort `edges` by raw `edge_id_bytes` ascending.
+2. For each edge, append to the digest buffer:
+   - `edge_id_bytes` (32 bytes)
+   - `from_id_bytes` (32 bytes)
+   - `to_id_bytes` (32 bytes)
+   - `kind_len` (u32 little-endian) + `kind_utf8` (exact bytes)
+   - `payload_len` (u32 little-endian) + `payload_bytes`
+
+Notes:
+- `payload_bytes` are the kernel’s opaque bytes for the edge payload (may be empty).
+
+#### Hash string encoding
+
+The resulting 32-byte BLAKE3 digest is encoded as lowercase hex of length 64 with no prefix.
+
+### Canonical payload surface (M1)
+
+For Milestone 1, GraphQL JSON fields (`GraphNode.data`, `GraphEdge.data`) are presentation-only. Implementations MUST provide a deterministic payload surface as base64.
+
+- `GraphNode.payload_b64` returns the node’s opaque `payload_bytes` encoded as standard base64.
+- `GraphEdge.payload_b64` returns the edge’s opaque `payload_bytes` encoded as standard base64, or `null` if the edge has no payload.
+
 
 ### AddNode op schema (M1)
 
@@ -112,6 +162,7 @@ For the single op in `rewrite.ops[0]`:
 - `"op"` is not `"AddNode"` → `NOT_IMPLEMENTED`
 - `"data.kind"` violates pattern/length → `INVALID_INPUT`
 - `"data.payload_b64"` is not valid base64 → `INVALID_INPUT`
+- any `ID` argument fails the M1 ID encoding rule (lowercase hex length 64) → `INVALID_INPUT`
 
 Side effects:
 - Any wall-clock timestamps in responses must be `null` (Milestone 1).
@@ -220,20 +271,27 @@ input EdgeFilterInput {
 """
 A generic graph node. v0 is intentionally untyped to keep the kernel free
 while we stabilize node/edge kinds and their invariants.
+In Milestone 1, clients MUST use `payload_b64` for deterministic payload bytes; `data` is presentation-only.
 """
 type GraphNode {
   id: ID!
   kind: String!
-  data: JSON!          # opaque payload; v1+ will type this
+  data: JSON!          # presentation-only in v0/M1; MUST NOT affect GraphSnapshot.digest
+  payload_b64: String!  # canonical opaque payload bytes (base64); MUST match digest payload_bytes
   createdAt: Timestamp
 }
 
+"""
+A generic graph edge. v0 is intentionally untyped.
+In Milestone 1, clients MUST use `payload_b64` for deterministic payload bytes; `data` is presentation-only.
+"""
 type GraphEdge {
   id: ID!
   kind: String!
   from: ID!
   to: ID!
-  data: JSON
+  data: JSON           # presentation-only in v0/M1; MUST NOT affect GraphSnapshot.digest
+  payload_b64: String   # canonical opaque payload bytes (base64) if present; MUST match digest payload_bytes
   createdAt: Timestamp
 }
 
