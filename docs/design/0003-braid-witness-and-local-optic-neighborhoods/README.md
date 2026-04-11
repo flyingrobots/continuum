@@ -137,6 +137,71 @@ We are asking for:
 
 That is optic-shaped.
 
+## Local Optic Neighborhood Versus Rulial Ball
+
+This note should not collapse two different geometric objects into one.
+
+### Local Optic Neighborhood
+
+The local optic neighborhood lives in rewrite/composition space.
+
+It answers:
+
+- which local rewrites are nearby?
+- which local reintegrations are nearby?
+- which alternatives remain lawful from this braid site under the same bounded
+  focus and policy frame?
+
+This is the right object for:
+
+- merge alternatives
+- collapse alternatives
+- local counterfactual branching
+
+### Rulial Ball
+
+The rulial ball lives in observer space.
+
+Using the paper's language, a rulial ball collects observers or frames that are
+within a bounded translation distance of one another under the relevant time
+and memory budgets.
+
+It answers:
+
+- which nearby observer frames can still translate this site?
+- which observers remain close enough to reconstruct or explain the local
+  alternatives?
+- how expensive is it to move between the current observer and another one?
+
+This is the right object for:
+
+- nearby frames
+- observer translation budgets
+- choosing a deployable observer that preserves downstream inspectability
+
+### How They Relate
+
+The two notions are related but not identical.
+
+The clean relation is:
+
+1. the braid witness preserves a local optic neighborhood
+2. different observers see or reconstruct that neighborhood differently
+3. the rulial ball tells us which nearby observers remain translation-close
+   enough to inspect the same neighborhood under budget
+
+So:
+
+**the optic neighborhood is the local space of lawful alternatives; the rulial
+ball is the local space of nearby frames over that neighborhood.**
+
+This distinction matters because otherwise we will confuse:
+
+- alternative rewrites
+- with alternative observers of the same rewrites
+
+Those are not the same thing.
+
 ## What A Braid Witness Must Preserve
 
 This is the first concrete design cut.
@@ -309,12 +374,21 @@ It means:
 So the braid witness plus observer frame determines the local neighborhood we
 can honestly explore.
 
+Once budget enters, the additional question is:
+
+- which neighboring observer frames still lie inside the relevant local rulial
+  ball?
+
+That question is separate from which local optic moves exist in the first
+place.
+
 ## Two Useful Sentences
 
 These are the two lines worth carrying forward.
 
 1. **A braid witness is a local counterfactual membrane.**
 2. **That membrane is valuable because it preserves a local optic neighborhood of nearby lawful alternatives.**
+3. **A rulial ball tells us which nearby observers can still translate or inspect that neighborhood under budget.**
 
 ## Consequences For The Stack
 
@@ -330,6 +404,8 @@ These are the two lines worth carrying forward.
 - future merge/collapse inspectors can be neighborhood browsers, not just
   winner/loser viewers
 - bounded Aionic exploration becomes plausible without claiming "all futures"
+- views can be scoped first by local optic neighborhood and then filtered by
+  the relevant local rulial ball of nearby observers
 
 ### For Wesley / Continuum Contracts
 
@@ -353,6 +429,8 @@ These are the two lines worth carrying forward.
    density of nearby lawful alternatives?
 5. What is the smallest product slice that would let `warp-ttd` inspect one
    real neighborhood?
+6. How should a local rulial ball be surfaced in tooling without turning the UI
+   into a geometry tax?
 
 ## Playback Questions
 
@@ -361,3 +439,5 @@ These are the two lines worth carrying forward.
 2. Does the Level 1 / Level 2 / Level 3 split keep the Aionic claim honest?
 3. Does the witness now feel like a boundary object for local optic families,
    rather than just a replay residue?
+4. Does the local optic neighborhood versus rulial ball split feel clean and
+   useful?
