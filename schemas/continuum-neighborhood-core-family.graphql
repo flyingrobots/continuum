@@ -1,0 +1,91 @@
+# Continuum Neighborhood Core Family
+# Version: 0.1.0
+#
+# Continuum-authored shared publication family for the first concrete
+# neighborhood-core admission/publication slice.
+#
+# Doctrine:
+# - neighborhood core is a shared observer/debugger family
+# - neighborhood core publishes local site truth, not the entire bounded-site struct
+# - `AdmissionOutcomeKind` is shared across families, but neighborhood core v0.1
+#   uses only `DERIVED` and `PLURAL`
+# - settlement, reintegration detail, and receipt shell remain adjacent families
+
+scalar Hash
+
+enum AdmissionOutcomeKind {
+  DERIVED
+  PLURAL
+  CONFLICT
+  OBSTRUCTION
+}
+
+enum NeighborhoodPlurality {
+  SINGLETON
+  PLURAL
+}
+
+enum NeighborhoodParticipantRole {
+  PRIMARY
+  BASIS_ANCHOR
+  SUPPORT
+}
+
+type NeighborhoodParticipant
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 127)
+  @wes_version(major: 0, minor: 1)
+{
+  participantId: ID! @wes_stateField(key: true)
+  laneId: String! @wes_stateField
+  strandId: String @wes_stateField
+  role: NeighborhoodParticipantRole! @wes_stateField
+  frameIndex: Int! @wes_stateField @wes_constraint(min: 0)
+  stateHash: Hash! @wes_stateField
+}
+
+type NeighborhoodCore
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 128)
+  @wes_version(major: 0, minor: 1)
+{
+  siteId: ID! @wes_stateField(key: true)
+  anchorLaneId: String! @wes_stateField
+  anchorFrameIndex: Int! @wes_stateField @wes_constraint(min: 0)
+  anchorHeadId: String @wes_stateField
+  outcomeKind: AdmissionOutcomeKind! @wes_stateField
+  plurality: NeighborhoodPlurality! @wes_stateField
+  participants: [NeighborhoodParticipant!]! @wes_stateField
+  summary: String! @wes_stateField
+}
+
+type Query {
+  neighborhoodCores(anchorLaneId: String!, anchorFrameIndex: Int): [NeighborhoodCore!]!
+    @wes_op(name: "neighborhoodCores", readonly: true)
+    @wes_footprint(reads: ["NeighborhoodCore"])
+}
+
+type ContinuumNeighborhoodCoreFamilyInvariants
+  @wes_invariant(
+    name: "neighborhood_participants_non_empty",
+    expr: "forall n in NeighborhoodCore: len(n.participants) >= 1",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "singleton_has_exactly_one_participant",
+    expr: "forall n in NeighborhoodCore: n.plurality == SINGLETON implies len(n.participants) == 1",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "plural_has_multiple_participants",
+    expr: "forall n in NeighborhoodCore: n.plurality == PLURAL implies len(n.participants) >= 2",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "neighborhood_outcome_matches_plurality",
+    expr: "forall n in NeighborhoodCore: (n.plurality == SINGLETON implies n.outcomeKind == DERIVED) and (n.plurality == PLURAL implies n.outcomeKind == PLURAL)",
+    severity: "error"
+  )
+{
+  _placeholder: Boolean
+}

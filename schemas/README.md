@@ -21,6 +21,7 @@ It does **not** own:
 
 Current authored family:
 
+- `continuum-neighborhood-core-family.graphql`
 - `continuum-receipt-family.graphql`
 - `continuum-settlement-family.graphql`
 

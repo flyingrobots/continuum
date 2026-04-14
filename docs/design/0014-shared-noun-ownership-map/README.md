@@ -110,7 +110,7 @@ This is the layer that says how a noun is **seen and operated on**.
 | `Observer` | Continuum | `warp-ttd` protocol/design vocabulary | host adapters synthesize from runtime truth | `warp-ttd` | host-local observer-trace shape missing |
 | `Receipt` | Continuum | `schemas/continuum-receipt-family.graphql` + host-local realizations | Echo + `git-warp` | `warp-ttd` summaries | core vs shell split still uneven |
 | `Witness` | Continuum | `schemas/continuum-receipt-family.graphql` and later shared witness families | partial in Echo + `git-warp` | `warp-ttd` consumes summaries | witness-core families not fully authored |
-| `NeighborhoodCore` | Continuum | missing shared family today; first target is `warp-ttd` protocol | synthesized in hosts | `warp-ttd` | needs contract + adapter cutover |
+| `NeighborhoodCore` | Continuum | `schemas/continuum-neighborhood-core-family.graphql` | synthesized in hosts | `warp-ttd` | needs generator + adapter cutover |
 | `ReintegrationDetail` | Continuum | missing shared family today; first target is `warp-ttd` protocol | synthesized in hosts | `warp-ttd` | needs `R_core`-shaped summaries |
 | `ReceiptShell` | Continuum | split between Wesley receipt family and `warp-ttd` summaries | Echo + `git-warp` | `warp-ttd` | shell/core boundary still uneven |
 | `EffectEmission` | Continuum | `warp-ttd` protocol summaries | Echo finalized channels / `git-warp` effect nodes | `warp-ttd` | summary contract exists; host semantics still differ |
@@ -143,11 +143,12 @@ Wesley should increasingly publish separate families or family cuts for:
 Neighborhood core and reintegration detail are their own nouns, not just
 "receipt but with more tabs."
 
-### 4. Echo and `git-warp` should expose host truth without pretending they already have the shared family
+### 4. Echo and `git-warp` should expose host truth without pretending every family is already shared
 
 If a host must synthesize a neighborhood or observer trace today, that is fine.
-It should be named as synthesis, not quietly presented as if the shared
-contract already exists.
+It should be named as synthesis unless there is already an authored shared
+family. Neighborhood core now has one; reintegration detail and observer trace
+still do not.
 
 ## Repo Cuts Triggered By This Map
 
@@ -168,7 +169,8 @@ contract already exists.
 
 ### `warp-ttd`
 
-- introduce neighborhood core / reintegration detail as first-class protocol cuts
+- consume neighborhood core as a first-class protocol cut and keep
+  reintegration detail separate until that family is authored
 - add Browser TTD as a delivery adapter
 - add observer trace and session signal surfaces without smearing them into effects
 

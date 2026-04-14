@@ -241,6 +241,22 @@ Detailed packets:
 - [0014-shared-noun-ownership-map](design/0014-shared-noun-ownership-map/README.md)
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
 
+The first concrete admission/publication slice after the doctrine packet is
+neighborhood core.
+
+That family freezes:
+
+- shared `AdmissionOutcomeKind`
+- singleton-vs-plural local site truth
+- shared neighborhood participant roles
+
+while still leaving bounded-site computation engine-local.
+
+Detailed packet:
+
+- [0022-neighborhood-core-and-admission-outcome-family](design/0022-neighborhood-core-and-admission-outcome-family/README.md)
+- authored family: [schemas/continuum-neighborhood-core-family.graphql](../schemas/continuum-neighborhood-core-family.graphql)
+
 ## 9. Settlement Is A Shared Contract Family
 
 The next convergence step after `0016` is settlement publication.
