@@ -152,6 +152,32 @@ That file is intentionally still narrower than the full graph/runtime proof
 slice. It is the first real Continuum-owned authored family on disk, not the
 final proof-family endpoint.
 
+## Historical Recovery
+
+An older draft line for what is now Paper VIII tried to make one paper prove
+cross-backend equivalence directly between Echo and `git-warp`.
+
+The useful residue from that attempt is not the old paper scope. It is the
+proof posture:
+
+- shared claim
+- engine-specific mechanism
+- explicit evidence artifact
+
+That older ambition is now better realised here as a proof-plan packet rather
+than as overloaded paper prose.
+
+The practical consequence is that this plan should eventually yield a small
+claim-to-evidence matrix of the form:
+
+- claim
+- Continuum family
+- engine mechanism
+- evidence artifact
+
+Later, when `git-warp` is ready for the same proof slice, the matrix can grow
+without changing the doctrine.
+
 ## Proof Plan
 
 ### Phase 0: Freeze the proof slice
@@ -276,6 +302,10 @@ The proof is done when one scripted scenario demonstrates all of these at once:
 
 If one of those steps still relies on hand-maintained mirrors, the proof is not
 done.
+
+The success criterion is therefore stronger than "we built a demo." The proof
+must produce a bounded evidence artifact that can be checked against a shared
+claim.
 
 ## Repo Cuts Triggered By This Plan
 

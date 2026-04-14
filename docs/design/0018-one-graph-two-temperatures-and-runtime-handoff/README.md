@@ -111,6 +111,18 @@ least:
 This makes the handoff part of graph truth instead of an undocumented
 transport trick.
 
+One useful older formulation is that the handoff boundary mediates between:
+
+- `HostTime`
+  - wall-clock, scheduler jitter, arrival timing, tool heartbeat
+- admitted history time
+  - replayable causal order inside the worldline or transported suffix
+
+That distinction matters because a runtime may remain live in host time while a
+debugger or forked lane rewinds admitted history. The handoff event therefore
+needs to say not only what crossed, but also which causal order was actually
+admitted.
+
 ### 4. Shared binary carrier is necessary but not sufficient
 
 If both engines can read and write the same binary WARP carrier, that is a
@@ -140,6 +152,15 @@ fork rooted at an exact basis.
 Such work should default to hot scratch or author-only retained lanes rather
 than crossing silently into cold shared history. Shared admitted history
 requires an explicit later promotion.
+
+The older time-travel notes sharpen the runtime consequence:
+
+- future arrivals may continue to exist in host-time buffers
+- rewound history does not automatically admit those arrivals
+- catch-up, merge, or resync must remain explicit
+
+This is the runtime-temperature version of the same law: buffered facts are not
+yet admitted history.
 
 ### 5. A host-neutral Continuum runtime facade is allowed, but it must stay thin
 
@@ -259,6 +280,7 @@ Wesley should compile and witness the shared families that make this possible:
 - reintegration detail
 - settlement
 - handoff/event carrier families once they exist
+- folded-history and replay-continuity families once those are promoted
 
 ## Interesting Use Cases
 
@@ -273,6 +295,8 @@ It does when a system needs both immediacy and durable truth:
   settlement records
 - offline-first applications with local hot progress and later cold
   convergence
+- catch-up and seek through folded history without pretending the interior
+  vanished
 
 The pitch is not "look, two engines."
 

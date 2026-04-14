@@ -117,6 +117,17 @@ Echo may keep richer global/scheduler coordinates. `git-warp` may keep colder
 patch/materialization details. The shared contract is the observer-facing
 coordinate/frame truth.
 
+The older time-travel notes suggest one additional discipline here: the shared
+observer boundary should remain explicit about the difference between:
+
+- host time
+- admitted history time
+- session or control cursor position
+
+An observer may remain live in host time while rewinding or replaying admitted
+history. The shared contract should therefore avoid collapsing those axes into a
+single "current time" fiction.
+
 #### 3. Neighborhood core family
 
 Minimum shared meanings:
@@ -147,6 +158,10 @@ Minimum shared meaning:
 
 This family is shared as a category, not as one identical engine payload.
 Engine-specific shell is allowed and expected below the common envelope.
+
+The observer contract should continue to inherit the witness/shell separation
+from Continuum core doctrine: a shared observer surface may receive shells, but
+it must not mistake those shells for the witness core itself.
 
 #### 6. Effect emission family
 
@@ -184,6 +199,18 @@ Minimum shared meanings:
 - encounter shape
 
 This is distinct from effect emission and distinct from delivery.
+
+The older observer notes also suggest a useful product rule here: tools should
+be able to preserve distinct observer surfaces intentionally, for example:
+
+- fast state view
+- provenance view
+- intent/conflict view
+- replay-oriented view
+
+Those surfaces may agree on terminal state while differing in retained causal
+fidelity. The shared contract should preserve room for that distinction instead
+of forcing a single flattened observer story.
 
 #### 2. Session mode / session signal family
 
