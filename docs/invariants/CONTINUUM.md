@@ -138,6 +138,68 @@ languages when moving between Echo and `git-warp`.
 Host-specific shell detail is allowed.
 The top-level observer story must remain shared.
 
+### 11. Observation / Fork Separation Invariant
+
+Observation, replay, and inspection do not by themselves create new causal
+truth.
+
+If a Continuum tool asks to continue from an earlier coordinate or explore a
+counterfactual, that act must be represented as an explicit fork or strand
+rooted at an exact basis.
+
+Debugger-created counterfactual lanes should default to scratch or
+author-only retention tiers rather than crossing silently into shared admitted
+history.
+
+If such a lane is retained, the published history must be able to name at
+least:
+
+- creator principal
+- tool or session origin
+- fork basis
+- retention posture
+- revelation posture
+
+Only explicit promotion may move such work into shared admitted history.
+
+### 12. Shared Admission Outcome Invariant
+
+When Echo, `git-warp`, or a later Continuum engine publishes an admission
+result whose meaning must interoperate, it must preserve the lawful outcome
+family:
+
+- `Derived`
+- `Plural`
+- `Conflict`
+- `Obstruction`
+
+`Plural` may not be silently scalarised into an apparent winner, nor collapsed
+into an unstructured list with no basis or participant meaning.
+
+### 13. Observer Collapse / Canonical Collapse Invariant
+
+Observer-side filtering, summarisation, or narrowed projection may aid human
+understanding, but it must not be presented as canonical admission unless the
+underlying engine actually admitted that collapse and can name the
+corresponding witness and shell.
+
+Continuum tools may choose a reading.
+They may not silently claim that the reading is the runtime's admitted truth.
+
+### 14. Policy Identity Publication Invariant
+
+When policy changes the published causal meaning of an admission result, policy
+identity must be explicit.
+
+At the shared Continuum boundary, policy remains:
+
+- engine-defined
+- deterministic
+- host-selectable or host-configurable by reference
+
+It must not become host-authored execution code masquerading as shared causal
+law.
+
 ## Short Form
 
 If you need the whole doctrine compressed:
@@ -150,6 +212,11 @@ If you need the whole doctrine compressed:
 - no silent normalization
 - no silent temperature handoff
 - same contracts, same bytes, same interpretation
+- observation is revelation only; debugger-created counterfactuals are explicit
+  tiered forks
+- lawful admission outcomes stay explicit
+- observer collapse is not canonical collapse
+- shared policy meaning requires explicit policy identity
 
 ## Source Packets
 
@@ -159,3 +226,5 @@ These invariants are distilled primarily from:
 - [0016-engine-local-vs-shared-observer-contract](../design/0016-engine-local-vs-shared-observer-contract/README.md)
 - [0017-settlement-publication-and-shared-reintegration](../design/0017-settlement-publication-and-shared-reintegration/README.md)
 - [0018-one-graph-two-temperatures-and-runtime-handoff](../design/0018-one-graph-two-temperatures-and-runtime-handoff/README.md)
+- [0020-shared-admission-and-policy-publication](../design/0020-shared-admission-and-policy-publication/README.md)
+- [0021-family-versions-vs-repo-versions](../design/0021-family-versions-vs-repo-versions/README.md)

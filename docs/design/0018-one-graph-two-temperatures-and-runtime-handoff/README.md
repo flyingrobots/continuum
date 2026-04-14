@@ -129,6 +129,18 @@ The stronger requirement is:
 
 **same nouns, same contracts, same bytes, same causal interpretation**
 
+### Debugger-created counterfactuals are explicit tiered forks
+
+Observation alone does not create new graph truth.
+
+If a debugger or agent asks to continue from an earlier coordinate or explore
+an explicit counterfactual, Continuum should represent that as a first-class
+fork rooted at an exact basis.
+
+Such work should default to hot scratch or author-only retained lanes rather
+than crossing silently into cold shared history. Shared admitted history
+requires an explicit later promotion.
+
 ### 5. A host-neutral Continuum runtime facade is allowed, but it must stay thin
 
 Continuum should not become a third independent engine.
@@ -207,6 +219,14 @@ engine without switching conceptual languages.
 Host-specific depth is allowed in shell or drill-down.
 The top-level story must remain shared.
 
+### 9. Observation / Fork Separation Invariant
+
+Observation, replay, and inspection are revelation acts only.
+
+Debugger-created counterfactuals must appear as explicit forked lanes rooted
+at exact bases, with scratch or author-only retention by default and shared
+publication only by later promotion.
+
 ## Consequences For The Stack
 
 ### Echo
@@ -276,4 +296,3 @@ The immediate proof obligations are:
 
 Until those are true, "one graph, two temperatures" remains a target, not a
 completed fact.
-
