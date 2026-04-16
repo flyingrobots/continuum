@@ -1,53 +1,12 @@
-# Knowledge base
-.obsidian/
-
-# macOS cruft
 .DS_Store
-__pycache__/
-.AppleDouble
-.LSOverride
-Icon\r
-.Spotlight-V100
-.Trashes
-._*
-.fseventsd
-
-# Xcode build artifacts
-DerivedData/
+.obsidian/
+.codex/
+node_modules/
+dist/
 build/
-*.xcworkspace
-xcuserdata/
-*.xcuserstate
-*.xccheckout
-
-# IDE settings
-.vscode/
-.idea/
-*.iml
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# Editor swap/backup files
-*~
-*.swp
-*.swo
-.claude/
-
-# LaTeX build artifacts
-*.aux
-*.log
-*.out
-*.toc
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-
-# Generated PDFs (built by docs/tex Makefile targets)
-*.pdf
-
-# Rust build artifacts
+coverage/
+.coverage/
+.wesley-cache/
 target/
-**/*.rs.bk
-*.pdb
+tmp/
+*.log

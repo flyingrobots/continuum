@@ -1,0 +1,14 @@
+{
+  "kind": "warpspace.template.v1",
+  "id": "demo-web-rust-v1",
+  "description": "Minimal demo web + Rust starter scaffold for a Continuum WARPspace.",
+  "directories": [
+    ".warpspace/packages",
+    ".warpspace/cache",
+    ".warpspace/downloads",
+    "contracts/continuum",
+    "packages/demo-web/src",
+    "crates/demo-contracts/src"
+  ],
+  "copyFilesFrom": "files"
+}
