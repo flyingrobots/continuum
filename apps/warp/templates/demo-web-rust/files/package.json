@@ -1,0 +1,8 @@
+{
+  "name": "__PROJECT_NAME__",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo \"warp build will own this in the managed flow\""
+  }
+}

@@ -5,7 +5,8 @@ This is the first landing path if you are new to the Continuum stack.
 If you only remember one thing, remember this:
 
 - **Continuum** defines shared contract and compatibility truth.
-- **Wesley** compiles shared families into usable host artifacts.
+- **`warp`** is the user-facing WARPspace CLI.
+- **Wesley** compiles shared families into usable host artifacts behind `warp`.
 - **Echo** and **`git-warp`** are the runtimes.
 - **`warp-ttd`** is the shared observer/debugger surface.
 - **WARPspace** is your app's local workspace.
@@ -18,26 +19,29 @@ five repos and guessing how they fit together.
 The intended user entry point is a single bootstrap tool:
 
 ```bash
-warpspace init my-app --profile demo
+warp init my-app --profile demo
 ```
 
 That command should:
 
-1. Fetch a Continuum-authored stack release manifest.
+1. Fetch or resolve a Continuum-authored stack release manifest.
 2. Choose one tested set of compatible versions of:
    - Continuum
    - Wesley
    - Echo
    - `git-warp`
    - `warp-ttd`
-3. Write a checked-in `warpspace.mjs`.
+3. Write a checked-in `warpspace.toml`.
 4. Write a checked-in `warpspace.lock.json`.
-5. Materialize the first shared Continuum family into `contracts/continuum/`.
-6. Generate the first TypeScript, Zod, Echo, and `warp-ttd` host outputs.
+5. Create the managed internal install layout under `.warpspace/`.
+6. Materialize the first shared Continuum family into `contracts/continuum/`.
+7. Invoke Wesley internally to generate the first TypeScript, Zod, Echo, and
+   `warp-ttd` host outputs.
 
 If you want the design behind that flow, read:
 
 - [WARPspace Bootstrap And Stack Release Manifest](design/0023-warpspace-bootstrap-and-stack-release-manifest/README.md)
+- [Warp CLI And WARPspace TOML](design/0024-warp-cli-and-warpspace-toml/README.md)
 - [demo stack release manifest](releases/demo/continuum-stack-release.json)
 
 ## What A New User Should Read
@@ -48,8 +52,8 @@ Use this order:
    Short repo purpose and stack split.
 2. [docs/GETTING_STARTED.md](GETTING_STARTED.md)
    The user entry point and startup flow.
-3. The sibling repo `../continuum-demo`
-   Its `README.md` is the current consumer proof repo entry point.
+3. [apps/warp/README.md](../apps/warp/README.md)
+   The current Continuum-owned prototype for the user-facing CLI.
 4. [docs/VISION.md](VISION.md)
    The durable ownership split across the stack.
 
@@ -62,73 +66,55 @@ Only go deeper after that:
 
 ## What A New User Should Do
 
-If the `warpspace` bootstrap flow exists, the getting-started path should be:
+If the `warp` bootstrap flow exists, the getting-started path should be:
 
-1. Install `warpspace`.
-2. Run `warpspace init my-app --profile demo`.
+1. Install `warp`.
+2. Run `warp init my-app --profile demo`.
 3. Enter the new repo.
-4. Run `warpspace generate` or `warpspace doctor`.
+4. Run `warp build` or `warp doctor`.
 5. Start writing app-local contracts and app code on top of the generated
    shared family.
 
 The host repo they receive should already contain:
 
-- `warpspace.mjs`
+- `warpspace.toml`
 - `warpspace.lock.json`
 - `contracts/continuum/`
+- `.warpspace/`
 - generated outputs under host package/crate roots
 
 That is the first honest "build a Continuum app" story.
 
 ## What Exists Today
 
-Today, the intended `warpspace init` product flow is defined, but not yet fully
+Today, the intended `warp init` product flow is defined, but not yet fully
 packaged as a one-command user experience.
 
 The first concrete stack artifact for that flow now exists here:
 
 - [demo stack release manifest](releases/demo/continuum-stack-release.json)
 
-A local-first prototype also now exists in Wesley:
+A local-first prototype now exists in Continuum:
 
 ```bash
-node ../wesley/packages/wesley-host-node/bin/warpspace.mjs init my-app \
-  --manifest ./docs/releases/demo/continuum-stack-release.json \
-  --authority-root ..
+node apps/warp/bin/warp.mjs init my-app \
+  --profile demo \
+  --wesley-bin ../wesley/packages/wesley-host-node/bin/wesley.mjs
 ```
 
 The closest real starting point today is:
 
-1. Look at the sibling repo `../continuum-wizard-demo`.
-2. Treat it as the first manifest-driven WARPspace host proof.
-3. Inspect its committed `warpspace.mjs`, `warpspace.lock.json`, and generated
-   roots.
-4. If you want the older hand-wired pre-bootstrap flow, then compare against
-   the sibling repo `../continuum-demo`.
+1. Read [apps/warp/README.md](../apps/warp/README.md).
+2. Run the prototype against a scratch host repo.
+3. Inspect the resulting `warpspace.toml`, `warpspace.lock.json`,
+   `contracts/continuum/`, and scaffolded package/crate roots.
 
-The older hand-wired `continuum-demo` commands are:
-
-```bash
-pnpm run sync:continuum:neighborhood-core
-pnpm run gen:typescript
-pnpm run gen:zod
-pnpm run gen:echo
-pnpm run gen:ttd
-```
-
-Or all at once:
-
-```bash
-pnpm run gen:all
-```
-
-Today the wizard proof still assumes active stack-development posture rather
-than a released installer posture. In practice that means local sibling repos
+Today the prototype still assumes active stack-development posture rather than
+a released installer posture. In practice that means local development inputs
 such as:
 
 - `~/git/continuum`
 - `~/git/wesley`
-- `~/git/continuum-wizard-demo`
 
 That is acceptable for current stack work.
 It is not the final consumer entry point.

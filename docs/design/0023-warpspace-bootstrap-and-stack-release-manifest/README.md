@@ -5,6 +5,10 @@ status: proposed
 
 # WARPspace Bootstrap And Stack Release Manifest
 
+> Historical note: this packet captures the first bootstrap cut. The permanent
+> CLI home and config boundary are now refined in
+> [0024 - Warp CLI And WARPspace TOML](../0024-warp-cli-and-warpspace-toml/README.md).
+
 **Cycle:** 0023-warpspace-bootstrap-and-stack-release-manifest  
 **Legend:** SOURCE  
 **Type:** coordination cycle

@@ -21,9 +21,11 @@ neighborhood-core demo slice:
 It also records:
 
 - the family digest
+- the WARPspace template artifact
 - the default projections
 - the default host output roots
 - the expected checked-in WARPspace files
+- the expected `.warpspace/` install layout
 - the current local-override posture
 
 ## Current Posture
@@ -36,8 +38,8 @@ That means:
 - the compatibility tuple is concrete
 - the selected repos and artifacts are explicit
 - the current demo can anchor itself to this manifest
-- a local-first `warpspace init` prototype can already consume this manifest
-- the final released `warpspace init --profile demo` consumer flow is still a
+- a local-first `warp init` prototype in Continuum can already consume this manifest
+- the final released `warp init --profile demo` consumer flow is still a
   follow-on implementation
 
 ## Why It Matters
@@ -45,6 +47,7 @@ That means:
 The point of this artifact is to bridge the gap between:
 
 - abstract bootstrap doctrine in `0023`
+- the corrected CLI/config boundary in `0024`
 - the newcomer story in `docs/GETTING_STARTED.md`
 - and a tool that can actually resolve and materialize one WARPspace
 

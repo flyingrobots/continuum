@@ -5,6 +5,10 @@ status: complete
 
 # Retro
 
+> Historical note: this retro captures the stage-0 bootstrap proof. The
+> permanent CLI home and config boundary are refined in
+> [0024 - Warp CLI And WARPspace TOML](../../design/0024-warp-cli-and-warpspace-toml/README.md).
+
 ## Hill
 
 Turn the WARPspace bootstrap story from doctrine into something a developer can
