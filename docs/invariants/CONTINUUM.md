@@ -200,6 +200,37 @@ At the shared Continuum boundary, policy remains:
 It must not become host-authored execution code masquerading as shared causal
 law.
 
+### 15. Shared Rewrite Boundary Invariant
+
+When a graph entity, graph rewrite, declared footprint, or cross-language or
+network-visible type must interoperate across Echo, `git-warp`, `warp-ttd`, or
+other Continuum tooling, that surface belongs in an authored shared contract
+family.
+
+For this boundary:
+
+- Continuum owns the authored semantic family
+- Wesley owns compilation of that family into deterministic generated artifacts
+- engines and tools consume the generated artifacts
+
+The authored shared family is where Continuum freezes:
+
+- graph entity nouns such as nodes and edges
+- graph rewrite declarations
+- declared read/write footprints and capability boundaries
+- types that cross Rust, TypeScript, WASM, process, or network boundaries
+
+This does **not** mean Wesley compiles the whole application. Echo,
+`git-warp`, and other engines remain free to keep runtime internals, storage,
+scheduling, and handwritten engine logic local as long as those internals do
+not become shadow authorities for the shared rewrite boundary.
+
+The intended enforcement story is capability-bounded compilation, not
+after-the-fact folklore. If a declared rewrite may only read or write one
+footprint, the generated Rust, TypeScript, and boundary artifacts should make
+that honesty explicit and auditable rather than relying on unchecked ambient
+native execution surfaces.
+
 ## Short Form
 
 If you need the whole doctrine compressed:
@@ -217,6 +248,7 @@ If you need the whole doctrine compressed:
 - lawful admission outcomes stay explicit
 - observer collapse is not canonical collapse
 - shared policy meaning requires explicit policy identity
+- shared graph/rewrite boundaries live in authored families compiled by Wesley
 
 ## Source Packets
 
