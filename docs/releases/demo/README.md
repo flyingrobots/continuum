@@ -22,6 +22,8 @@ It also records:
 
 - the family digest
 - the WARPspace template artifact
+- the current Node runtime policy
+- the current Wesley install source
 - the default projections
 - the default host output roots
 - the expected checked-in WARPspace files
@@ -39,6 +41,7 @@ That means:
 - the selected repos and artifacts are explicit
 - the current demo can anchor itself to this manifest
 - a local-first `warp init` prototype in Continuum can already consume this manifest
+- the current demo auto-stages the current-process Node runtime and sibling Wesley entrypoint under `.warpspace/packages/`
 - the final released `warp init --profile demo` consumer flow is still a
   follow-on implementation
 

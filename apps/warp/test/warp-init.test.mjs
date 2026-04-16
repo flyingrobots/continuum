@@ -20,11 +20,13 @@ function sha256(content) {
 test('initWarp scaffolds the template, materializes families, and writes warpspace.toml', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
   const authorityRoot = path.join(tempDir, 'continuum');
+  const wesleyRoot = path.join(tempDir, 'wesley');
   const projectDir = path.join(tempDir, 'app');
   const schemaPath = path.join(authorityRoot, 'schemas', 'continuum-neighborhood-core-family.graphql');
   const manifestPath = path.join(authorityRoot, 'docs', 'releases', 'demo', 'continuum-stack-release.json');
   const templatePath = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'template.json');
   const templateFiles = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'files');
+  const wesleyEntrypoint = path.join(wesleyRoot, 'packages', 'wesley-host-node', 'bin', 'wesley.mjs');
   const schemaContent = 'type Query { ok: Boolean! }\n';
 
   try {
@@ -33,8 +35,10 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
     await mkdir(path.dirname(manifestPath), { recursive: true });
     await mkdir(path.join(templateFiles, 'packages', 'demo-web', 'src'), { recursive: true });
     await mkdir(path.join(templateFiles, 'crates', 'demo-contracts', 'src'), { recursive: true });
+    await mkdir(path.dirname(wesleyEntrypoint), { recursive: true });
 
     await writeFile(schemaPath, schemaContent, 'utf8');
+    await writeFile(wesleyEntrypoint, 'export const ok = true;\n', 'utf8');
     await writeFile(
       templatePath,
       JSON.stringify({
@@ -79,9 +83,20 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
           }
         ],
         toolchain: {
+          node: {
+            runtime: 'node',
+            source: 'system',
+            versionRange: '>=22.0.0',
+            managedPath: '.warpspace/packages/node/current/bin/node'
+          },
           wesley: {
             package: '@wesley/host-node',
-            version: '0.1.0'
+            version: '0.1.0',
+            install: {
+              source: 'local-sibling-entrypoint',
+              path: '../wesley/packages/wesley-host-node/bin/wesley.mjs',
+              managedPath: '.warpspace/packages/wesley/current/bin/wesley.mjs'
+            }
           }
         },
         runtimes: {
@@ -134,6 +149,8 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
     const lock = JSON.parse(await readFile(path.join(projectDir, 'warpspace.lock.json'), 'utf8'));
     assert.equal(lock.kind, 'warpspace.lock.v2');
     assert.equal(lock.bootstrap.tool, 'warp');
+    assert.equal(lock.toolchain.node.source, 'system');
+    assert.equal(lock.toolchain.wesley.source, 'local-sibling-entrypoint');
 
     const materialized = await readFile(
       path.join(projectDir, 'contracts', 'continuum', 'continuum-neighborhood-core-family.graphql'),
@@ -149,19 +166,31 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
 
     const wesleyBridge = await readFile(path.join(projectDir, '.warpspace.wesley.mjs'), 'utf8');
     assert.match(wesleyBridge, /wesley\.warpspace\.v1/);
+
+    const stagedNodeReceipt = JSON.parse(
+      await readFile(path.join(projectDir, '.warpspace', 'packages', 'node', 'current', 'bin', 'install-receipt.json'), 'utf8')
+    );
+    assert.equal(stagedNodeReceipt.tool, 'node');
+
+    const stagedWesleyReceipt = JSON.parse(
+      await readFile(path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'install-receipt.json'), 'utf8')
+    );
+    assert.equal(stagedWesleyReceipt.tool, 'wesley');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
 });
 
-test('initWarp can hand off generation to Wesley when a binary is configured', async () => {
+test('initWarp can hand off generation through staged node and Wesley toolchain paths', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
   const authorityRoot = path.join(tempDir, 'continuum');
+  const wesleyRoot = path.join(tempDir, 'wesley');
   const projectDir = path.join(tempDir, 'app');
   const schemaPath = path.join(authorityRoot, 'schemas', 'continuum-neighborhood-core-family.graphql');
   const manifestPath = path.join(authorityRoot, 'docs', 'releases', 'demo', 'continuum-stack-release.json');
   const templatePath = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'template.json');
   const templateFiles = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'files');
+  const wesleyEntrypoint = path.join(wesleyRoot, 'packages', 'wesley-host-node', 'bin', 'wesley.mjs');
   const invocations = [];
 
   try {
@@ -170,8 +199,10 @@ test('initWarp can hand off generation to Wesley when a binary is configured', a
     await mkdir(path.dirname(manifestPath), { recursive: true });
     await mkdir(path.join(templateFiles, 'packages', 'demo-web', 'src'), { recursive: true });
     await mkdir(path.join(templateFiles, 'crates', 'demo-contracts', 'src'), { recursive: true });
+    await mkdir(path.dirname(wesleyEntrypoint), { recursive: true });
 
     await writeFile(schemaPath, 'type Query { ok: Boolean! }\n', 'utf8');
+    await writeFile(wesleyEntrypoint, 'export const ok = true;\n', 'utf8');
     await writeFile(
       templatePath,
       JSON.stringify({
@@ -202,6 +233,23 @@ test('initWarp can hand off generation to Wesley when a binary is configured', a
             defaultProjections: ['typescript', 'zod', 'echo-ir', 'warp-ttd']
           }
         ],
+        toolchain: {
+          node: {
+            runtime: 'node',
+            source: 'system',
+            versionRange: '>=22.0.0',
+            managedPath: '.warpspace/packages/node/current/bin/node'
+          },
+          wesley: {
+            package: '@wesley/host-node',
+            version: '0.1.0',
+            install: {
+              source: 'local-sibling-entrypoint',
+              path: '../wesley/packages/wesley-host-node/bin/wesley.mjs',
+              managedPath: '.warpspace/packages/wesley/current/bin/wesley.mjs'
+            }
+          }
+        },
         bootstrap: {
           tool: 'warp',
           command: 'warp init my-app --profile demo',
@@ -224,7 +272,6 @@ test('initWarp can hand off generation to Wesley when a binary is configured', a
     const result = await initWarp({
       projectDir,
       manifestPath,
-      wesleyBin: '/tmp/wesley.mjs',
       runCommand: async ({ command, args, cwd }) => {
         invocations.push({ command, args, cwd });
         return {
@@ -238,16 +285,28 @@ test('initWarp can hand off generation to Wesley when a binary is configured', a
     assert.equal(result.generated, 'completed');
     assert.equal(invocations.length, 4);
     assert.ok(invocations.every(call => call.args.includes('--warpspace')));
+    assert.ok(invocations.every(call => call.command.endsWith(path.join('.warpspace', 'packages', 'node', 'current', 'bin', 'node'))));
     assert.deepEqual(
       invocations.map(call => call.args.slice(0, 2)),
       [
-        ['/tmp/wesley.mjs', 'typescript'],
-        ['/tmp/wesley.mjs', 'zod'],
-        ['/tmp/wesley.mjs', 'bundle-echo'],
-        ['/tmp/wesley.mjs', 'compile-ttd']
+        [
+          path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
+          'typescript'
+        ],
+        [
+          path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
+          'zod'
+        ],
+        [
+          path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
+          'bundle-echo'
+        ],
+        [
+          path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
+          'compile-ttd'
+        ]
       ]
     );
-    assert.ok(invocations.every(call => call.command === 'node'));
     assert.ok(invocations.every(call => call.cwd === projectDir));
   } finally {
     await rm(tempDir, { recursive: true, force: true });

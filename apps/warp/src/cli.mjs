@@ -37,7 +37,6 @@ async function runInit(argv, { stdout, stderr }) {
       manifestPath: options.manifest ?? null,
       profile: options.profile ?? null,
       authorityRoot: options.authorityRoot ?? null,
-      wesleyBin: options.wesleyBin ?? null,
       force: Boolean(options.force),
       generate: !options.skipGenerate
     });
@@ -58,11 +57,11 @@ async function runInit(argv, { stdout, stderr }) {
       stdout(`Template: ${result.template.id}\n`);
       stdout(`Config: ${result.warpspacePath}\n`);
       stdout(`Lock: ${result.lockPath}\n`);
+      stdout(`Node runtime: ${result.toolchain.node.version} via ${result.toolchain.node.source}\n`);
+      stdout(`Wesley tool: ${result.toolchain.wesley.package ?? 'wesley'} ${result.toolchain.wesley.version ?? ''}`.trimEnd() + '\n');
       stdout(`Materialized families: ${result.materializedFamilies.map(family => family.id).join(', ')}\n`);
       if (result.generated === 'completed') {
         stdout(`Generation: ${result.generatedCommands.length} Wesley command(s) completed\n`);
-      } else if (result.generated === 'skipped-no-wesley') {
-        stdout('Generation: skipped because no Wesley binary was configured\n');
       } else {
         stdout('Generation: skipped by flag\n');
       }
@@ -107,9 +106,6 @@ function parseInitArgs(argv) {
       case '--authority-root':
         options.authorityRoot = requireValue(argv, ++index, token);
         break;
-      case '--wesley-bin':
-        options.wesleyBin = requireValue(argv, ++index, token);
-        break;
       case '--json':
         options.json = true;
         break;
@@ -144,13 +140,12 @@ function renderUsage() {
     'warp - Bootstrap and manage a Continuum WARPspace',
     '',
     'Usage:',
-    '  warp init <projectDir> [--profile demo] [--manifest <path>] [--wesley-bin <path>]',
+    '  warp init <projectDir> [--profile demo] [--manifest <path>]',
     '',
     'Options:',
     '  --profile <id>         Use a built-in Continuum release profile such as demo',
     '  --manifest <path>      Use an explicit continuum-stack-release.json',
     '  --authority-root <p>   Override the Continuum authored-home root',
-    '  --wesley-bin <path>    Invoke this Wesley binary after bootstrap',
     '  --skip-generate        Do not invoke Wesley during bootstrap',
     '  --force                Initialize into a non-empty target directory',
     '  --json                 Emit structured JSON output',

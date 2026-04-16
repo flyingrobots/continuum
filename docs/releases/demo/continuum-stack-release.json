@@ -6,7 +6,7 @@
   "deliveryMode": "local-sibling-proof",
   "description": "First concrete Continuum stack release manifest for the neighborhood-core demo WARPspace.",
   "sourceAuthority": {
-    "packet": "docs/design/0024-warp-cli-and-warpspace-toml/README.md",
+    "packet": "docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md",
     "publishedOn": "2026-04-15"
   },
   "families": [
@@ -25,13 +25,24 @@
     }
   ],
   "toolchain": {
+    "node": {
+      "runtime": "node",
+      "source": "system",
+      "versionRange": ">=22.0.0",
+      "managedPath": ".warpspace/packages/node/current/bin/node"
+    },
     "wesley": {
       "package": "@wesley/host-node",
       "version": "0.1.0",
       "repo": "https://github.com/flyingrobots/wesley",
       "commit": "a80e47accb76854f68236c6cafd1f314e53b05ff",
       "bundleFormat": 1,
-      "command": "wesley"
+      "command": "wesley",
+      "install": {
+        "source": "local-sibling-entrypoint",
+        "path": "../wesley/packages/wesley-host-node/bin/wesley.mjs",
+        "managedPath": ".warpspace/packages/wesley/current/bin/wesley.mjs"
+      }
     }
   },
   "runtimes": {
@@ -121,6 +132,7 @@
   "notes": [
     "This manifest is the first concrete bridge between the bootstrap doctrine and an eventual warp init implementation.",
     "git-warp is pinned as part of the compatible stack tuple even though the first neighborhood-core demo does not yet materialize a git-warp-facing output cut.",
-    "The current demo flow still uses local sibling repos and an explicit Wesley handoff; moving from this manifest to a released bootstrap path is the next tooling step."
+    "The current demo flow stages the current-process Node runtime and a sibling Wesley entrypoint into .warpspace/packages/ for local development proof.",
+    "Moving from this manifest to a released bootstrap path still requires downloadable toolchain artifacts and managed Node bundles for released profiles."
   ]
 }

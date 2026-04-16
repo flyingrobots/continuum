@@ -30,9 +30,12 @@ Current posture:
 - writes `warpspace.toml` and `warpspace.lock.json`
 - scaffolds the demo host template
 - materializes Continuum family sources into the host repo
+- stages the current-process Node runtime under `.warpspace/packages/node/`
+- stages the sibling Wesley entrypoint declared by the demo manifest under
+  `.warpspace/packages/wesley/`
 - writes an ignored `.warpspace.wesley.mjs` bridge file while Wesley still
   expects `warpspace.mjs`
-- optionally calls Wesley when `--wesley-bin` is provided
+- invokes Wesley through those staged paths
 
 ## Run It
 
@@ -40,12 +43,4 @@ From this repo:
 
 ```bash
 node apps/warp/bin/warp.mjs init my-app --profile demo
-```
-
-To also run the current Wesley generator proof:
-
-```bash
-node apps/warp/bin/warp.mjs init my-app \
-  --profile demo \
-  --wesley-bin ../wesley/packages/wesley-host-node/bin/wesley.mjs
 ```

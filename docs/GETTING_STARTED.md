@@ -97,10 +97,14 @@ The first concrete stack artifact for that flow now exists here:
 A local-first prototype now exists in Continuum:
 
 ```bash
-node apps/warp/bin/warp.mjs init my-app \
-  --profile demo \
-  --wesley-bin ../wesley/packages/wesley-host-node/bin/wesley.mjs
+node apps/warp/bin/warp.mjs init my-app --profile demo
 ```
+
+For the current local-sibling demo profile, that command:
+
+- stages the current-process Node runtime under `.warpspace/packages/node/`
+- stages a sibling Wesley entrypoint under `.warpspace/packages/wesley/`
+- then invokes Wesley through those staged toolchain paths
 
 The closest real starting point today is:
 

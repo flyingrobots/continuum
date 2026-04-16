@@ -3,12 +3,17 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
+  chmod,
+  copyFile,
   mkdir,
   readFile,
   readdir,
+  rm,
   stat,
+  symlink,
   writeFile
 } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 const STACK_RELEASE_KIND = 'continuum.stack-release.v1';
 const TEMPLATE_KIND = 'warpspace.template.v1';
@@ -22,7 +27,6 @@ export async function initWarp({
   manifestPath = null,
   profile = null,
   authorityRoot = null,
-  wesleyBin = null,
   force = false,
   generate = true,
   now = () => new Date(),
@@ -70,6 +74,12 @@ export async function initWarp({
     true
   );
   await writeInternalReadme({ projectDir: resolvedProjectDir, installLayout, manifest });
+  const toolchain = await installManagedToolchain({
+    manifest,
+    authorityRoot: resolvedAuthorityRoot,
+    projectDir: resolvedProjectDir,
+    installLayout
+  });
 
   const materializedFamilies = [];
   for (const family of manifest.families) {
@@ -120,21 +130,18 @@ export async function initWarp({
   let generated = 'skipped-by-flag';
   const generatedCommands = [];
   if (generate) {
-    if (wesleyBin == null) {
-      generated = 'skipped-no-wesley';
-    } else {
-      generated = 'completed';
-      for (const family of manifest.families) {
-        generatedCommands.push(
-          ...await invokeWesleyForFamily({
-            wesleyBin,
-            wesleyWarpspaceBridgePath,
-            family,
-            projectDir: resolvedProjectDir,
-            runCommand
-          })
-        );
-      }
+    generated = 'completed';
+    for (const family of manifest.families) {
+      generatedCommands.push(
+        ...await invokeWesleyForFamily({
+          nodeBin: toolchain.node.commandPath,
+          wesleyEntrypoint: toolchain.wesley.entrypointPath,
+          wesleyWarpspaceBridgePath,
+          family,
+          projectDir: resolvedProjectDir,
+          runCommand
+        })
+      );
     }
   }
 
@@ -147,10 +154,10 @@ export async function initWarp({
     template,
     templateArtifactPath,
     installLayout,
+    toolchain,
     initializedAt,
     generated,
     generatedCommands,
-    wesleyBin,
     wesleyWarpspaceBridgePath
   });
   const lockPath = path.join(resolvedProjectDir, 'warpspace.lock.json');
@@ -167,6 +174,7 @@ export async function initWarp({
       artifactPath: templateArtifactPath
     },
     authorityRoot: resolvedAuthorityRoot,
+    toolchain,
     warpspacePath,
     lockPath,
     materializedFamilies,
@@ -234,6 +242,18 @@ function validateManifest(manifest, manifestPath) {
   }
   if (!manifest.bootstrap.defaultOutputs || typeof manifest.bootstrap.defaultOutputs !== 'object') {
     throw new Error(`Stack release manifest at ${manifestPath} must declare bootstrap.defaultOutputs.`);
+  }
+  if (!manifest.toolchain || typeof manifest.toolchain !== 'object') {
+    throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain settings.`);
+  }
+  if (!manifest.toolchain.node || typeof manifest.toolchain.node !== 'object') {
+    throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain.node.`);
+  }
+  if (!manifest.toolchain.wesley || typeof manifest.toolchain.wesley !== 'object') {
+    throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain.wesley.`);
+  }
+  if (!manifest.toolchain.wesley.install || typeof manifest.toolchain.wesley.install !== 'object') {
+    throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain.wesley.install.`);
   }
   for (const family of manifest.families) {
     if (!family.id || !family.version || !family.sourcePath || !family.materializeTo) {
@@ -375,8 +395,164 @@ async function writeInternalReadme({ projectDir, installLayout, manifest }) {
   await writeFile(readmePath, content, 'utf8');
 }
 
+async function installManagedToolchain({
+  manifest,
+  authorityRoot,
+  projectDir,
+  installLayout
+}) {
+  const node = await installNodeRuntime({
+    nodeSpec: manifest.toolchain.node,
+    projectDir,
+    installLayout
+  });
+  const wesley = await installWesleyTool({
+    wesleySpec: manifest.toolchain.wesley,
+    authorityRoot,
+    projectDir,
+    installLayout
+  });
+
+  return { node, wesley };
+}
+
+async function installNodeRuntime({ nodeSpec, projectDir, installLayout }) {
+  const source = requiredText(nodeSpec.source, 'toolchain.node.source');
+  if (source !== 'system') {
+    throw new Error(
+      `Unsupported toolchain.node.source "${source}". The current prototype only supports "system".`
+    );
+  }
+
+  const versionRange = requiredText(nodeSpec.versionRange, 'toolchain.node.versionRange');
+  assertNodeVersionSatisfies({
+    actualVersion: process.version,
+    requestedRange: versionRange
+  });
+
+  const commandPath = path.join(
+    projectDir,
+    nodeSpec.managedPath ?? path.join(installLayout.packages, 'node', 'current', 'bin', 'node')
+  );
+  await stageFileReference({
+    sourcePath: process.execPath,
+    targetPath: commandPath
+  });
+
+  const receiptPath = path.join(path.dirname(commandPath), 'install-receipt.json');
+  const receipt = {
+    kind: 'warp.tool-install-receipt.v1',
+    tool: 'node',
+    source,
+    requestedRange: versionRange,
+    resolvedVersion: normalizeNodeVersion(process.version),
+    sourcePath: process.execPath,
+    stagedPath: commandPath
+  };
+  await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+  return {
+    runtime: 'node',
+    source,
+    requestedRange: versionRange,
+    version: normalizeNodeVersion(process.version),
+    sourcePath: process.execPath,
+    commandPath,
+    receiptPath
+  };
+}
+
+async function installWesleyTool({
+  wesleySpec,
+  authorityRoot,
+  projectDir,
+  installLayout
+}) {
+  const install = wesleySpec.install;
+  const source = requiredText(install.source, 'toolchain.wesley.install.source');
+
+  if (source !== 'local-sibling-entrypoint') {
+    throw new Error(
+      `Unsupported toolchain.wesley.install.source "${source}". ` +
+      'The current prototype only supports "local-sibling-entrypoint".'
+    );
+  }
+
+  const sourcePath = path.resolve(
+    authorityRoot,
+    requiredText(install.path, 'toolchain.wesley.install.path')
+  );
+  if (!await pathExists(sourcePath)) {
+    throw new Error(`Configured Wesley entrypoint does not exist: ${sourcePath}`);
+  }
+
+  const entrypointPath = path.join(
+    projectDir,
+    install.managedPath ?? path.join(installLayout.packages, 'wesley', 'current', 'bin', 'wesley.mjs')
+  );
+  await writeWesleyWrapper({
+    sourcePath,
+    targetPath: entrypointPath
+  });
+
+  const receiptPath = path.join(path.dirname(entrypointPath), 'install-receipt.json');
+  const receipt = {
+    kind: 'warp.tool-install-receipt.v1',
+    tool: 'wesley',
+    source,
+    package: wesleySpec.package ?? null,
+    version: wesleySpec.version ?? null,
+    sourcePath,
+    stagedPath: entrypointPath
+  };
+  await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+  return {
+    package: wesleySpec.package ?? null,
+    version: wesleySpec.version ?? null,
+    source,
+    sourcePath,
+    entrypointPath,
+    receiptPath
+  };
+}
+
+async function stageFileReference({ sourcePath, targetPath }) {
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  await rm(targetPath, { force: true });
+
+  try {
+    await symlink(sourcePath, targetPath);
+    return;
+  } catch (error) {
+    if (!isRetryableLinkError(error)) {
+      throw error;
+    }
+  }
+
+  await copyFile(sourcePath, targetPath);
+  const sourceStat = await stat(sourcePath);
+  await chmod(targetPath, sourceStat.mode);
+}
+
+async function writeWesleyWrapper({ sourcePath, targetPath }) {
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  const wrapper = [
+    '#!/usr/bin/env node',
+    `await import(${JSON.stringify(pathToFileURL(sourcePath).href)});`,
+    ''
+  ].join('\n');
+  await writeFile(targetPath, wrapper, 'utf8');
+  await chmod(targetPath, 0o755);
+}
+
+function isRetryableLinkError(error) {
+  return ['EPERM', 'EEXIST', 'EXDEV', 'UNKNOWN'].includes(error?.code);
+}
+
 async function invokeWesleyForFamily({
-  wesleyBin,
+  nodeBin,
+  wesleyEntrypoint,
   wesleyWarpspaceBridgePath,
   family,
   projectDir,
@@ -388,7 +564,8 @@ async function invokeWesleyForFamily({
 
   if (projections.has('typescript')) {
     commands.push(await invokeWesley({
-      wesleyBin,
+      nodeBin,
+      wesleyEntrypoint,
       projectDir,
       runCommand,
       args: ['typescript', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
@@ -396,7 +573,8 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('zod')) {
     commands.push(await invokeWesley({
-      wesleyBin,
+      nodeBin,
+      wesleyEntrypoint,
       projectDir,
       runCommand,
       args: ['zod', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
@@ -404,7 +582,8 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('echo-ir')) {
     commands.push(await invokeWesley({
-      wesleyBin,
+      nodeBin,
+      wesleyEntrypoint,
       projectDir,
       runCommand,
       args: ['bundle-echo', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
@@ -412,7 +591,8 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('warp-ttd')) {
     commands.push(await invokeWesley({
-      wesleyBin,
+      nodeBin,
+      wesleyEntrypoint,
       projectDir,
       runCommand,
       args: ['compile-ttd', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--target', 'manifest,typescript', '--json']
@@ -422,23 +602,23 @@ async function invokeWesleyForFamily({
   return commands;
 }
 
-async function invokeWesley({ wesleyBin, projectDir, runCommand, args }) {
-  const command = path.resolve(wesleyBin);
-  const fullArgs = [command, ...args];
+async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand, args }) {
+  const command = path.resolve(nodeBin);
+  const fullArgs = [path.resolve(wesleyEntrypoint), ...args];
   const result = await runCommand({
-    command: 'node',
+    command,
     args: fullArgs,
     cwd: projectDir
   });
 
   if (result.status !== 0) {
     throw new Error(
-      `Wesley command failed: node ${fullArgs.join(' ')}\n${result.stderr || result.stdout || ''}`.trim()
+      `Wesley command failed: ${command} ${fullArgs.join(' ')}\n${result.stderr || result.stdout || ''}`.trim()
     );
   }
 
   return {
-    command: 'node',
+    command,
     args: fullArgs,
     cwd: projectDir
   };
@@ -452,10 +632,10 @@ function buildLock({
   template,
   templateArtifactPath,
   installLayout,
+  toolchain,
   initializedAt,
   generated,
   generatedCommands,
-  wesleyBin,
   wesleyWarpspaceBridgePath
 }) {
   return {
@@ -474,6 +654,7 @@ function buildLock({
     },
     authorityRoot,
     installLayout,
+    toolchain,
     stack: {
       families: manifest.families.map(family => ({
         id: family.id,
@@ -492,7 +673,6 @@ function buildLock({
       command: manifest.bootstrap.command,
       generated,
       generatedCommands,
-      wesleyBin: wesleyBin == null ? null : path.resolve(wesleyBin),
       wesleyWarpspaceBridgePath
     },
     engineLocal: {
@@ -513,6 +693,13 @@ function renderWarpspaceToml({ manifest, installLayout }) {
     '[stack]',
     `release_id = ${tomlString(manifest.releaseId)}`,
     `template = ${tomlString(manifest.bootstrap.template.id)}`,
+    '',
+    '[toolchain]',
+    `node_runtime = ${tomlString(manifest.toolchain?.node?.runtime ?? 'node')}`,
+    `node_source = ${tomlString(manifest.toolchain?.node?.source ?? 'unknown')}`,
+    `node_version_range = ${tomlString(manifest.toolchain?.node?.versionRange ?? 'unknown')}`,
+    `wesley_package = ${tomlString(manifest.toolchain?.wesley?.package ?? 'unknown')}`,
+    `wesley_version = ${tomlString(manifest.toolchain?.wesley?.version ?? 'unknown')}`,
     '',
     '[install]',
     `root = ${tomlString(installLayout.root)}`,
@@ -567,6 +754,48 @@ function sha256(content) {
 
 function ensureTrailingNewline(content) {
   return content.endsWith('\n') ? content : `${content}\n`;
+}
+
+function normalizeNodeVersion(version) {
+  return String(version).replace(/^v/, '');
+}
+
+function assertNodeVersionSatisfies({ actualVersion, requestedRange }) {
+  if (!requestedRange.startsWith('>=')) {
+    throw new Error(
+      `Unsupported Node version range "${requestedRange}". ` +
+      'The current prototype only supports ranges of the form ">=X.Y.Z".'
+    );
+  }
+
+  const actual = parseSemver(normalizeNodeVersion(actualVersion));
+  const minimum = parseSemver(requestedRange.slice(2));
+
+  if (compareSemver(actual, minimum) < 0) {
+    throw new Error(
+      `Current Node ${normalizeNodeVersion(actualVersion)} does not satisfy ${requestedRange}.`
+    );
+  }
+}
+
+function parseSemver(input) {
+  const match = String(input).trim().match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) {
+    throw new Error(`Expected a semantic version like X.Y.Z, received "${input}".`);
+  }
+  return match.slice(1).map(value => Number.parseInt(value, 10));
+}
+
+function compareSemver(left, right) {
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] > right[index]) {
+      return 1;
+    }
+    if (left[index] < right[index]) {
+      return -1;
+    }
+  }
+  return 0;
 }
 
 function renderWesleyWarpspaceBridge({ manifest }) {
