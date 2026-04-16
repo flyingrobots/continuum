@@ -36,7 +36,9 @@ That means:
 - the compatibility tuple is concrete
 - the selected repos and artifacts are explicit
 - the current demo can anchor itself to this manifest
-- the final `warpspace init` consumer flow is still a follow-on implementation
+- a local-first `warpspace init` prototype can already consume this manifest
+- the final released `warpspace init --profile demo` consumer flow is still a
+  follow-on implementation
 
 ## Why It Matters
 

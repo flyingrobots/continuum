@@ -89,15 +89,24 @@ The first concrete stack artifact for that flow now exists here:
 
 - [demo stack release manifest](releases/demo/continuum-stack-release.json)
 
+A local-first prototype also now exists in Wesley:
+
+```bash
+node ../wesley/packages/wesley-host-node/bin/warpspace.mjs init my-app \
+  --manifest ./docs/releases/demo/continuum-stack-release.json \
+  --authority-root ..
+```
+
 The closest real starting point today is:
 
-1. Open the sibling repo `../continuum-demo`.
-2. Treat it as the first host-project proof for the current stack.
-3. Use the committed `warpspace.mjs` there as the current example of a host
-   WARPspace.
-4. Materialize the first shared family by running the demo generation flow.
+1. Look at the sibling repo `../continuum-wizard-demo`.
+2. Treat it as the first manifest-driven WARPspace host proof.
+3. Inspect its committed `warpspace.mjs`, `warpspace.lock.json`, and generated
+   roots.
+4. If you want the older hand-wired pre-bootstrap flow, then compare against
+   the sibling repo `../continuum-demo`.
 
-The current demo commands are:
+The older hand-wired `continuum-demo` commands are:
 
 ```bash
 pnpm run sync:continuum:neighborhood-core
@@ -113,12 +122,13 @@ Or all at once:
 pnpm run gen:all
 ```
 
-Today that demo still assumes active stack-development posture rather than a
-released installer posture. In practice that means local sibling repos such as:
+Today the wizard proof still assumes active stack-development posture rather
+than a released installer posture. In practice that means local sibling repos
+such as:
 
 - `~/git/continuum`
 - `~/git/wesley`
-- `~/git/continuum-demo`
+- `~/git/continuum-wizard-demo`
 
 That is acceptable for current stack work.
 It is not the final consumer entry point.
