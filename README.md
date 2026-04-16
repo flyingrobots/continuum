@@ -86,12 +86,16 @@ each engine.
 
 If you are new here, start with these:
 
+- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+  The user entry point: where to begin, what to read first, and what to run.
 - [docs/OVERVIEW.md](docs/OVERVIEW.md)
   Brief synthesis of the current theory and repo ownership model.
 - [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
   Canonical cross-repo invariants.
 - [docs/VISION.md](docs/VISION.md)
   Repo purpose and current app/runtime model.
+- the sibling repo `../continuum-demo`
+  Current consumer proof repo and host-project example.
 - [docs/BEARING.md](docs/BEARING.md)
   Current hill and what this repo is actively trying to lock down.
 
