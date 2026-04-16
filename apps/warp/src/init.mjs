@@ -20,7 +20,6 @@ const STACK_RELEASE_KIND = 'continuum.stack-release.v1';
 const TEMPLATE_KIND = 'warpspace.template.v1';
 const PACKAGE_KIND = 'warp.package.v1';
 const WARPSPACE_LOCK_KIND = 'warpspace.lock.v2';
-const WESLEY_WARPSPACE_KIND = 'wesley.warpspace.v1';
 const DEFAULT_PROFILE = 'demo';
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -119,15 +118,6 @@ export async function initWarp({
     renderWarpspaceToml({ manifest, installLayout }),
     'utf8'
   );
-  const wesleyWarpspaceBridgePath = path.join(
-    resolvedProjectDir,
-    '.warpspace.wesley.mjs'
-  );
-  await writeFile(
-    wesleyWarpspaceBridgePath,
-    renderWesleyWarpspaceBridge({ manifest }),
-    'utf8'
-  );
 
   let generated = 'skipped-by-flag';
   const generatedCommands = [];
@@ -138,7 +128,7 @@ export async function initWarp({
         ...await invokeWesleyForFamily({
           nodeBin: toolchain.node.commandPath,
           wesleyEntrypoint: toolchain.wesley.entrypointPath,
-          wesleyWarpspaceBridgePath,
+          warpspacePath,
           family,
           projectDir: resolvedProjectDir,
           runCommand
@@ -159,8 +149,7 @@ export async function initWarp({
     toolchain,
     initializedAt,
     generated,
-    generatedCommands,
-    wesleyWarpspaceBridgePath
+    generatedCommands
   });
   const lockPath = path.join(resolvedProjectDir, 'warpspace.lock.json');
   await writeFile(lockPath, JSON.stringify(lock, null, 2) + '\n', 'utf8');
@@ -761,7 +750,7 @@ function isRetryableLinkError(error) {
 async function invokeWesleyForFamily({
   nodeBin,
   wesleyEntrypoint,
-  wesleyWarpspaceBridgePath,
+  warpspacePath,
   family,
   projectDir,
   runCommand
@@ -776,7 +765,7 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['typescript', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
+      args: ['typescript', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
     }));
   }
   if (projections.has('zod')) {
@@ -785,7 +774,7 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['zod', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
+      args: ['zod', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
     }));
   }
   if (projections.has('echo-ir')) {
@@ -794,7 +783,7 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['bundle-echo', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--json']
+      args: ['bundle-echo', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
     }));
   }
   if (projections.has('warp-ttd')) {
@@ -803,7 +792,7 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['compile-ttd', '--schema', schemaPath, '--warpspace', wesleyWarpspaceBridgePath, '--target', 'manifest,typescript', '--json']
+      args: ['compile-ttd', '--schema', schemaPath, '--warpspace', warpspacePath, '--target', 'manifest,typescript', '--json']
     }));
   }
 
@@ -843,8 +832,7 @@ function buildLock({
   toolchain,
   initializedAt,
   generated,
-  generatedCommands,
-  wesleyWarpspaceBridgePath
+  generatedCommands
 }) {
   return {
     kind: WARPSPACE_LOCK_KIND,
@@ -880,14 +868,7 @@ function buildLock({
       tool: manifest.bootstrap.tool,
       command: manifest.bootstrap.command,
       generated,
-      generatedCommands,
-      wesleyWarpspaceBridgePath
-    },
-    engineLocal: {
-      wesleyWarpspaceBridge: {
-        kind: WESLEY_WARPSPACE_KIND,
-        path: wesleyWarpspaceBridgePath
-      }
+      generatedCommands
     },
     localOverrides: manifest.localOverrides ?? null
   };
@@ -1004,19 +985,6 @@ function compareSemver(left, right) {
     }
   }
   return 0;
-}
-
-function renderWesleyWarpspaceBridge({ manifest }) {
-  const bridge = {
-    kind: WESLEY_WARPSPACE_KIND,
-    profile: manifest.profile,
-    stackRelease: {
-      releaseId: manifest.releaseId
-    },
-    outputs: manifest.bootstrap.defaultOutputs
-  };
-
-  return `export default ${JSON.stringify(bridge, null, 2)};\n`;
 }
 
 async function defaultRunCommand({ command, args, cwd }) {

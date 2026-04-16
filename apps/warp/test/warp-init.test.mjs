@@ -184,9 +184,8 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
 
     const internalReadme = await readFile(path.join(projectDir, '.warpspace', 'README.md'), 'utf8');
     assert.match(internalReadme, /Managed WARPspace State/);
-
-    const wesleyBridge = await readFile(path.join(projectDir, '.warpspace.wesley.mjs'), 'utf8');
-    assert.match(wesleyBridge, /wesley\.warpspace\.v1/);
+    assert.equal(lock.engineLocal, undefined);
+    assert.equal(lock.bootstrap.wesleyWarpspaceBridgePath, undefined);
 
     const stagedNodeReceipt = JSON.parse(
       await readFile(path.join(projectDir, '.warpspace', 'packages', 'node', 'current', 'bin', 'install-receipt.json'), 'utf8')
@@ -260,6 +259,7 @@ test('initWarp can hand off generation through staged node and Wesley toolchain 
     assert.equal(result.generated, 'completed');
     assert.equal(invocations.length, 4);
     assert.ok(invocations.every(call => call.args.includes('--warpspace')));
+    assert.ok(invocations.every(call => call.args.includes(path.join(projectDir, 'warpspace.toml'))));
     assert.ok(invocations.every(call => call.command.endsWith(path.join('.warpspace', 'packages', 'node', 'current', 'bin', 'node'))));
     assert.deepEqual(
       invocations.map(call => call.args.slice(0, 2)),

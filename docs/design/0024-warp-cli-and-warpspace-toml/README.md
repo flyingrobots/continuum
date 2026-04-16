@@ -143,9 +143,8 @@ The app repo should ignore:
 
 Current prototype note:
 
-- while Wesley still consumes `warpspace.mjs`, `warp` may write an
-  engine-local ignored bridge file such as `.warpspace.wesley.mjs`
-- that bridge is implementation debt, not authored workspace truth
+- Wesley now consumes `warpspace.toml` directly
+- no engine-local bridge file is required for normal bootstrap or build flows
 
 ### 5. WARPspace templates are a first-class bootstrap artifact
 
