@@ -32,6 +32,9 @@ This packet answers the practical question:
 land in my app repo, and what internal tools should remain hidden under
 `.warpspace/`?**
 
+Distribution shape and Node runtime policy are refined in
+[0025 - Warp Native Distribution And Node Runtime Policy](../0025-warp-native-distribution-and-node-runtime-policy/README.md).
+
 ## Why This Exists
 
 `0023` was a useful first cut, but it froze two stage-0 assumptions that do not
