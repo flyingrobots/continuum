@@ -13,6 +13,9 @@ It lives in Continuum because Continuum owns:
 template materialization, and toolchain handoff. Wesley remains the compiler
 that `warp` invokes internally.
 
+If you want the product-level statement of intent and the current truthful
+status, read [VISION.md](/Users/james/git/continuum/apps/warp/VISION.md).
+
 The current JS implementation is a repo-local proof harness.
 The permanent shipped product target is a standalone `warp` binary, as
 described in [0025 - Warp Native Distribution And Node Runtime Policy](../../docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md).

@@ -52,9 +52,12 @@ Use this order:
    Short repo purpose and stack split.
 2. [docs/GETTING_STARTED.md](GETTING_STARTED.md)
    The user entry point and startup flow.
-3. [apps/warp/README.md](../apps/warp/README.md)
+3. [apps/warp/VISION.md](../apps/warp/VISION.md)
+   The product boundary for `warp`, what it already proves, and what is not
+   finished yet.
+4. [apps/warp/README.md](../apps/warp/README.md)
    The current Continuum-owned prototype for the user-facing CLI.
-4. [docs/VISION.md](VISION.md)
+5. [docs/VISION.md](VISION.md)
    The durable ownership split across the stack.
 
 Only go deeper after that:
