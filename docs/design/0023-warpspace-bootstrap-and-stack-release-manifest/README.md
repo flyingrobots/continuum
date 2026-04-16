@@ -94,6 +94,10 @@ Suggested canonical artifact name:
 
 - `continuum-stack-release.json`
 
+First concrete example:
+
+- [docs/releases/demo/continuum-stack-release.json](../../releases/demo/continuum-stack-release.json)
+
 That manifest is the release-set truth for a named profile or channel such as:
 
 - `demo`

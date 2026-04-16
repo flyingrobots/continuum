@@ -1,0 +1,116 @@
+{
+  "kind": "continuum.stack-release.v1",
+  "profile": "demo",
+  "releaseId": "demo-local-2026-04-15",
+  "status": "proposed",
+  "deliveryMode": "local-sibling-proof",
+  "description": "First concrete Continuum stack release manifest for the neighborhood-core demo WARPspace.",
+  "sourceAuthority": {
+    "packet": "docs/design/0023-warpspace-bootstrap-and-stack-release-manifest/README.md",
+    "publishedOn": "2026-04-15"
+  },
+  "families": [
+    {
+      "id": "continuum-neighborhood-core-family",
+      "version": "0.1.0",
+      "sourcePath": "schemas/continuum-neighborhood-core-family.graphql",
+      "sha256": "7984dbc052de8ffab0e0a7a50dc7ae8778527164c467bd8d681ace238903c00d",
+      "materializeTo": "contracts/continuum/continuum-neighborhood-core-family.graphql",
+      "defaultProjections": [
+        "typescript",
+        "zod",
+        "echo-ir",
+        "warp-ttd"
+      ]
+    }
+  ],
+  "toolchain": {
+    "wesley": {
+      "package": "@wesley/host-node",
+      "version": "0.1.0",
+      "repo": "https://github.com/flyingrobots/wesley",
+      "commit": "a80e47accb76854f68236c6cafd1f314e53b05ff",
+      "bundleFormat": 1,
+      "command": "wesley"
+    }
+  },
+  "runtimes": {
+    "echo": {
+      "crate": "warp-core",
+      "version": "0.1.1",
+      "repo": "https://github.com/flyingrobots/echo",
+      "commit": "fa0bf78b4e7dde1cacab3a8e0ba70e068ed601a8",
+      "participation": "active",
+      "capabilities": {
+        "neighborhoodCore": true,
+        "temperatureHandoff": false
+      }
+    },
+    "git-warp": {
+      "package": "@git-stunts/git-warp",
+      "version": "17.0.0",
+      "repo": "https://github.com/git-stunts/git-warp",
+      "commit": "ce1fed3f7b5cf6b7c0fe8ce10e616fd6b3bc8244",
+      "participation": "pinned-not-materialized",
+      "capabilities": {
+        "neighborhoodCore": false,
+        "temperatureHandoff": false
+      }
+    },
+    "warp-ttd": {
+      "package": "warp-ttd",
+      "version": "0.1.0",
+      "repo": "https://github.com/flyingrobots/warp-ttd",
+      "commit": "af0b71a1380d35548299c4bfbfe9bf4da369ad87",
+      "participation": "active",
+      "capabilities": {
+        "neighborhoodCore": true
+      }
+    }
+  },
+  "bootstrap": {
+    "tool": "warpspace",
+    "command": "warpspace init my-app --profile demo",
+    "hostFiles": [
+      "warpspace.mjs",
+      "warpspace.lock.json"
+    ],
+    "contractsRoot": "contracts/continuum",
+    "defaultOutputs": {
+      "typescript": "packages/demo-web/src/generated/continuum/neighborhood-core",
+      "zod": "packages/demo-web/src/generated/continuum/neighborhood-core/zod",
+      "echo-ir": "crates/demo-contracts/src/generated/echo/neighborhood-core",
+      "warp-ttd": "packages/demo-web/src/generated/warp-ttd/neighborhood-core"
+    }
+  },
+  "hostReceives": {
+    "checkedIn": [
+      "warpspace.mjs",
+      "warpspace.lock.json",
+      "contracts/continuum/continuum-neighborhood-core-family.graphql"
+    ],
+    "generated": [
+      "TypeScript shared family outputs",
+      "Zod shared family outputs",
+      "Echo-facing generated outputs",
+      "warp-ttd-facing generated outputs"
+    ]
+  },
+  "localOverrides": {
+    "allowed": true,
+    "defaultMode": "sibling-repo-development",
+    "examples": [
+      "../continuum",
+      "../wesley",
+      "../echo",
+      "../git-stunts/git-warp",
+      "../warp-ttd"
+    ],
+    "rule": "Overrides that leave the declared compatibility envelope must be marked as local-dev or out-of-band in warpspace.lock.json."
+  },
+  "notes": [
+    "This manifest is the first concrete bridge between the bootstrap doctrine and an eventual warpspace init implementation.",
+    "git-warp is pinned as part of the compatible stack tuple even though the first neighborhood-core demo does not yet materialize a git-warp-facing output cut.",
+    "The current demo flow still uses local sibling repos; moving from this manifest to a released bootstrap path is the next tooling step."
+  ]
+}

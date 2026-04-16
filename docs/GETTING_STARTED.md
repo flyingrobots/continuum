@@ -38,6 +38,7 @@ That command should:
 If you want the design behind that flow, read:
 
 - [WARPspace Bootstrap And Stack Release Manifest](design/0023-warpspace-bootstrap-and-stack-release-manifest/README.md)
+- [demo stack release manifest](releases/demo/continuum-stack-release.json)
 
 ## What A New User Should Read
 
@@ -83,6 +84,10 @@ That is the first honest "build a Continuum app" story.
 
 Today, the intended `warpspace init` product flow is defined, but not yet fully
 packaged as a one-command user experience.
+
+The first concrete stack artifact for that flow now exists here:
+
+- [demo stack release manifest](releases/demo/continuum-stack-release.json)
 
 The closest real starting point today is:
 
