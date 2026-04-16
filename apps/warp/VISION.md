@@ -167,3 +167,24 @@ If you want the shortest path through the `warp` story, use this order:
 3. [0024 - Warp CLI And WARPspace TOML](/Users/james/git/continuum/docs/design/0024-warp-cli-and-warpspace-toml/README.md)
 4. [0025 - Warp Native Distribution And Node Runtime Policy](/Users/james/git/continuum/docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md)
 5. [0026 - Warp Package Sources And Local Packages Site](/Users/james/git/continuum/docs/design/0026-warp-package-sources-and-local-packages-site/README.md)
+
+## Handoff Note
+
+If you are picking this work up next, assume the following is already true:
+
+- `warp` lives in Continuum under [apps/warp](/Users/james/git/continuum/apps/warp)
+- the authored workspace config is `warpspace.toml`
+- the resolved lock is `warpspace.lock.json`
+- Wesley now consumes `warpspace.toml` directly
+- `warp init` already writes the real workspace files, stages internal toolchain
+  paths under `.warpspace/`, materializes the first shared family, and invokes
+  Wesley without any bridge file
+
+The next implementation priority is not another doctrine pass.
+
+The next implementation priority is:
+
+- move the demo profile off current-process Node and sibling Wesley inputs
+- install both from manifest-resolved package sources
+- keep the user-facing contract exactly the same while making the managed
+  toolchain story honest
