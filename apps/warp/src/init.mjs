@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import {
   chmod,
   copyFile,
+  cp,
   mkdir,
   readFile,
   readdir,
@@ -17,6 +18,7 @@ import { pathToFileURL } from 'node:url';
 
 const STACK_RELEASE_KIND = 'continuum.stack-release.v1';
 const TEMPLATE_KIND = 'warpspace.template.v1';
+const PACKAGE_KIND = 'warp.package.v1';
 const WARPSPACE_LOCK_KIND = 'warpspace.lock.v2';
 const WESLEY_WARPSPACE_KIND = 'wesley.warpspace.v1';
 const DEFAULT_PROFILE = 'demo';
@@ -401,13 +403,19 @@ async function installManagedToolchain({
   projectDir,
   installLayout
 }) {
+  const packageSources = resolvePackageSources({
+    packageSources: manifest.packageSources ?? {},
+    authorityRoot
+  });
   const node = await installNodeRuntime({
     nodeSpec: manifest.toolchain.node,
+    packageSources,
     projectDir,
     installLayout
   });
   const wesley = await installWesleyTool({
     wesleySpec: manifest.toolchain.wesley,
+    packageSources,
     authorityRoot,
     projectDir,
     installLayout
@@ -416,54 +424,104 @@ async function installManagedToolchain({
   return { node, wesley };
 }
 
-async function installNodeRuntime({ nodeSpec, projectDir, installLayout }) {
+async function installNodeRuntime({ nodeSpec, packageSources, projectDir, installLayout }) {
   const source = requiredText(nodeSpec.source, 'toolchain.node.source');
-  if (source !== 'system') {
-    throw new Error(
-      `Unsupported toolchain.node.source "${source}". The current prototype only supports "system".`
+  const versionRange = requiredText(nodeSpec.versionRange, 'toolchain.node.versionRange');
+
+  if (source === 'system') {
+    assertNodeVersionSatisfies({
+      actualVersion: process.version,
+      requestedRange: versionRange
+    });
+
+    const commandPath = path.join(
+      projectDir,
+      nodeSpec.managedPath ?? path.join(installLayout.packages, 'node', 'current', 'bin', 'node')
     );
+    await stageFileReference({
+      sourcePath: process.execPath,
+      targetPath: commandPath
+    });
+
+    const receiptPath = path.join(path.dirname(commandPath), 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'node',
+      source,
+      requestedRange: versionRange,
+      resolvedVersion: normalizeNodeVersion(process.version),
+      sourcePath: process.execPath,
+      stagedPath: commandPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      runtime: 'node',
+      source,
+      requestedRange: versionRange,
+      version: normalizeNodeVersion(process.version),
+      sourcePath: process.execPath,
+      commandPath,
+      receiptPath
+    };
   }
 
-  const versionRange = requiredText(nodeSpec.versionRange, 'toolchain.node.versionRange');
-  assertNodeVersionSatisfies({
-    actualVersion: process.version,
-    requestedRange: versionRange
-  });
+  if (source === 'package-source') {
+    const packageInstall = await installPackageFromSource({
+      installSpec: nodeSpec,
+      packageSources,
+      projectDir,
+      defaultManagedPath: path.join(installLayout.packages, 'node', 'current')
+    });
 
-  const commandPath = path.join(
-    projectDir,
-    nodeSpec.managedPath ?? path.join(installLayout.packages, 'node', 'current', 'bin', 'node')
+    const resolvedVersion = packageInstall.version ?? nodeSpec.version ?? 'unknown';
+    if (resolvedVersion !== 'unknown') {
+      assertNodeVersionSatisfies({
+        actualVersion: resolvedVersion,
+        requestedRange: versionRange
+      });
+    }
+
+    const receiptPath = path.join(packageInstall.installRoot, 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'node',
+      source,
+      requestedRange: versionRange,
+      resolvedVersion,
+      sourceSite: packageInstall.sourceSite,
+      package: packageInstall.package,
+      version: packageInstall.version,
+      variant: packageInstall.variant,
+      sourcePath: packageInstall.sourcePath,
+      stagedPath: packageInstall.entrypointPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      runtime: 'node',
+      source,
+      requestedRange: versionRange,
+      version: resolvedVersion,
+      sourceSite: packageInstall.sourceSite,
+      package: packageInstall.package,
+      variant: packageInstall.variant,
+      sourcePath: packageInstall.sourcePath,
+      installRoot: packageInstall.installRoot,
+      commandPath: packageInstall.entrypointPath,
+      receiptPath
+    };
+  }
+
+  throw new Error(
+    `Unsupported toolchain.node.source "${source}". ` +
+    'The current prototype supports "system" and "package-source".'
   );
-  await stageFileReference({
-    sourcePath: process.execPath,
-    targetPath: commandPath
-  });
-
-  const receiptPath = path.join(path.dirname(commandPath), 'install-receipt.json');
-  const receipt = {
-    kind: 'warp.tool-install-receipt.v1',
-    tool: 'node',
-    source,
-    requestedRange: versionRange,
-    resolvedVersion: normalizeNodeVersion(process.version),
-    sourcePath: process.execPath,
-    stagedPath: commandPath
-  };
-  await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
-
-  return {
-    runtime: 'node',
-    source,
-    requestedRange: versionRange,
-    version: normalizeNodeVersion(process.version),
-    sourcePath: process.execPath,
-    commandPath,
-    receiptPath
-  };
 }
 
 async function installWesleyTool({
   wesleySpec,
+  packageSources,
   authorityRoot,
   projectDir,
   installLayout
@@ -471,50 +529,200 @@ async function installWesleyTool({
   const install = wesleySpec.install;
   const source = requiredText(install.source, 'toolchain.wesley.install.source');
 
-  if (source !== 'local-sibling-entrypoint') {
+  if (source === 'local-sibling-entrypoint') {
+    const sourcePath = path.resolve(
+      authorityRoot,
+      requiredText(install.path, 'toolchain.wesley.install.path')
+    );
+    if (!await pathExists(sourcePath)) {
+      throw new Error(`Configured Wesley entrypoint does not exist: ${sourcePath}`);
+    }
+
+    const entrypointPath = path.join(
+      projectDir,
+      install.managedPath ?? path.join(installLayout.packages, 'wesley', 'current', 'bin', 'wesley.mjs')
+    );
+    await writeWesleyWrapper({
+      sourcePath,
+      targetPath: entrypointPath
+    });
+
+    const receiptPath = path.join(path.dirname(entrypointPath), 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'wesley',
+      source,
+      package: wesleySpec.package ?? null,
+      version: wesleySpec.version ?? null,
+      sourcePath,
+      stagedPath: entrypointPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      package: wesleySpec.package ?? null,
+      version: wesleySpec.version ?? null,
+      source,
+      sourcePath,
+      entrypointPath,
+      receiptPath
+    };
+  }
+
+  if (source === 'package-source') {
+    const packageInstall = await installPackageFromSource({
+      installSpec: {
+        ...install,
+        package: install.package ?? wesleySpec.package,
+        version: install.version ?? wesleySpec.version
+      },
+      packageSources,
+      projectDir,
+      defaultManagedPath: path.join(installLayout.packages, 'wesley', 'current')
+    });
+
+    const receiptPath = path.join(packageInstall.installRoot, 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'wesley',
+      source,
+      package: packageInstall.package,
+      version: packageInstall.version,
+      variant: packageInstall.variant,
+      sourceSite: packageInstall.sourceSite,
+      sourcePath: packageInstall.sourcePath,
+      stagedPath: packageInstall.entrypointPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      package: packageInstall.package,
+      version: packageInstall.version,
+      source,
+      sourceSite: packageInstall.sourceSite,
+      sourcePath: packageInstall.sourcePath,
+      installRoot: packageInstall.installRoot,
+      entrypointPath: packageInstall.entrypointPath,
+      receiptPath
+    };
+  }
+
+  throw new Error(
+    `Unsupported toolchain.wesley.install.source "${source}". ` +
+    'The current prototype supports "local-sibling-entrypoint" and "package-source".'
+  );
+}
+
+function resolvePackageSources({ packageSources, authorityRoot }) {
+  const resolved = {};
+  for (const [sourceSite, spec] of Object.entries(packageSources)) {
+    if (!spec || typeof spec !== 'object') {
+      throw new Error(`packageSources.${sourceSite} must be an object.`);
+    }
+    const kind = requiredText(spec.kind, `packageSources.${sourceSite}.kind`);
+    if (kind !== 'local-packages') {
+      throw new Error(
+        `Unsupported package source kind "${kind}" for "${sourceSite}". ` +
+        'The current prototype only supports "local-packages".'
+      );
+    }
+    resolved[sourceSite] = {
+      ...spec,
+      kind,
+      rootPath: path.resolve(authorityRoot, requiredText(spec.rootPath, `packageSources.${sourceSite}.rootPath`))
+    };
+  }
+  return resolved;
+}
+
+async function installPackageFromSource({
+  installSpec,
+  packageSources,
+  projectDir,
+  defaultManagedPath
+}) {
+  const sourceSite = requiredText(installSpec.sourceSite, 'package source site');
+  const site = packageSources[sourceSite];
+  if (site == null) {
+    throw new Error(`Unknown package source site "${sourceSite}".`);
+  }
+
+  const packageName = requiredText(installSpec.package, 'package name');
+  const version = requiredText(installSpec.version, 'package version');
+  const variant = requiredText(installSpec.variant ?? 'default', 'package variant');
+
+  if (site.kind !== 'local-packages') {
     throw new Error(
-      `Unsupported toolchain.wesley.install.source "${source}". ` +
-      'The current prototype only supports "local-sibling-entrypoint".'
+      `Unsupported package source kind "${site.kind}" for "${sourceSite}".`
     );
   }
 
-  const sourcePath = path.resolve(
-    authorityRoot,
-    requiredText(install.path, 'toolchain.wesley.install.path')
+  const packageManifestPath = path.join(site.rootPath, packageName, version, 'manifest.json');
+  if (!await pathExists(packageManifestPath)) {
+    throw new Error(`Local package manifest not found: ${packageManifestPath}`);
+  }
+  const packageManifest = parsePackageManifest(
+    await readFile(packageManifestPath, 'utf8'),
+    packageManifestPath
   );
-  if (!await pathExists(sourcePath)) {
-    throw new Error(`Configured Wesley entrypoint does not exist: ${sourcePath}`);
+  validatePackageManifest(packageManifest, packageManifestPath);
+
+  const variantSpec = packageManifest.variants[variant];
+  if (!variantSpec || typeof variantSpec !== 'object') {
+    throw new Error(
+      `Package ${packageName}@${version} does not declare variant "${variant}".`
+    );
   }
 
-  const entrypointPath = path.join(
-    projectDir,
-    install.managedPath ?? path.join(installLayout.packages, 'wesley', 'current', 'bin', 'wesley.mjs')
+  const sourceDir = path.resolve(
+    path.dirname(packageManifestPath),
+    requiredText(variantSpec.path, `package variant path for ${packageName}@${version}:${variant}`)
   );
-  await writeWesleyWrapper({
-    sourcePath,
-    targetPath: entrypointPath
-  });
+  if (!await pathExists(sourceDir)) {
+    throw new Error(`Local package payload not found: ${sourceDir}`);
+  }
 
-  const receiptPath = path.join(path.dirname(entrypointPath), 'install-receipt.json');
-  const receipt = {
-    kind: 'warp.tool-install-receipt.v1',
-    tool: 'wesley',
-    source,
-    package: wesleySpec.package ?? null,
-    version: wesleySpec.version ?? null,
-    sourcePath,
-    stagedPath: entrypointPath
-  };
-  await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+  const installRoot = path.join(projectDir, installSpec.managedPath ?? defaultManagedPath);
+  await rm(installRoot, { recursive: true, force: true });
+  await mkdir(path.dirname(installRoot), { recursive: true });
+  await cp(sourceDir, installRoot, { recursive: true });
+
+  const entrypointPath = path.join(
+    installRoot,
+    requiredText(variantSpec.entrypoint, `package variant entrypoint for ${packageName}@${version}:${variant}`)
+  );
 
   return {
-    package: wesleySpec.package ?? null,
-    version: wesleySpec.version ?? null,
-    source,
-    sourcePath,
-    entrypointPath,
-    receiptPath
+    sourceSite,
+    package: packageName,
+    version,
+    variant,
+    sourcePath: sourceDir,
+    installRoot,
+    entrypointPath
   };
+}
+
+function parsePackageManifest(content, packageManifestPath) {
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    throw new Error(`Failed to parse package manifest at ${packageManifestPath}: ${error.message}`);
+  }
+}
+
+function validatePackageManifest(packageManifest, packageManifestPath) {
+  if (!packageManifest || typeof packageManifest !== 'object') {
+    throw new Error(`Package manifest at ${packageManifestPath} must be a JSON object.`);
+  }
+  if (packageManifest.kind !== PACKAGE_KIND) {
+    throw new Error(`Package manifest at ${packageManifestPath} must declare kind "${PACKAGE_KIND}".`);
+  }
+  if (!packageManifest.package || !packageManifest.version || !packageManifest.variants || typeof packageManifest.variants !== 'object') {
+    throw new Error(
+      `Package manifest at ${packageManifestPath} must declare package, version, and variants.`
+    );
+  }
 }
 
 async function stageFileReference({ sourcePath, targetPath }) {

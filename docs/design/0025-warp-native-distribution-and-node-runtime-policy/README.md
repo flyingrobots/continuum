@@ -31,6 +31,9 @@ This packet answers the practical question:
 **If we ship `warp` correctly, what does the user install, and how do we make
 sure the WARPspace has a compatible Node runtime before Wesley is invoked?**
 
+Package-source resolution across multiple source sites is refined in
+[0026 - Warp Package Sources And Local Packages Site](../0026-warp-package-sources-and-local-packages-site/README.md).
+
 ## Why This Exists
 
 The current Continuum-owned prototype proved the bootstrap boundary, but it is

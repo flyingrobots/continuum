@@ -36,6 +36,8 @@ Current posture:
 - writes an ignored `.warpspace.wesley.mjs` bridge file while Wesley still
   expects `warpspace.mjs`
 - invokes Wesley through those staged paths
+- supports manifest-declared package source sites, including a `local-packages`
+  source used in tests and local proof work
 
 ## Run It
 

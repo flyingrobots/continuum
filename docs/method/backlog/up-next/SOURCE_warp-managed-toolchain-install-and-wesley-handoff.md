@@ -21,6 +21,8 @@ That means the user-facing story is not yet honest enough:
 - released profiles should not depend on sibling-repo Wesley paths
 - released profiles should not depend on the current process Node binary
 - the managed toolchain should land under `.warpspace/packages/`
+- the release path should use real package source sites rather than only
+  `local-packages` or sibling proof modes
 
 ## Goal
 
@@ -34,6 +36,8 @@ Wesley binary without sibling-repo assumptions.
   instead of a sibling-repo source path
 - released `warp init` installs a managed Node runtime according to the profile
   policy instead of reusing the current process Node binary
+- released `warp init` resolves those installs through a real package source
+  site instead of the local proof-only `local-packages` source
 - `warpspace.lock.json` records artifact digests, install receipts, exact tool
   locations, and resolved Node runtime provenance
 - the first successful released-profile generation pass no longer depends on
