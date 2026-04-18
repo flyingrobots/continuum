@@ -22,19 +22,20 @@ Freeze the next interoperability law after `0018`:
   state snapshots
 - the basic sync unit is a causal suffix bundle rooted at a shared frontier
 - import uses the same admission algebra as any other witnessed WARP claim
-- hot and cold runtime temperature remain runtime differences, not graph
+- hot and cold runtime temperature remain runtime differences, not causal-history
   ownership differences
 
 This packet answers the practical question:
 
-**If Echo and `git-warp` run simultaneously over one logical graph, what exact
+**If Echo and `git-warp` run simultaneously over one shared witnessed causal
+history, what exact
 thing do they exchange and what law governs import?**
 
 ## Why This Exists
 
 `0018` froze the doctrine that Continuum presents:
 
-- one logical graph
+- one shared witnessed causal history
 - multiple runtime temperatures
 - first-class runtime handoff
 
@@ -48,8 +49,9 @@ stories:
 
 Both are wrong.
 
-The graph is not "in Echo" or "in `git-warp`." The graph is the logical causal
-object determined by:
+There is no privileged substrate-owned graph-in-itself "in Echo" or "in
+`git-warp`." What is primary is the shared witnessed causal history determined
+by:
 
 - admitted history
 - boundary transition records
@@ -59,7 +61,8 @@ object determined by:
 - checkpoints and wormholes where present
 
 Echo and `git-warp` therefore should not synchronize caches or materialized
-views. They should synchronize lawful claims about causal suffixes.
+views. They should synchronize lawful claims about causal suffixes, then let
+lawful optics emit graph-like holographic readings from the resulting history.
 
 ## Decision
 
@@ -67,7 +70,7 @@ views. They should synchronize lawful claims about causal suffixes.
 
 Echo and `git-warp` should exchange a shared bundle category whose meaning is:
 
-- one graph identity
+- one causal-history identity
 - one lane identity
 - one source runtime and writer identity
 - one base frontier
@@ -82,15 +85,15 @@ That unit should be called a **causal suffix bundle**.
 
 Continuum rejects the idea that hot/cold runtime interoperability means:
 
-- copying the latest materialized graph state
+- copying the latest materialized reading
 - copying the latest checkpoint blob
 - replaying a rendered observer view back into history
 
 Shared cache contents are optional.
 Shared causal history is mandatory.
 
-Cache equivalence is not graph equivalence.
-Materialization equivalence is not graph equivalence.
+Cache equivalence is not history equivalence.
+Materialization equivalence is not history equivalence.
 
 ### 3. Import is another witnessed admission problem
 
@@ -99,7 +102,7 @@ Importing a suffix bundle is not a separate synchronization folklore path.
 It is the same class of problem as any other witnessed WARP admission:
 
 1. normalize the claim to a known frontier
-2. verify graph, lane, payload, and witness identity
+2. verify history, lane, payload, and witness identity
 3. evaluate overlap and dependency geometry
 4. admit, stage, braid, conflict, or obstruct
 5. emit a receipt or witness for the local decision
@@ -141,7 +144,7 @@ Echo may remain:
 - offline-first
 
 Those differences are runtime freedom, not permission to publish different
-graph semantics.
+causal-history semantics.
 
 ## Shared Bundle Family
 
@@ -149,7 +152,7 @@ The first concrete shared sync object should look roughly like this:
 
 ```text
 CausalSuffixBundle {
-    graph_id:          GraphId,
+    history_id:        HistoryId,
     source_runtime_id: RuntimeId,
     source_writer_id:  WriterId,
     lane_id:           LaneId,
@@ -168,8 +171,8 @@ The exact field names may vary by family cut, but the shared meaning must not.
 
 ### Required meaning
 
-- `graph_id`
-  - shared logical graph identity
+- `history_id`
+  - shared witnessed causal-history identity
 - `source_runtime_id`
   - which runtime exported the suffix
 - `source_writer_id`
@@ -185,7 +188,7 @@ The exact field names may vary by family cut, but the shared meaning must not.
 - `payload_refs`
   - stable references to any required content-addressed payload material
 - `checkpoints`
-  - optional imported checkpoint aids; not graph truth on their own
+  - optional imported checkpoint aids; not causal truth on their own
 - `wormholes`
   - optional folded-history material where reopening or verification is needed
 - `signatures`
@@ -249,7 +252,7 @@ Meaning:
 
 Meaning:
 
-- verify the bundle against local graph identity and known frontier geometry
+- verify the bundle against local history identity and known frontier geometry
 - normalize the claim to local runtime truth
 - apply normal admission policy
 - return a published import outcome plus local receipt
@@ -317,6 +320,7 @@ The first slice should prove:
   bundle category
 - a bundle exported by one runtime can be imported by the other through the
   same admission algebra
-- the stack never needs to answer "where does the graph really live?"
-- hot/cold runtime handoff is inspectable as graph history rather than silent
+- the stack never needs to answer "where does the graph really live?" because
+  no privileged graph-in-itself owns truth
+- hot/cold runtime handoff is inspectable as causal history rather than silent
   synchronization folklore

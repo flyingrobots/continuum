@@ -14,8 +14,10 @@ status: proposed
 Freeze the next Continuum doctrine before app-runtime work drifts into
 adapter folklore:
 
-- a Continuum client observes **one logical graph**
-- Echo and `git-warp` are two **execution temperatures** over that graph
+- a Continuum client participates in **one shared witnessed causal history**
+- lawful optics can emit **compatible holographic graph-like readings** from
+  that history
+- Echo and `git-warp` are two **execution temperatures** over that history
 - crossing between those temperatures is a **first-class causal event**
 - a shared binary carrier is useful only if both engines also agree on the
   same published nouns and interpretation
@@ -40,8 +42,9 @@ That is already useful.
 But the app-facing vision is stronger than "a family of repos that can work
 together." The emerging claim is:
 
-**a client should be able to experience one graph while work may execute or
-settle through different runtime temperatures.**
+**a client should be able to participate in one shared causal history while
+lawful optics emit graph-like readings over work that may execute or settle
+through different runtime temperatures.**
 
 That claim is attractive and dangerous.
 
@@ -63,16 +66,28 @@ This packet freezes the law that keeps the idea honest.
 
 ## Decision
 
-### 1. Continuum promises one logical graph, not one graph per engine
+### 1. Continuum promises one shared causal history, not one substrate-owned graph per engine
 
-From the client or debugger perspective there is one graph.
+From the client or debugger perspective there is one shared witnessed causal
+history.
 
 Echo and `git-warp` are not allowed to become separate user-visible universes
 with independent meanings for identity, receipt, settlement, or lane truth.
 
 They may be different substrates.
 They may be different execution regimes.
-They are not different graphs at the published Continuum boundary.
+They are not different causal universes at the published Continuum boundary.
+
+The phrase "one graph" is only acceptable as shorthand for:
+
+- one shared causal history
+- plus compatible observer-relative holographic readings over that history
+
+It must not be read as:
+
+- one privileged materialized graph-in-itself
+- one substrate-owned state object
+- one cache that every runtime must mirror
 
 ### 2. Hot and cold are execution/publication temperatures, not separate ontologies
 
@@ -104,11 +119,11 @@ least:
 - target runtime kind
 - source coordinate or head
 - target coordinate or head
-- boundary digest or shared state identity
+- boundary digest or shared causal-history identity
 - settlement or import outcome
 - any unresolved conflict or residue
 
-This makes the handoff part of graph truth instead of an undocumented
+This makes the handoff part of causal history truth instead of an undocumented
 transport trick.
 
 One useful older formulation is that the handoff boundary mediates between:
@@ -143,7 +158,7 @@ The stronger requirement is:
 
 ### Debugger-created counterfactuals are explicit tiered forks
 
-Observation alone does not create new graph truth.
+Observation alone does not create new causal truth.
 
 If a debugger or agent asks to continue from an earlier coordinate or explore
 an explicit counterfactual, Continuum should represent that as a first-class
@@ -181,12 +196,12 @@ It must not own:
 
 ## Continuum Invariants
 
-### 1. One Graph Invariant
+### 1. Shared Causal History Invariant
 
-A Continuum client observes one logical graph.
+A Continuum client participates in one shared witnessed causal history.
 
-Hot and cold runtimes are two execution regimes over that graph, not two
-separate graphs that happen to share a debugger.
+Hot and cold runtimes are two execution regimes over that history, not two
+separate substrate-owned graph objects that happen to share a debugger.
 
 ### 2. Published-Noun Parity Invariant
 
@@ -240,7 +255,17 @@ engine without switching conceptual languages.
 Host-specific depth is allowed in shell or drill-down.
 The top-level story must remain shared.
 
-### 9. Observation / Fork Separation Invariant
+### 9. Observer-Relative Reading Invariant
+
+Continuum does not promise one privileged materialized graph state.
+
+It promises one shared causal history from which lawful observers or optics may
+emit compatible holographic readings.
+
+Different observers may lawfully emit different graph-like structure without
+contradicting the shared causal substrate.
+
+### 10. Observation / Fork Separation Invariant
 
 Observation, replay, and inspection are revelation acts only.
 
@@ -303,7 +328,8 @@ The pitch is not "look, two engines."
 The pitch is:
 
 **the stack can support becoming fast and being true without forcing the client
-to learn two different graphs.**
+ to learn two different causal universes or to pretend one materialized graph
+ object owns truth.**
 
 ## Proof Obligations
 
@@ -317,6 +343,10 @@ The immediate proof obligations are:
    family.
 4. A runtime handoff event is published and inspectable instead of being hidden
    inside adapter code.
+5. Observer-facing tooling can describe emitted graph-like structure as
+   holographic readings over shared causal history rather than as a privileged
+   graph-in-itself.
 
-Until those are true, "one graph, two temperatures" remains a target, not a
+Until those are true, "one graph, two temperatures" remains a historical
+shorthand for a target, not a
 completed fact.
