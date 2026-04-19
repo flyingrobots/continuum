@@ -24,6 +24,7 @@ Current authored family:
 - `continuum-neighborhood-core-family.graphql`
 - `continuum-receipt-family.graphql`
 - `continuum-settlement-family.graphql`
+- `continuum-runtime-boundary-family.graphql`
 
 Wesley compiles the schemas in this directory into Rust, TypeScript, manifests,
 and codec artifacts. Echo, `git-warp`, and `warp-ttd` should consume generated
