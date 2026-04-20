@@ -13,4 +13,4 @@ Current invariant areas include:
 - canonical ownership of shared nouns
 - witness-scope honesty
 - compatibility reporting truth
-- one graph / two-temperature runtime truth
+- one shared causal history / two-temperature runtime truth

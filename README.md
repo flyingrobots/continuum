@@ -72,8 +72,9 @@ together."
 
 The stronger claim is:
 
-- a client should experience **one logical graph**
-- Echo and `git-warp` are two **execution temperatures** over that graph
+- a client should experience **one shared causal history with compatible
+  observer-relative readings**
+- Echo and `git-warp` are two **execution temperatures** over that history
 - the published nouns should remain the same across both
 - crossing between hot and cold runtimes should become a **first-class causal
   event**
@@ -86,6 +87,8 @@ each engine.
 
 If you are new here, start with these:
 
+- [APP_GLOSSARY.md](APP_GLOSSARY.md)
+  Cross-repo noun map from app surfaces to WARP paper terms.
 - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
   The user entry point: where to begin, what to read first, and what to run.
 - [apps/warp/README.md](apps/warp/README.md)

@@ -27,9 +27,10 @@ They do **not** require:
 
 ## Invariants
 
-### 1. One Graph Invariant
+### 1. Shared Causal History Invariant
 
-A Continuum client observes **one logical graph**.
+A Continuum client observes **one shared causal history with compatible
+readings**.
 
 Echo and `git-warp` are not allowed to become separate user-visible universes
 with different meanings for identity, receipt, settlement, or lane truth.
@@ -235,7 +236,7 @@ native execution surfaces.
 
 If you need the whole doctrine compressed:
 
-- one logical graph
+- one shared causal history with compatible readings
 - same published nouns
 - different engine internals allowed
 - Continuum authors shared semantics

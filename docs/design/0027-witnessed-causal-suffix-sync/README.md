@@ -19,7 +19,7 @@ Depends on:
 Freeze the next interoperability law after `0018`:
 
 - Echo and `git-warp` exchange witnessed causal transitions, not synchronized
-  state snapshots
+  materialized frontier snapshots
 - the basic sync unit is a causal suffix bundle rooted at a shared frontier
 - import uses the same admission algebra as any other witnessed WARP claim
 - hot and cold runtime temperature remain runtime differences, not causal-history

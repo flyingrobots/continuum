@@ -257,7 +257,7 @@ The top-level story must remain shared.
 
 ### 9. Observer-Relative Reading Invariant
 
-Continuum does not promise one privileged materialized graph state.
+Continuum does not promise one privileged materialized graph-in-itself.
 
 It promises one shared causal history from which lawful observers or optics may
 emit compatible holographic readings.

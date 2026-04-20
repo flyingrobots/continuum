@@ -318,8 +318,9 @@ The current Continuum direction is not "two engines that maybe interoperate."
 
 The stronger claim is:
 
-- the client should experience **one logical graph**
-- Echo and `git-warp` are two **execution temperatures** over that graph
+- the client should experience **one shared causal history with compatible
+  observer-relative readings**
+- Echo and `git-warp` are two **execution temperatures** over that history
 - crossing between hot and cold must become an **inspectable causal event**
 
 That means:
@@ -334,7 +335,7 @@ That means:
 
 The practical invariants are:
 
-- one graph
+- one shared causal history plus compatible observer-relative readings
 - published-noun parity
 - engine-local freedom below the boundary
 - explicit temperature handoff
