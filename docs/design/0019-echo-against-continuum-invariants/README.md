@@ -62,27 +62,28 @@ This packet is the first bounded audit pass.
 
 ### 1. One Graph Invariant — Yellow
 
-**Claim:** a Continuum client should observe one logical graph, not one graph
-per engine.
+**Claim:** a Continuum client should observe one shared causal history with
+compatible readings, not one separate graph-shaped reality per engine.
 
 **Echo truth today:**
 
-- Echo is internally coherent around one graph/history model.
+- Echo is internally coherent around one shared causal-history model with
+  graph-shaped publication surfaces.
 - `NeighborhoodSite` gives Echo a first-class local site publication surface
   instead of requiring adapter reconstruction:
-  - [neighborhood.rs](/Users/james/git/echo/crates/warp-core/src/neighborhood.rs)
-  - [0007-braid-geometry-and-neighborhood-publication](/Users/james/git/echo/docs/design/0007-braid-geometry-and-neighborhood-publication/design.md)
+  - `echo/crates/warp-core/src/neighborhood.rs`
+  - `echo/docs/design/0007-braid-geometry-and-neighborhood-publication/design.md`
 - Settlement is now first-class instead of folklore:
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
-  - [0008-strand-settlement](/Users/james/git/echo/docs/design/0008-strand-settlement/design.md)
+  - `echo/crates/warp-core/src/settlement.rs`
+  - `echo/docs/design/0008-strand-settlement/design.md`
 
 **Why only yellow:**
 
 - Echo still does not publish any runtime-handoff object for crossing between
   hot and cold execution/publication regimes.
-- That means Echo can support "one graph" locally, but it does not yet provide
-  the cross-runtime event boundary that Continuum now requires for the full
-  two-temperature story.
+- That means Echo can support one coherent local causal-history/reading model,
+  but it does not yet provide the cross-runtime event boundary that Continuum
+  now requires for the full two-temperature story.
 
 ### 2. Published-Noun Parity Invariant — Yellow
 
@@ -99,9 +100,9 @@ categories across engines.
   - `ImportCandidate`
   - `ConflictArtifactDraft`
 - Those appear in both kernel/runtime code and ABI DTOs:
-  - [neighborhood.rs](/Users/james/git/echo/crates/warp-core/src/neighborhood.rs)
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
-  - [kernel_port.rs](/Users/james/git/echo/crates/echo-wasm-abi/src/kernel_port.rs)
+  - `echo/crates/warp-core/src/neighborhood.rs`
+  - `echo/crates/warp-core/src/settlement.rs`
+  - `echo/crates/echo-wasm-abi/src/kernel_port.rs`
 
 **Why only yellow:**
 
@@ -109,7 +110,7 @@ categories across engines.
   The main repo-truth statement remains the one from `0006`:
   reintegration truth is still scattered across receipts, provenance, and
   finalization artifacts.
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 - Receipt shell layering is still more explicit in design doctrine than in
   native runtime publication.
 - Effect-emission, delivery-observation, and observer-trace publication are not
@@ -125,7 +126,7 @@ shared published contract.
 - Echo explicitly keeps hot-runtime-specific truths local:
   scheduler state, ingress/admission policy, head/writer semantics, and
   engine-local finalization/control-plane detail.
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 - The current neighborhood and settlement work did not flatten Echo into
   Continuum terms internally; it added publication boundaries instead.
 
@@ -143,12 +144,12 @@ Wesley, not hand-authored independently in Echo.
 
 - Echo's runtime schema fragments are still locally authored and explicitly say
   generation is deferred.
-  - [schemas/runtime/README.md](/Users/james/git/echo/schemas/runtime/README.md)
+  - `echo/schemas/runtime/README.md`
 - Echo's proof-family runtime cutover is still backlog, not landed:
-  - [PLATFORM_continuum-proof-family-runtime-cutover](/Users/james/git/echo/docs/method/backlog/up-next/PLATFORM_continuum-proof-family-runtime-cutover.md)
+  - `echo/docs/method/backlog/up-next/PLATFORM_continuum-proof-family-runtime-cutover.md`
 - The published neighborhood and settlement ABI surfaces are still handwritten
   Echo-side DTOs:
-  - [kernel_port.rs](/Users/james/git/echo/crates/echo-wasm-abi/src/kernel_port.rs)
+  - `echo/crates/echo-wasm-abi/src/kernel_port.rs`
 
 **Why red:**
 
@@ -167,7 +168,7 @@ Wesley, not hand-authored independently in Echo.
   neighborhood and settlement.
 - `0005` remains honest that the older TTD path derived reintegration and shell
   summaries in the host/debugger layer:
-  - [0005-echo-ttd-witness-surface](/Users/james/git/echo/docs/design/0005-echo-ttd-witness-surface/design.md)
+  - `echo/docs/design/0005-echo-ttd-witness-surface/design.md`
 
 **Why only yellow:**
 
@@ -188,8 +189,8 @@ collapse back into one blob.
   - settlement family for import/conflict runway
   - rich shell/provenance artifacts remain present
 - The design docs understand the distinction:
-  - [0005-echo-ttd-witness-surface](/Users/james/git/echo/docs/design/0005-echo-ttd-witness-surface/design.md)
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0005-echo-ttd-witness-surface/design.md`
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 
 **Why only yellow:**
 
@@ -211,7 +212,7 @@ categories.
 - Accepted imports and conflicts are recorded as first-class provenance events:
   - `MergeImport`
   - `ConflictArtifact`
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
+  - `echo/crates/warp-core/src/settlement.rs`
 
 **Why only yellow:**
 
@@ -248,9 +249,9 @@ same authored family, manifests, bytes, and interpretation.
   - canonical CBOR wire rules
   - deterministic ABI boundaries
   - explicit binary-compatibility doctrine
-  - [README.md](/Users/james/git/echo/README.md)
-  - [continuum-foundations.md](/Users/james/git/echo/docs/continuum-foundations.md)
-  - [THEORY.md](/Users/james/git/echo/docs/THEORY.md)
+  - `echo/README.md`
+  - `echo/docs/continuum-foundations.md`
+  - `echo/docs/THEORY.md`
 - Echo also has a real higher-layer carrier/packaging story around BTRs and
   wormhole carriers in theory, even if not all of it is fully landed runtime
   substrate yet.
@@ -325,4 +326,3 @@ So the honest summary is:
 
 **Echo is now structurally on the runway, but it is not yet the finished
 Continuum engine leg.**
-

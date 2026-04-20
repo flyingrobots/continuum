@@ -81,9 +81,9 @@ Today, `apps/warp` provides a working local-first prototype with:
 
 - a repo-local `warp init` command
 - a concrete demo stack manifest at
-  [docs/releases/demo/continuum-stack-release.json](/Users/james/git/continuum/docs/releases/demo/continuum-stack-release.json)
+  [docs/releases/demo/continuum-stack-release.json](../../docs/releases/demo/continuum-stack-release.json)
 - a WARPspace template under
-  [apps/warp/templates/demo-web-rust](/Users/james/git/continuum/apps/warp/templates/demo-web-rust)
+  [apps/warp/templates/demo-web-rust](./templates/demo-web-rust)
 - authored workspace output in `warpspace.toml`
 - resolved install state in `warpspace.lock.json`
 - internal install layout under `.warpspace/packages`, `.warpspace/cache`, and
@@ -162,17 +162,17 @@ not a product-definition problem.
 
 If you want the shortest path through the `warp` story, use this order:
 
-1. [apps/warp/README.md](/Users/james/git/continuum/apps/warp/README.md)
-2. [docs/GETTING_STARTED.md](/Users/james/git/continuum/docs/GETTING_STARTED.md)
-3. [0024 - Warp CLI And WARPspace TOML](/Users/james/git/continuum/docs/design/0024-warp-cli-and-warpspace-toml/README.md)
-4. [0025 - Warp Native Distribution And Node Runtime Policy](/Users/james/git/continuum/docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md)
-5. [0026 - Warp Package Sources And Local Packages Site](/Users/james/git/continuum/docs/design/0026-warp-package-sources-and-local-packages-site/README.md)
+1. [apps/warp/README.md](./README.md)
+2. [docs/GETTING_STARTED.md](../../docs/GETTING_STARTED.md)
+3. [0024 - Warp CLI And WARPspace TOML](../../docs/design/0024-warp-cli-and-warpspace-toml/README.md)
+4. [0025 - Warp Native Distribution And Node Runtime Policy](../../docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md)
+5. [0026 - Warp Package Sources And Local Packages Site](../../docs/design/0026-warp-package-sources-and-local-packages-site/README.md)
 
 ## Handoff Note
 
 If you are picking this work up next, assume the following is already true:
 
-- `warp` lives in Continuum under [apps/warp](/Users/james/git/continuum/apps/warp)
+- `warp` lives in Continuum under [apps/warp](./)
 - the authored workspace config is `warpspace.toml`
 - the resolved lock is `warpspace.lock.json`
 - Wesley now consumes `warpspace.toml` directly
