@@ -71,11 +71,17 @@ This is the first stack-wide cut. It is intentionally smaller than the full
 receipt ladder, smaller than full reintegration detail, and smaller than a full
 session/control protocol.
 
+Every noun in this packet is a **GraphQL-authored contract family**.
+
+Wesley compiles artifacts for these families. Echo and other Continuum runtimes
+later produce actual values conforming to them.
+
 ## Shared family meanings
 
 ### 1. `IntentEnvelope`
 
-`IntentEnvelope` is the shared set-side carrier.
+`IntentEnvelope` is the GraphQL-authored family for the shared set-side
+carrier.
 
 It names:
 
@@ -93,7 +99,7 @@ It is not the same thing as:
 
 ### 2. `TickResult`
 
-`TickResult` is the immediate runtime result of admission.
+`TickResult` is the GraphQL-authored family for the immediate admission result.
 
 It names:
 
@@ -102,11 +108,14 @@ It names:
 - the immediate witness/receipt reference
 - the resulting hologram or boundary reference
 
+Echo or another Continuum runtime may later emit actual `TickResult` values
+conforming to this family.
+
 It is not the later observer reading.
 
 ### 3. `ObserverPlan`
 
-`ObserverPlan` is the authored and compiled get-side declaration.
+`ObserverPlan` is the GraphQL-authored family for the get-side plan shape.
 
 It names, at minimum:
 
@@ -115,12 +124,15 @@ It names, at minimum:
 - observer state kind
 - emission kind
 
+Wesley may compile artifacts and registries for this family. Continuum
+tools/runtimes may later materialize actual plan values conforming to it.
+
 It is not the observer instance and it is not the emitted reading.
 
 ### 4. `ObservationRequest`
 
-`ObservationRequest` is the runtime request to produce one reading at one
-coordinate, frontier, or hologram reference under one plan.
+`ObservationRequest` is the GraphQL-authored family for the request to produce
+one reading at one coordinate, frontier, or hologram reference under one plan.
 
 It names:
 
@@ -131,7 +143,8 @@ It names:
 
 ### 5. `ReadingEnvelope`
 
-`ReadingEnvelope` is the emitted observer-relative result.
+`ReadingEnvelope` is the GraphQL-authored family for an observer-relative
+reading result.
 
 It names:
 
@@ -140,11 +153,15 @@ It names:
 - the reading payload identity/digest
 - the witness or shell reference backing that reading
 
+Continuum runtimes may later emit actual `ReadingEnvelope` values conforming to
+this family.
+
 It is not the substrate itself and it is not the same thing as `TickResult`.
 
 ### 6. `SuffixShell`
 
-`SuffixShell` is the shared distributed handoff object.
+`SuffixShell` is the GraphQL-authored family for the shared distributed handoff
+object.
 
 It names:
 
@@ -158,7 +175,8 @@ It is a witnessed import/export shell, not a bare patch list.
 
 ### 7. `ImportOutcome`
 
-`ImportOutcome` is the distributed admission result.
+`ImportOutcome` is the GraphQL-authored family for the distributed admission
+result.
 
 It names:
 
@@ -174,6 +192,21 @@ The lawful outcome kind remains shared with the existing admission family:
 - `Plural`
 - `Conflict`
 - `Obstruction`
+
+## Contract Families Versus Artifacts Versus Values
+
+This packet freezes one three-way distinction:
+
+- contract families are authored in GraphQL
+- Wesley compiles artifacts for those families
+- runtimes and tools later produce actual values conforming to those families
+
+So, for example:
+
+- `ReadingEnvelope` is a family authored in GraphQL
+- Wesley may compile TypeScript, Rust, registry, or codec artifacts for that
+  family
+- Echo may later emit actual `ReadingEnvelope` values at runtime
 
 ## What this family is for
 

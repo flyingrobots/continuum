@@ -3,15 +3,19 @@
 #
 # Continuum-authored minimum shared runtime-boundary family for:
 # - set-side intent carriage
-# - immediate admission result publication
-# - get-side observer planning and reading requests
-# - distributed suffix handoff and import result publication
+# - immediate admission result contracts
+# - get-side observer planning and reading request contracts
+# - distributed suffix handoff and import result contracts
+#
+# These are GraphQL-authored contract families.
+# Wesley compiles artifacts for them.
+# Continuum runtimes and tools later produce actual values conforming to them.
 #
 # Doctrine:
 # - `IntentEnvelope` is not a mutation definition and not an admission result
-# - `TickResult` is the immediate admission result, not the later reading
-# - `ObserverPlan` is not the observer instance
-# - `ReadingEnvelope` is an observer-relative result, not the substrate itself
+# - `TickResult` names the immediate admission-result family, not the later reading
+# - `ObserverPlan` names the plan family, not the observer instance
+# - `ReadingEnvelope` names the observer-relative reading family, not the substrate itself
 # - `SuffixShell` is a witnessed import/export shell, not a patch list
 
 scalar Hash
