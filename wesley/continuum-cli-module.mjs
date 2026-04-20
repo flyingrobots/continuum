@@ -1,10 +1,10 @@
 import { WesleyModule } from '../../wesley/packages/wesley-core/src/ports/WesleyModule.mjs';
 
-import { ContractCommand } from '../../wesley/packages/wesley-cli/src/commands/contract.mjs';
-import { DriftWatchCommand } from '../../wesley/packages/wesley-cli/src/commands/drift-watch.mjs';
-import { ObserverPlanCommand } from '../../wesley/packages/wesley-cli/src/commands/observer-plan.mjs';
-import { WitnessCommand } from '../../wesley/packages/wesley-cli/src/commands/witness.mjs';
-import { WitnessContinuumCommand } from '../../wesley/packages/wesley-cli/src/commands/witness-continuum.mjs';
+import { ContractCommand } from './commands/contract.mjs';
+import { DriftWatchCommand } from './commands/drift-watch.mjs';
+import { ObserverPlanCommand } from './commands/observer-plan.mjs';
+import { WitnessCommand } from './commands/witness.mjs';
+import { WitnessContinuumCommand } from './commands/witness-continuum.mjs';
 
 export class ContinuumCliModule extends WesleyModule {
   get apiVersion() {

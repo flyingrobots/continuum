@@ -14,13 +14,13 @@ Continuum lane:
 Current honest posture:
 
 - this repo owns which Wesley surfaces belong to the Continuum module
-- the concrete command implementations still live in the Wesley repo
-- this module imports those implementations through relative bootstrap paths
-- Wesley prefers this foreign-owned module when the sibling Continuum repo is
-  present and falls back to its internal bootstrap shim otherwise
+- the concrete command implementations, support code, fixtures, and profile
+  helpers now live here
+- this module still imports generic Wesley base-platform pieces from the sibling
+  Wesley repo through explicit relative paths
+- generic Wesley loads no domain module by default; Continuum must be loaded
+  explicitly through `WESLEY_MODULES`, `wesley.config.mjs`, or a higher-level
+  wrapper such as `warp`
 
-That is a bridge, not the end state.
-
-The next step after this handoff is to move the command implementations and
-their Continuum-specific support code out of generic Wesley surfaces and into
-Continuum-owned module code.
+That is still a bridge, but it is now a much cleaner one: Wesley no longer owns
+the Continuum command layer.
