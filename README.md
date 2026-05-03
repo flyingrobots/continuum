@@ -5,12 +5,16 @@
 > Continuum is still in active R&D. Expect raw edges, rapid iteration, and
 > breaking changes while the shared stack hardens.
 
-Continuum is the coordination membrane across the active WARP stack:
+Continuum is the shared protocol, contract, admissibility, and witness language
+across the active WARP stack:
 
-- [Echo](https://github.com/flyingrobots/echo) for hot execution and runtime truth
-- [`git-warp`](https://github.com/git-stunts/git-warp) for colder causal and storage truth
+- [Echo](https://github.com/flyingrobots/echo) as a sibling Continuum runtime
+  implementation
+- [`git-warp`](https://github.com/git-stunts/git-warp) as a sibling Continuum
+  runtime implementation
 - `warp-ttd` for shared debugger and operator surfaces
-- [Wesley](https://github.com/flyingrobots/wesley) for shared contract compilation, manifests, witnesses, and toolchain handoff
+- [Wesley](https://github.com/flyingrobots/wesley) for shared contract
+  compilation, manifests, witnesses, and toolchain handoff
 
 If you land here looking for "the engine," this repo is not it.
 
@@ -28,15 +32,15 @@ into:
 Continuum owns the cross-repo glue:
 
 - shared vocabulary
+- shared protocol and admissibility language
 - authored shared contract families
 - ownership laws for nouns that cross repo boundaries
 - cross-repo invariants
 - witness and compatibility truth
 - integration scenarios and proof plans
 
-The short version is:
-
-**one semantic universe, multiple engines, one published contract**
+The short version is one semantic universe, multiple engines, one published
+contract.
 
 ## What This Repo Is Not
 
@@ -58,9 +62,14 @@ The intended stack looks like this:
 1. Continuum owns shared semantics and authored shared contract families.
 2. Wesley compiles those families into Rust, TypeScript, codecs, manifests,
    witnesses, and toolchain handoff artifacts.
-3. Echo or `git-warp` is the runtime and engine layer.
+3. Echo, `git-warp`, or another conforming sibling implementation is the
+   runtime layer.
 4. Apps compose their own domain GraphQL with Continuum shared families and
    the chosen engine family.
+
+A Continuum runtime is any implementation that can publish, admit, observe,
+export, and import witnessed causal history according to Continuum contract
+families and admission laws.
 
 That means app authors should extend the engine they are actually running on,
 while consuming Continuum-defined shared contracts through Wesley-generated
@@ -79,10 +88,10 @@ The stronger claim is:
 
 - a client should experience **one shared causal history with compatible
   observer-relative readings**
-- Echo and `git-warp` are two **execution temperatures** over that history
+- Echo and `git-warp` are sibling runtime implementations over that history
 - the published nouns should remain the same across both
-- crossing between hot and cold runtimes should become a **first-class causal
-  event**
+- cross-runtime interoperability should be witnessed suffix exchange and
+  admission between peers
 
 That is the point of Continuum: keep the stack honest enough that a debugger,
 tool, app, or agent does not have to learn a different conceptual language for

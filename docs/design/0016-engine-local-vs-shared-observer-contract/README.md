@@ -113,9 +113,9 @@ Minimum shared meanings:
 - commit/boundary identity
 - frame kind
 
-Echo may keep richer global/scheduler coordinates. `git-warp` may keep colder
-patch/materialization details. The shared contract is the observer-facing
-coordinate/frame truth.
+Echo may keep richer global/scheduler coordinates. `git-warp` may keep
+Git-native patch/materialization details. The shared contract is the
+observer-facing coordinate/frame truth.
 
 The older time-travel notes suggest one additional discipline here: the shared
 observer boundary should remain explicit about the difference between:
@@ -241,7 +241,7 @@ receipt truth as fake engine facts.
 
 - patch-chain structure
 - Git commit/materialization specifics
-- cold-store provenance elaborations
+- storage provenance elaborations
 - host-specific audit shells
 
 These may be exposed in shell or drill-down views. They should not be promoted
@@ -306,7 +306,8 @@ contract.
 ### `git-warp`
 
 `git-warp` should continue the witness-ladder and local-site work so it
-publishes the same top-level categories without losing its colder engine truth.
+publishes the same top-level categories without losing its runtime-local
+implementation truth.
 
 ### `warp-ttd`
 

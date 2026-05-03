@@ -15,7 +15,7 @@ Continuum-level invariants constrain:
 
 - the shared meaning of published nouns
 - who owns authored shared contract families
-- how engines may differ without breaking interoperability
+- how sibling runtimes may differ without breaking interoperability
 - what must be true for a host-neutral client or debugger surface to remain
   honest
 
@@ -24,6 +24,13 @@ They do **not** require:
 - identical engine internals
 - one universal runtime
 - one universal storage substrate
+
+A Continuum runtime is any implementation that can publish, admit, observe,
+export, and import witnessed causal history according to Continuum contract
+families and admission laws.
+
+Echo and `git-warp` are sibling Continuum runtime implementations. Echo is
+not subordinate to `git-warp`, and `git-warp` is not the durable half of Echo.
 
 ## Invariants
 
@@ -34,6 +41,10 @@ readings**.
 
 Echo and `git-warp` are not allowed to become separate user-visible universes
 with different meanings for identity, receipt, settlement, or lane truth.
+
+At the Continuum boundary, substrate truth is witnessed causal history.
+Graph-like or state-like values are observer-relative readings, cached
+projections, retained artifacts, or runtime-local implementation details.
 
 ### 2. Published-Noun Parity Invariant
 
@@ -60,6 +71,11 @@ Echo and `git-warp` may differ internally in:
 - scheduling
 - merge/import machinery
 - provenance representation
+- causal-history storage
+- indexes and caches
+- retained readings
+- checkpoints
+- implementation-local materializations
 
 Those differences are acceptable as long as the shared published contract is
 preserved.
@@ -94,22 +110,25 @@ Cross-repo publication must preserve the distinction between:
 These layers may be related.
 They may not collapse back into one undifferentiated blob.
 
-### 7. Settlement Before Handoff Invariant
+### 7. Settlement Before Cross-Runtime Admission Invariant
 
-Whenever a runtime transition changes canonical visibility, durable status, or
-imported history, that transition must be explainable through published
-settlement and reintegration categories.
+Whenever cross-runtime exchange changes canonical visibility, retained status,
+or imported history, that admission decision must be explainable through
+published settlement and reintegration categories.
 
 Shell metadata alone is not enough.
 
-### 8. Temperature Handoff Invariant
+### 8. Cross-Runtime Exchange Invariant
 
-Crossing between hot and cold runtimes must be represented as a **first-class
-causal event**.
+Cross-runtime interoperability is witnessed suffix exchange and admission
+between sibling runtimes.
 
-There is no honest silent handoff between execution temperatures.
+There is no honest silent synchronization path between Echo and `git-warp`.
+Neither runtime receives a privileged protocol role by being called hot, cold,
+durable, archival, low-latency, browser-hosted, offline-first, or any other
+runtime posture.
 
-At minimum, the handoff must be able to name:
+At minimum, a cross-runtime exchange must be able to name:
 
 - source runtime kind
 - target runtime kind
@@ -118,6 +137,8 @@ At minimum, the handoff must be able to name:
 - boundary digest or equivalent shared identity
 - settlement/import outcome
 - unresolved residue when present
+
+Runtime posture may be useful metadata. It does not assign protocol ontology.
 
 ### 9. Shared Carrier Invariant
 
@@ -242,7 +263,7 @@ If you need the whole doctrine compressed:
 - Continuum authors shared semantics
 - Wesley compiles and witnesses them
 - no silent normalization
-- no silent temperature handoff
+- no silent cross-runtime synchronization
 - same contracts, same bytes, same interpretation
 - observation is revelation only; debugger-created counterfactuals are explicit
   tiered forks

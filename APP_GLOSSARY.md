@@ -22,13 +22,14 @@ surfaces.
 | --- | --- |
 | App/authored | product nouns, GraphQL mutations, observer specs, UI-facing readings |
 | Compiled | intent envelopes, observer plans, codecs, manifests, witnesses |
-| Runtime/substrate | lanes, frontiers, admission, witnesses, holograms, observer instances |
+| Runtime implementation | publishing, admission, observation, suffix import/export, witnesses, retained artifacts, caches, checkpoints, and local materializations |
+| Continuum boundary | witnessed causal history, shared contract categories, admissibility outcomes, and witness language |
 
 ## jedit Hot Text Surface
 
 | Surface noun | Source | WARP term | Meaning |
 | --- | --- | --- | --- |
-| `BufferWorldline` | `jedit/contracts/jedit/hot-text-runtime.graphql` | canonical `worldline` | Buffer-scoped canonical lane for hot text truth. This is not the generic base noun `Lane`; it is the app publishing the canonical case. |
+| `BufferWorldline` | `jedit/contracts/jedit/hot-text-runtime.graphql` | canonical `worldline` | Buffer-scoped canonical lane for the app's text surface. This is not the generic base noun `Lane`; it is the app publishing the canonical case. |
 | `RopeHead` | same | frontier head / canonical head | The rope-specific materialization anchor at one admitted frontier. |
 | `Tick` | same | admitted local step | One admitted local rewrite on the buffer worldline. |
 | `TickReceipt` | same | witness / receipt | The witness-bearing result of local tick admission. |
@@ -69,6 +70,8 @@ surfaces.
 | `Reading` | Observer-relative emitted result. | Treating it as the substrate itself. |
 | `ObserverSpec` | Authored get-side declaration. | Treating a query DTO as the whole observer. |
 | `ObserverInstance` | Hosted runtime observer with current state. | Collapsing it into the spec or the emitted reading. |
+| `ContinuumRuntime` | Any sibling implementation that can publish, admit, observe, export, and import witnessed causal history according to Continuum families and admission laws. | Treating Echo and `git-warp` as hot/cold halves of one privileged machine. |
+| `RuntimePosture` | Deployment/runtime characteristics such as latency, durability, hosting, archival behavior, browser placement, offline support, or persistence policy. | Treating posture as protocol ontology or assigning fixed roles to Echo and `git-warp`. |
 
 ## Stable Wire Names That Are Not Ontology
 
@@ -92,9 +95,10 @@ Do not build new doctrine on these names alone. They are compatibility surfaces.
 - `jedit/README.md` still contains phrases like “worldline state” and “generic
   graph truth.” The contract/runtime split is correct, but the prose should be
   tightened to match it.
-- Continuum intentionally still uses `"one graph"` in a few places as marked
-  historical shorthand. When used, it should always be expanded to “one shared
-  causal history with compatible observer-relative readings.”
+- Older Continuum packets may still use `"one graph"` or hot/cold phrasing as
+  marked historical shorthand. When used, it should always be expanded to “one
+  shared causal history with compatible observer-relative readings across
+  sibling runtime implementations.”
 
 ## Banned Collapses
 

@@ -9,33 +9,50 @@ status: proposed
 **Legend:** SOURCE  
 **Type:** coordination cycle
 
+## Correction Note
+
+This packet keeps its historical title so older links remain stable.
+
+The corrected doctrine is:
+
+- "one graph" means one shared witnessed causal history with compatible
+  observer-relative readings, not a privileged materialized graph-in-itself
+- "two temperatures" is historical shorthand for runtime posture differences,
+  not protocol ontology
+- Echo and `git-warp` are sibling Continuum runtime implementations
+- cross-runtime interoperability is witnessed suffix exchange and admission
+  between peers, not hot/cold handoff between two halves of one machine
+
 ## Hill
 
-Freeze the next Continuum doctrine before app-runtime work drifts into
-adapter folklore:
+Freeze the next Continuum doctrine before app-runtime work drifts into adapter
+folklore:
 
 - a Continuum client participates in **one shared witnessed causal history**
-- lawful optics can emit **compatible holographic graph-like readings** from
-  that history
-- Echo and `git-warp` are two **execution temperatures** over that history
-- crossing between those temperatures is a **first-class causal event**
-- a shared binary carrier is useful only if both engines also agree on the
-  same published nouns and interpretation
+- lawful observers can emit **compatible graph-like or state-like readings**
+  from that history
+- Echo and `git-warp` are sibling runtime implementations over that history
+- runtime posture describes deployment characteristics, not protocol roles
+- cross-runtime exchange must be explicit witnessed admission
+- a shared carrier is useful only if both runtimes also agree on the same
+  published nouns and interpretation
 
 This packet answers the practical question:
 
-**If Continuum eventually exposes a host-neutral app/runtime facade, what must
-be true so that hot/cold routing is honest instead of magical?**
+**If multiple sibling Continuum runtimes can publish and consume one witnessed
+causal history, what must be true so that interop is honest instead of adapter
+folklore?**
 
 ## Why This Exists
 
 The stack is converging toward:
 
-- Echo as the hot engine
-- `git-warp` as the cold engine
-- `warp-ttd` as the shared observer/debugger
+- Echo as one Continuum runtime implementation
+- `git-warp` as one Continuum runtime implementation
+- `warp-ttd` as the shared observer/debugger surface
 - Wesley as compiler/witness machinery
-- Continuum as semantic and contract authority
+- Continuum as semantic, protocol, contract, admissibility, and witness
+  authority
 
 That is already useful.
 
@@ -43,22 +60,25 @@ But the app-facing vision is stronger than "a family of repos that can work
 together." The emerging claim is:
 
 **a client should be able to participate in one shared causal history while
-lawful optics emit graph-like readings over work that may execute or settle
-through different runtime temperatures.**
+lawful observers emit readings over work published by different sibling
+runtimes.**
 
 That claim is attractive and dangerous.
 
-It is attractive because many real systems need both:
+It is attractive because many real systems need different runtime postures:
 
-- hot speculative interaction
+- low-latency interaction
 - durable audit and settlement
-- low-latency local branching
+- local branching
 - long-horizon reproducible history
+- browser-hosted or offline-first operation
 
 It is dangerous because the abstraction collapses if:
 
-- the two engines publish different top-level nouns
-- the handoff between them is hidden
+- the sibling runtimes publish different top-level nouns
+- one runtime is treated as subordinate to the other
+- a materialized graph, snapshot, cache, or retained reading is mistaken for
+  boundary truth
 - binary compatibility means only "both parse bytes" instead of "both tell the
   same story"
 
@@ -66,97 +86,119 @@ This packet freezes the law that keeps the idea honest.
 
 ## Decision
 
-### 1. Continuum promises one shared causal history, not one substrate-owned graph per engine
+### 1. Continuum promises witnessed causal history
 
 From the client or debugger perspective there is one shared witnessed causal
 history.
 
 Echo and `git-warp` are not allowed to become separate user-visible universes
-with independent meanings for identity, receipt, settlement, or lane truth.
+with independent meanings for identity, receipt, settlement, lane truth,
+admission, or observation.
 
-They may be different substrates.
-They may be different execution regimes.
+They may be different runtime implementations.
+They may use different storage, indexing, checkpoint, cache, observer, and
+materialization strategies.
 They are not different causal universes at the published Continuum boundary.
 
-The phrase "one graph" is only acceptable as shorthand for:
+The phrase "one graph" is only acceptable as historical shorthand for:
 
 - one shared causal history
-- plus compatible observer-relative holographic readings over that history
+- plus compatible observer-relative readings over that history
 
 It must not be read as:
 
 - one privileged materialized graph-in-itself
 - one substrate-owned state object
 - one cache that every runtime must mirror
+- one runtime acting as the durable half of another
 
-### 2. Hot and cold are execution/publication temperatures, not separate ontologies
+### 2. Echo and `git-warp` are sibling runtimes
 
-The useful distinction is:
+Echo is not subordinate to `git-warp`.
+`git-warp` is not the durable half of Echo.
 
-- **hot**
-  - immediacy
-  - low-latency interaction
-  - speculative or provisional progress
-- **cold**
-  - durable history
-  - settlement and archival truth
-  - transport and audit
+Both runtimes may store:
 
-This is a policy/runtime distinction.
-It is not permission for the published nouns to diverge.
+- causal history
+- indexes
+- caches
+- retained readings
+- checkpoints
+- implementation-local materializations
+- transport or replay aids
 
-### 3. Runtime transition must be a first-class causal event
+Those stores are runtime freedom. At the Continuum boundary, the shared truth
+is witnessed causal history plus the contract families and admission laws that
+make it interoperable.
 
-If work crosses from hot to cold, or cold to hot, that crossing must itself be
-represented in causal history.
+A Continuum runtime is any implementation that can publish, admit, observe,
+export, and import witnessed causal history according to Continuum contract
+families and admission laws.
 
-The stack must not hide the transition behind silent adapter translation.
+### 3. Runtime posture is metadata, not ontology
 
-The handoff event should be inspectable as a real boundary object with at
-least:
+Terms such as:
 
-- source runtime kind
-- target runtime kind
-- source coordinate or head
-- target coordinate or head
+- hot
+- cold
+- durable
+- archival
+- low-latency
+- browser-hosted
+- offline-first
+- checkpoint-heavy
+- observer-hosting
+
+describe runtime or deployment posture.
+
+They do not assign protocol roles.
+They do not decide which runtime owns truth.
+They do not permit published nouns to diverge.
+
+### 4. Cross-runtime exchange is witnessed admission
+
+When one sibling runtime exports work to another, the exchange must be a
+witnessed causal-history claim admitted by the receiving runtime.
+
+The stack must not hide interop behind silent adapter translation or
+state-snapshot synchronization.
+
+The exchange should be inspectable as a boundary object with at least:
+
+- source runtime identity
+- target runtime identity
+- source coordinate or frontier
+- target coordinate or frontier
 - boundary digest or shared causal-history identity
 - settlement or import outcome
-- any unresolved conflict or residue
+- witness or receipt reference
+- unresolved conflict or residue when present
 
-This makes the handoff part of causal history truth instead of an undocumented
+This makes interop part of causal history truth instead of an undocumented
 transport trick.
 
-One useful older formulation is that the handoff boundary mediates between:
+One useful older formulation remains valid: a runtime may be live in host time
+while admitted history time is replayed, inspected, forked, or imported.
+That distinction matters. Host-time arrival does not itself admit history.
 
-- `HostTime`
-  - wall-clock, scheduler jitter, arrival timing, tool heartbeat
-- admitted history time
-  - replayable causal order inside the worldline or transported suffix
+### 5. Shared carrier is necessary but not sufficient
 
-That distinction matters because a runtime may remain live in host time while a
-debugger or forked lane rewinds admitted history. The handoff event therefore
-needs to say not only what crossed, but also which causal order was actually
-admitted.
-
-### 4. Shared binary carrier is necessary but not sufficient
-
-If both engines can read and write the same binary WARP carrier, that is a
-major win.
+If multiple runtimes can read and write the same carrier, that is useful.
 
 But "same bytes" only helps if it also means:
 
 - same nouns
 - same contracts
 - same interpretation
+- same admission and witness meaning
 
 Otherwise the system only proves parser compatibility, not Continuum
 interoperability.
 
-The stronger requirement is:
+The stronger requirement is same nouns, same contracts, same bytes, and same
+causal interpretation.
 
-**same nouns, same contracts, same bytes, same causal interpretation**
-
-### Debugger-created counterfactuals are explicit tiered forks
+### 6. Debugger-created counterfactuals are explicit tiered forks
 
 Observation alone does not create new causal truth.
 
@@ -164,35 +206,28 @@ If a debugger or agent asks to continue from an earlier coordinate or explore
 an explicit counterfactual, Continuum should represent that as a first-class
 fork rooted at an exact basis.
 
-Such work should default to hot scratch or author-only retained lanes rather
-than crossing silently into cold shared history. Shared admitted history
+Such work should default to scratch or author-only retained lanes rather than
+crossing silently into shared admitted history. Shared admitted history
 requires an explicit later promotion.
 
-The older time-travel notes sharpen the runtime consequence:
+Buffered host-time facts are not automatically admitted history.
+Catch-up, merge, import, or resync must remain explicit.
 
-- future arrivals may continue to exist in host-time buffers
-- rewound history does not automatically admit those arrivals
-- catch-up, merge, or resync must remain explicit
-
-This is the runtime-temperature version of the same law: buffered facts are not
-yet admitted history.
-
-### 5. A host-neutral Continuum runtime facade is allowed, but it must stay thin
+### 7. Continuum must not become a runtime facade
 
 Continuum should not become a third independent engine.
 
-A thin client/runtime facade may still exist if it only owns:
-
-- generated contract loading
-- host adapters
-- host-selection policy
-- normalization to already-shared published nouns
-
-It must not own:
+A client or bootstrap layer may route work or load generated contracts, but it
+must not own:
 
 - a shadow engine ontology
 - silent semantic translation
-- private settlement logic that the engines themselves do not publish
+- private settlement logic that the sibling runtimes themselves do not publish
+- privileged graph truth
+
+Continuum owns the shared protocol, contract, admissibility, and witness
+language. Runtime implementations own their local execution and storage
+machinery.
 
 ## Continuum Invariants
 
@@ -200,35 +235,35 @@ It must not own:
 
 A Continuum client participates in one shared witnessed causal history.
 
-Hot and cold runtimes are two execution regimes over that history, not two
-separate substrate-owned graph objects that happen to share a debugger.
+Sibling runtimes are implementations over that history, not separate
+substrate-owned graph objects that happen to share a debugger.
 
 ### 2. Published-Noun Parity Invariant
 
 Echo and `git-warp` must publish the same Continuum-facing nouns for shared
 concepts.
 
-Internal engine elaborations may differ.
+Internal runtime elaborations may differ.
 Published contract categories may not.
 
 ### 3. Engine-Local Freedom Invariant
 
-The engines are free to differ internally so long as they preserve the shared
+The runtimes are free to differ internally so long as they preserve the shared
 published contract.
 
-Continuum does not require identical storage models, schedulers, or merge
-machinery.
+Continuum does not require identical storage models, schedulers, indexes,
+caches, checkpoints, materializations, or merge machinery.
 
-### 4. Temperature Handoff Invariant
+### 4. Cross-Runtime Exchange Invariant
 
-Crossing between hot and cold runtimes must be recorded as a first-class
-causal event.
+Cross-runtime interop must be recorded as witnessed suffix exchange and
+admission.
 
-There is no honest silent handoff.
+There is no honest silent synchronization path.
 
 ### 5. Shared Carrier Invariant
 
-If a shared binary carrier is used, both engines must agree on:
+If a shared carrier is used, all sibling runtimes must agree on:
 
 - bytes
 - schema/contract family
@@ -238,19 +273,19 @@ If a shared binary carrier is used, both engines must agree on:
 ### 6. No Silent Translation Invariant
 
 Adapters and tools may transport, present, or filter.
-They may not secretly redefine the meaning of handoff, settlement, receipt, or
+They may not secretly redefine the meaning of import, settlement, receipt, or
 lane identity.
 
-### 7. Settlement Before Handoff Invariant
+### 7. Settlement Before Cross-Runtime Admission Invariant
 
-Whenever a runtime handoff changes canonical visibility or durable status, the
-handoff must be explainable through published settlement and reintegration
-families, not only through shell metadata.
+Whenever cross-runtime exchange changes canonical visibility or retained
+status, the admission must be explainable through published settlement and
+reintegration families, not only through shell metadata.
 
 ### 8. One Observer Story Invariant
 
-`warp-ttd` and future Continuum-facing tools must be able to inspect either
-engine without switching conceptual languages.
+`warp-ttd` and future Continuum-facing tools must be able to inspect sibling
+runtimes without switching conceptual languages.
 
 Host-specific depth is allowed in shell or drill-down.
 The top-level story must remain shared.
@@ -260,7 +295,7 @@ The top-level story must remain shared.
 Continuum does not promise one privileged materialized graph-in-itself.
 
 It promises one shared causal history from which lawful observers or optics may
-emit compatible holographic readings.
+emit compatible readings.
 
 Different observers may lawfully emit different graph-like structure without
 contradicting the shared causal substrate.
@@ -277,17 +312,24 @@ publication only by later promotion.
 
 ### Echo
 
-Echo must continue moving toward native publication of:
+Echo must publish and consume shared Continuum families without becoming a
+client of `git-warp` for protocol truth.
+
+Useful publication families include:
 
 - neighborhood core
 - reintegration detail
 - settlement outputs
-- runtime handoff boundaries when hot work becomes cold-visible
+- suffix export/import shells
+- observer reading envelopes
 
 ### `git-warp`
 
-`git-warp` must converge on the same published categories even if its internal
-representation remains Git-native and colder in temperament.
+`git-warp` must publish and consume the same Continuum families without
+becoming the durable half of Echo.
+
+Its Git-native storage and archival strengths are runtime posture and
+implementation freedom, not privileged graph ownership.
 
 ### `warp-ttd`
 
@@ -304,22 +346,23 @@ Wesley should compile and witness the shared families that make this possible:
 - neighborhood core
 - reintegration detail
 - settlement
-- handoff/event carrier families once they exist
+- suffix exchange/import families
+- observer plan and reading families
 - folded-history and replay-continuity families once those are promoted
 
 ## Interesting Use Cases
 
-The two-temperature story is only worth keeping if it solves real problems.
+The sibling-runtime story is only worth keeping if it solves real problems.
 
-It does when a system needs both immediacy and durable truth:
+It does when a system needs multiple runtime postures over one causal-history
+language:
 
-- collaborative editors with live local interaction and durable shared history
-- agent systems with hot scratch execution and cold auditable outcomes
+- collaborative editors with live interaction and durable shared history
+- agent systems with scratch execution and auditable outcomes
 - simulation or game tooling with live local stepping and reproducible replay
 - workflow/orchestration systems with quick local progress and durable
   settlement records
-- offline-first applications with local hot progress and later cold
-  convergence
+- offline-first applications with local progress and later convergence
 - catch-up and seek through folded history without pretending the interior
   vanished
 
@@ -327,9 +370,9 @@ The pitch is not "look, two engines."
 
 The pitch is:
 
-**the stack can support becoming fast and being true without forcing the client
- to learn two different causal universes or to pretend one materialized graph
- object owns truth.**
+**the stack can support different runtime postures without forcing the client
+to learn two different causal universes or to pretend one materialized graph
+object owns truth.**
 
 ## Proof Obligations
 
@@ -338,15 +381,15 @@ This packet does not claim the whole stack already satisfies these invariants.
 The immediate proof obligations are:
 
 1. Echo and `git-warp` publish the same top-level observer/settlement nouns.
-2. Wesley compiles the same authored families into both legs.
-3. Both engines round-trip the same carrier bytes for at least one shared proof
-   family.
-4. A runtime handoff event is published and inspectable instead of being hidden
-   inside adapter code.
+2. Wesley compiles the same authored families into both runtime legs.
+3. Both runtimes round-trip the same carrier bytes for at least one shared
+   proof family.
+4. Cross-runtime suffix exchange is published and inspectable instead of being
+   hidden inside adapter code.
 5. Observer-facing tooling can describe emitted graph-like structure as
-   holographic readings over shared causal history rather than as a privileged
+   readings over shared causal history rather than as a privileged
    graph-in-itself.
 
-Until those are true, "one graph, two temperatures" remains a historical
-shorthand for a target, not a
-completed fact.
+Until those are true, "one graph, two temperatures" remains only historical
+shorthand for a corrected target: one witnessed causal history, multiple
+sibling runtimes, one shared admissibility and witness language.

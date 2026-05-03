@@ -189,6 +189,5 @@ layout.
 
 - defining one universal receipt implementation
 - freezing one engine-wide bounded-site struct
-- specifying hot-engine reducer mechanics
-- specifying cold-engine storage mechanics
-
+- specifying Echo reducer mechanics
+- specifying `git-warp` storage mechanics

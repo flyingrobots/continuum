@@ -79,11 +79,11 @@ compatible readings, not one separate graph-shaped reality per engine.
 
 **Why only yellow:**
 
-- Echo still does not publish any runtime-handoff object for crossing between
-  hot and cold execution/publication regimes.
+- Echo still does not publish the full cross-runtime suffix exchange/import
+  family now required for sibling runtime interoperability.
 - That means Echo can support one coherent local causal-history/reading model,
-  but it does not yet provide the cross-runtime event boundary that Continuum
-  now requires for the full two-temperature story.
+  but it does not yet provide the peer exchange boundary that Continuum now
+  requires for the full sibling-runtime story.
 
 ### 2. Published-Noun Parity Invariant — Yellow
 
@@ -123,7 +123,7 @@ shared published contract.
 
 **Echo truth today:**
 
-- Echo explicitly keeps hot-runtime-specific truths local:
+- Echo explicitly keeps runtime-specific truths local:
   scheduler state, ingress/admission policy, head/writer semantics, and
   engine-local finalization/control-plane detail.
   - `echo/docs/design/0006-echo-continuum-alignment/design.md`
@@ -217,22 +217,22 @@ categories.
 **Why only yellow:**
 
 - Echo now has the settlement half of this invariant.
-- It does **not** yet have the handoff half.
+- It does **not** yet have the cross-runtime exchange half.
 - So the stack can explain import/conflict truth, but it cannot yet explain a
-  hot/cold runtime crossing as one published causal event.
+  peer-runtime suffix exchange as one published admission event.
 
-### 8. Temperature Handoff Invariant — Red
+### 8. Cross-Runtime Exchange Invariant — Red
 
-**Claim:** crossing between hot and cold runtimes must be represented as a
-first-class causal event.
+**Claim:** cross-runtime interoperability must be represented as witnessed
+suffix exchange and admission between sibling runtimes.
 
 **Echo truth today:**
 
-- No runtime-handoff publication surface is present in the current design or
-  kernel/ABI files.
+- No full suffix exchange/import publication surface is present in the current
+  design or kernel/ABI files.
 - A targeted search across Echo design docs and the relevant runtime crates
-  found no handoff or temperature-boundary object:
-  - `rg -n "handoff|temperature|source runtime|target runtime|cross-runtime|hot-to-cold|cold-to-hot" ...`
+  found no cross-runtime exchange boundary object:
+  - `rg -n "source runtime|target runtime|cross-runtime|suffix|import|export" ...`
 
 **Why red:**
 
@@ -296,8 +296,8 @@ The next required moves, in order, are:
    - Stop making consumers reconstruct seam truth from scattered receipt,
      provenance, and finalization state.
 
-3. **Define and publish a runtime-handoff event family**
-   - Make hot/cold crossing explicit in runtime history.
+3. **Define and publish a suffix exchange/import family**
+   - Make peer-runtime exchange explicit in witnessed causal history.
    - This is the biggest missing Continuum invariant leg in Echo now.
 
 4. **Only after that, extend broader shared observer families**
@@ -320,7 +320,7 @@ But it still does **not** satisfy the whole Continuum invariant surface.
 The current hard blockers are:
 
 - shared-contract authority is still local/handwritten in the proof slice
-- runtime handoff is not yet a published causal category
+- cross-runtime suffix exchange/import is not yet a published causal category
 
 So the honest summary is:
 

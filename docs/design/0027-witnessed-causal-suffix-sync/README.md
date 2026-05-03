@@ -13,6 +13,8 @@ Depends on:
 
 - [0017 — Settlement publication and shared reintegration contract](../0017-settlement-publication-and-shared-reintegration/README.md)
 - [0018 — One graph, two temperatures, and runtime handoff](../0018-one-graph-two-temperatures-and-runtime-handoff/README.md)
+  Historical title; corrected there as one witnessed causal history with
+  multiple sibling runtimes.
 
 ## Hill
 
@@ -22,8 +24,7 @@ Freeze the next interoperability law after `0018`:
   materialized frontier snapshots
 - the basic sync unit is a causal suffix bundle rooted at a shared frontier
 - import uses the same admission algebra as any other witnessed WARP claim
-- hot and cold runtime temperature remain runtime differences, not causal-history
-  ownership differences
+- runtime posture remains deployment metadata, not causal-history ownership
 
 This packet answers the practical question:
 
@@ -36,8 +37,8 @@ thing do they exchange and what law governs import?**
 `0018` froze the doctrine that Continuum presents:
 
 - one shared witnessed causal history
-- multiple runtime temperatures
-- first-class runtime handoff
+- multiple sibling runtime implementations
+- first-class cross-runtime exchange and admission
 
 That is the correct top-level idea, but it is still too abstract to implement.
 
@@ -83,7 +84,7 @@ That unit should be called a **causal suffix bundle**.
 
 ### 2. Synchronization is not state replication
 
-Continuum rejects the idea that hot/cold runtime interoperability means:
+Continuum rejects the idea that sibling-runtime interoperability means:
 
 - copying the latest materialized reading
 - copying the latest checkpoint blob
@@ -125,26 +126,23 @@ depending on causal overlap and policy.
 Host time explains when a claim arrived.
 History time explains what happened.
 
-### 5. Runtime temperature stays engine-local
+### 5. Runtime posture stays engine-local
 
-Echo may remain:
+Runtime posture terms may describe:
 
-- hot
 - low-latency
+- durable
+- archival
+- browser-hosted
+- decentralized
+- offline-first
 - observer-hosting
 - checkpoint-heavy
 - slice-oriented
 
-`git-warp` may remain:
-
-- colder
-- durable
-- decentralized
-- archival
-- offline-first
-
-Those differences are runtime freedom, not permission to publish different
-causal-history semantics.
+Those differences are runtime freedom and deployment metadata. They are not
+permission to publish different causal-history semantics, and they do not make
+Echo subordinate to `git-warp` or `git-warp` the durable half of Echo.
 
 ## Shared Bundle Family
 
@@ -276,13 +274,14 @@ novelty just because it arrived through the peer later.
 
 The first real proving path should be intentionally narrow:
 
-1. Echo exports one lawful suffix bundle from a known lane frontier.
-2. `git-warp` imports that bundle without mutating its canonical branch by
-   folklore.
-3. `git-warp` returns one honest import outcome and receipt.
+1. One sibling runtime exports one lawful suffix bundle from a known lane
+   frontier.
+2. Another sibling runtime imports that bundle without mutating canonical
+   history by folklore.
+3. The importing runtime returns one honest import outcome and receipt.
 4. Duplicate import is recognized as already-known rather than new history.
-5. Only after that cut is stable should the stack attempt reverse import from
-   `git-warp` into Echo.
+5. The reverse direction must use the same family and admission algebra rather
+   than a separate role-specific path.
 
 The first slice should prove:
 
@@ -306,12 +305,12 @@ The first slice should prove:
 
 ### Echo
 
-- export lawful suffix bundles from hot runtime truth
+- export lawful suffix bundles from witnessed runtime truth
 - import peer suffix bundles through normal witnessed admission
 
 ### `git-warp`
 
-- export lawful suffix bundles from cold durable history
+- export lawful suffix bundles from witnessed runtime truth
 - import peer suffix bundles through normal witnessed admission
 
 ## Done Looks Like
@@ -322,5 +321,5 @@ The first slice should prove:
   same admission algebra
 - the stack never needs to answer "where does the graph really live?" because
   no privileged graph-in-itself owns truth
-- hot/cold runtime handoff is inspectable as causal history rather than silent
-  synchronization folklore
+- cross-runtime exchange is inspectable as witnessed admission rather than
+  silent synchronization folklore

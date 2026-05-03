@@ -24,7 +24,7 @@ That is enough structure to stop doing more math for a bit and ask:
 
 ### Echo
 
-- Separate the hot-runtime minimum from richer execution narration:
+- Separate the Echo-runtime minimum from richer execution narration:
   - replay / admission-bearing core
   - reintegration-bearing core where applicable
   - richer runtime explanation / audit / delivery shell
@@ -74,7 +74,7 @@ That is enough structure to stop doing more math for a bit and ask:
 
 ## Done When
 
-- Echo has a design or backlog slice that maps hot-runtime tick/admission
+- Echo has a design or backlog slice that maps runtime tick/admission
   surfaces onto:
   - witness core
   - optional receipt / runtime shell

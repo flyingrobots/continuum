@@ -73,8 +73,8 @@ session/control protocol.
 
 Every noun in this packet is a **GraphQL-authored contract family**.
 
-Wesley compiles artifacts for these families. Echo and other Continuum runtimes
-later produce actual values conforming to them.
+Wesley compiles artifacts for these families. Echo, `git-warp`, and other
+sibling Continuum runtimes later produce actual values conforming to them.
 
 ## Shared family meanings
 
@@ -108,8 +108,8 @@ It names:
 - the immediate witness/receipt reference
 - the resulting hologram or boundary reference
 
-Echo or another Continuum runtime may later emit actual `TickResult` values
-conforming to this family.
+Echo, `git-warp`, or another sibling Continuum runtime may later emit actual
+`TickResult` values conforming to this family.
 
 It is not the later observer reading.
 
@@ -124,8 +124,8 @@ It names, at minimum:
 - observer state kind
 - emission kind
 
-Wesley may compile artifacts and registries for this family. Continuum
-tools/runtimes may later materialize actual plan values conforming to it.
+Wesley may compile artifacts and registries for this family. Continuum tools
+and sibling runtimes may later materialize actual plan values conforming to it.
 
 It is not the observer instance and it is not the emitted reading.
 
@@ -153,15 +153,15 @@ It names:
 - the reading payload identity/digest
 - the witness or shell reference backing that reading
 
-Continuum runtimes may later emit actual `ReadingEnvelope` values conforming to
-this family.
+Continuum sibling runtimes may later emit actual `ReadingEnvelope` values
+conforming to this family.
 
 It is not the substrate itself and it is not the same thing as `TickResult`.
 
 ### 6. `SuffixShell`
 
-`SuffixShell` is the GraphQL-authored family for the shared distributed handoff
-object.
+`SuffixShell` is the GraphQL-authored family for the shared distributed suffix
+exchange shell.
 
 It names:
 
@@ -172,6 +172,8 @@ It names:
 - transition count and witness-bearing shell identity
 
 It is a witnessed import/export shell, not a bare patch list.
+It is not a materialized state snapshot and it does not imply that one runtime
+is the durable half of another.
 
 ### 7. `ImportOutcome`
 
@@ -213,6 +215,7 @@ So, for example:
 This minimum family exists to shape the next real repo cuts:
 
 - Echo should publish and consume these families generically.
+- `git-warp` should publish and consume these families generically.
 - Wesley should compile these families into generated artifacts rather than
   inferring them from repo-local folklore.
 - `warp-ttd` should consume them instead of turning snapshot-first product

@@ -106,7 +106,7 @@ That manifest is the release-set truth for a named profile or channel such as:
 
 - `demo`
 - `echo-first`
-- `two-temperature`
+- `sibling-runtime`
 
 The manifest is not just "latest versions."
 It is a tested and declared compatibility set.
@@ -195,7 +195,7 @@ That means the installer does choose compatible versions of:
   - by the runtime integration release declared compatible with that stack
     release
 - **`git-warp`**
-  - by the cold-runtime integration release declared compatible with that stack
+  - by the runtime integration release declared compatible with that stack
     release
 - **`warp-ttd`**
   - by the observer/protocol release declared compatible with that stack
