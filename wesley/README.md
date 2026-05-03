@@ -24,3 +24,40 @@ Current honest posture:
 
 That is still a bridge, but it is now a much cleaner one: Wesley no longer owns
 the Continuum command layer.
+
+## Stack-Development Boundary
+
+This module is not a Continuum runtime and does not make Continuum a runtime
+facade. It is the Continuum-owned Wesley module surface for compiling and
+witnessing Continuum contract families.
+
+The current checkout layout is still stack-development oriented:
+
+- Continuum lives at `../continuum`
+- Wesley lives at `../wesley`
+- the Node host CLI is normally
+  `../wesley/packages/wesley-host-node/bin/wesley.mjs`
+
+Set `WESLEY_CLI_PATH` if that host CLI lives somewhere else. Release packaging
+should replace the sibling-relative imports with explicit package dependencies
+before treating this module as standalone repo truth.
+
+## Local Checks
+
+The hermetic unit checks do not require the host CLI:
+
+```bash
+node --test wesley/test/*.test.mjs
+```
+
+The Bats checks require `bats`, the sibling Wesley host CLI, and the Continuum
+module loaded through `WESLEY_MODULES`. The test helper sets `WESLEY_MODULES`
+for this module and skips with a clear reason if the host CLI is unavailable:
+
+```bash
+bats wesley/test/*.bats
+```
+
+Current-minimum witness cases also require TTD and Echo minimum-surface schemas.
+Those schemas are not tracked in this Continuum checkout, so those specific Bats
+cases skip until the source schemas are promoted or supplied by the stack.

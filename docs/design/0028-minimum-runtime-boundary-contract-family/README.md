@@ -5,8 +5,8 @@ status: proposed
 
 # Minimum Runtime Boundary Contract Family
 
-**Cycle:** 0028-minimum-runtime-boundary-contract-family  
-**Legend:** SOURCE  
+**Cycle:** 0028-minimum-runtime-boundary-contract-family
+**Legend:** SOURCE
 **Type:** coordination cycle
 
 Depends on:

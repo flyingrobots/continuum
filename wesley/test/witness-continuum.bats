@@ -1,20 +1,18 @@
 #!/usr/bin/env bats
 
-load 'bats-plugins/bats-support/load'
-load 'bats-plugins/bats-assert/load'
-load 'bats-plugins/bats-file/load'
+load 'test_helper'
 
 setup() {
     TEST_TEMP_DIR="$(mktemp -d -t wesley-bats-XXXXXX)"
     cd "$TEST_TEMP_DIR"
 
-    CLI_PATH="$BATS_TEST_DIRNAME/../../wesley-host-node/bin/wesley.mjs"
-    REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-    TTD_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/ttd-protocol.graphql"
-    ECHO_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/echo-core-types.graphql"
-    RECEIPT_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/continuum-receipt-family.graphql"
-    SETTLEMENT_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/continuum-settlement-family.graphql"
-    RECEIPT_FIXTURE_DIR="$REPO_ROOT/test/fixtures/continuum/receipt-family"
+    continuum_setup_wesley_cli
+    REPO_ROOT="$CONTINUUM_REPO_ROOT"
+    TTD_SCHEMA="$REPO_ROOT/schemas/ttd-protocol.graphql"
+    ECHO_SCHEMA="$REPO_ROOT/schemas/echo-core-types.graphql"
+    RECEIPT_SCHEMA="$REPO_ROOT/schemas/continuum-receipt-family.graphql"
+    SETTLEMENT_SCHEMA="$REPO_ROOT/schemas/continuum-settlement-family.graphql"
+    RECEIPT_FIXTURE_DIR="$REPO_ROOT/wesley/test/fixtures/continuum/receipt-family"
 }
 
 teardown() {
@@ -24,8 +22,15 @@ teardown() {
 }
 
 generate_local_inspect_surfaces() {
+    require_current_minimum_schemas
     node "$CLI_PATH" compile-ttd --schema "$TTD_SCHEMA" --out-dir out/ttd >/dev/null
     node "$CLI_PATH" bundle-echo --schema "$ECHO_SCHEMA" --out-dir out/echo >/dev/null
+}
+
+require_current_minimum_schemas() {
+    if [[ ! -f "$TTD_SCHEMA" || ! -f "$ECHO_SCHEMA" ]]; then
+        skip "current-minimum TTD/Echo schemas are not tracked in this checkout"
+    fi
 }
 
 generate_receipt_family_surfaces() {
@@ -182,6 +187,7 @@ EOF
 }
 
 @test "witness-continuum accepts mixed relative and absolute schema paths for the same Echo schema" {
+    require_current_minimum_schemas
     cd "$REPO_ROOT"
     node "$CLI_PATH" compile-ttd --schema schemas/ttd-protocol.graphql --out-dir "$TEST_TEMP_DIR/out/ttd" >/dev/null
     node "$CLI_PATH" bundle-echo --schema schemas/echo-core-types.graphql --out-dir "$TEST_TEMP_DIR/out/echo" >/dev/null
@@ -197,6 +203,7 @@ EOF
 }
 
 @test "witness-continuum reports missing slash-heavy directories cleanly" {
+    require_current_minimum_schemas
     run_witness_continuum \
         --ttd-dir "out/ttd///" \
         --echo-dir "out/echo///" \

@@ -1,14 +1,12 @@
 #!/usr/bin/env bats
 
-load 'bats-plugins/bats-support/load'
-load 'bats-plugins/bats-assert/load'
-load 'bats-plugins/bats-file/load'
+load 'test_helper'
 
 setup() {
     TEST_TEMP_DIR="$(mktemp -d -t wesley-observer-bats-XXXXXX)"
     cd "$TEST_TEMP_DIR"
 
-    CLI_PATH="$BATS_TEST_DIRNAME/../../wesley-host-node/bin/wesley.mjs"
+    continuum_setup_wesley_cli
 }
 
 teardown() {

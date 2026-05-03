@@ -1,21 +1,35 @@
 #!/usr/bin/env bats
 
-load 'bats-plugins/bats-support/load'
-load 'bats-plugins/bats-assert/load'
-load 'bats-plugins/bats-file/load'
+load 'test_helper'
 
 setup() {
     TEST_TEMP_DIR="$(mktemp -d -t wesley-bats-XXXXXX)"
     cd "$TEST_TEMP_DIR"
 
-    CLI_PATH="$BATS_TEST_DIRNAME/../../wesley-host-node/bin/wesley.mjs"
-    CONTINUUM_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/continuum-receipt-family.graphql"
+    continuum_setup_wesley_cli
+    CONTINUUM_SCHEMA="$CONTINUUM_REPO_ROOT/schemas/continuum-receipt-family.graphql"
 }
 
 teardown() {
+    if [[ -d "${MIRROR_TEMP_DIR:-}" ]]; then
+        rm -rf "$MIRROR_TEMP_DIR"
+    fi
     if [[ -d "$TEST_TEMP_DIR" ]]; then
         rm -rf "$TEST_TEMP_DIR"
     fi
+}
+
+release_receipt_family_bundle() {
+    node "$CLI_PATH" contract release \
+        --family receipt-family \
+        --release 0.1.0 \
+        --schema "$CONTINUUM_SCHEMA" \
+        --bundle-out out/proof >/dev/null
+}
+
+make_mirror_dir() {
+    MIRROR_TEMP_DIR="$(mktemp -d -t wesley-mirror-XXXXXX)"
+    export MIRROR_TEMP_DIR
 }
 
 @test "drift-watch help works" {
@@ -27,36 +41,36 @@ teardown() {
 }
 
 @test "drift-watch passes for coherent receipt-family mirrors" {
-    cp "$CONTINUUM_SCHEMA" schema.graphql
-    node "$CLI_PATH" compile --schema schema.graphql --target warp-ttd,echo --out-dir out/proof >/dev/null
+    release_receipt_family_bundle
 
-    mkdir -p mirrors/consumer
-    cp out/proof/warp-ttd/manifest/manifest.json mirrors/consumer/manifest.json
-    cp out/proof/echo/mock/summary.json mirrors/consumer/summary.json
-    cp out/proof/warp-ttd/typescript/registry.ts mirrors/consumer/registry.ts
+    make_mirror_dir
+    mkdir -p "$MIRROR_TEMP_DIR/mock"
+    cp out/proof/targets/echo/mock/summary.json "$MIRROR_TEMP_DIR/mock/summary.json"
 
     run node "$CLI_PATH" drift-watch \
         --scope receipt-family \
-        --schema schema.graphql \
+        --schema "$CONTINUUM_SCHEMA" \
         --out-dir out/proof \
-        --mirror-root mirrors/consumer \
+        --ttd-dir out/proof/targets/warp-ttd \
+        --echo-dir out/proof/targets/echo \
+        --mirror-root "$MIRROR_TEMP_DIR" \
         --json
 
     assert_success
     echo "$output" | jq -e '.success == true and .result.status == "pass" and .result.summary.failed == 0' >/dev/null
     echo "$output" | jq -e '.result.judgmentProfile.profilePackage == "continuum/wesley/profile" and .result.judgmentProfile.enginePackage == "@wesley/holmes"' >/dev/null
-    echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 3 and (.result.failures.mirror | length == 0)' >/dev/null
+    echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 1 and (.result.failures.mirror | length == 0)' >/dev/null
 }
 
 @test "drift-watch fails when a mirror summary drifts from the authored schema hash" {
-    cp "$CONTINUUM_SCHEMA" schema.graphql
-    node "$CLI_PATH" compile --schema schema.graphql --target warp-ttd,echo --out-dir out/proof >/dev/null
+    release_receipt_family_bundle
 
-    mkdir -p mirrors/drift
-    cp out/proof/echo/mock/summary.json mirrors/drift/summary.json
+    make_mirror_dir
+    mkdir -p "$MIRROR_TEMP_DIR/mock"
+    cp out/proof/targets/echo/mock/summary.json "$MIRROR_TEMP_DIR/mock/summary.json"
     node - <<'NODE'
 const fs = require('fs');
-const path = 'mirrors/drift/summary.json';
+const path = `${process.env.MIRROR_TEMP_DIR}/mock/summary.json`;
 const summary = JSON.parse(fs.readFileSync(path, 'utf8'));
 summary.schemaHash = '0000000000000000000000000000000000000000000000000000000000000000';
 fs.writeFileSync(path, JSON.stringify(summary, null, 2) + '\n');
@@ -64,9 +78,11 @@ NODE
 
     run node "$CLI_PATH" drift-watch \
         --scope receipt-family \
-        --schema schema.graphql \
+        --schema "$CONTINUUM_SCHEMA" \
         --out-dir out/proof \
-        --mirror-root mirrors/drift \
+        --ttd-dir out/proof/targets/warp-ttd \
+        --echo-dir out/proof/targets/echo \
+        --mirror-root "$MIRROR_TEMP_DIR" \
         --report-out out/proof/witness/drift-watch.json
 
     assert_failure
@@ -76,11 +92,10 @@ NODE
 }
 
 @test "drift-watch fails when a mirror root exposes only unpinned contract declarations" {
-    cp "$CONTINUUM_SCHEMA" schema.graphql
-    node "$CLI_PATH" compile --schema schema.graphql --target warp-ttd,echo --out-dir out/proof >/dev/null
+    release_receipt_family_bundle
 
-    mkdir -p mirrors/unpinned
-    cat > mirrors/unpinned/protocol.ts <<'EOF'
+    make_mirror_dir
+    cat > "$MIRROR_TEMP_DIR/protocol.ts" <<'EOF'
 export interface Receipt {
   receiptId: string;
 }
@@ -92,9 +107,11 @@ EOF
 
     run node "$CLI_PATH" drift-watch \
         --scope receipt-family \
-        --schema schema.graphql \
+        --schema "$CONTINUUM_SCHEMA" \
         --out-dir out/proof \
-        --mirror-root mirrors/unpinned \
+        --ttd-dir out/proof/targets/warp-ttd \
+        --echo-dir out/proof/targets/echo \
+        --mirror-root "$MIRROR_TEMP_DIR" \
         --report-out out/proof/witness/drift-watch.json
 
     assert_failure

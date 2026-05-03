@@ -8,11 +8,11 @@ import {
 import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
 import { runCompileTtd } from '../../../wesley/packages/wesley-cli/src/commands/compile-ttd.mjs';
 import { runBundleEcho } from '../../../wesley/packages/wesley-cli/src/commands/bundle-echo.mjs';
-import { buildRealizationManifest } from '../../../wesley/packages/wesley-cli/src/commands/realization-integrity.mjs';
 import {
   buildContinuumWitnessReport,
   resolveContinuumWitnessOptions
 } from '../support/continuum-witness-report.mjs';
+import { buildRealizationManifest } from '../support/realization-integrity.mjs';
 import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
 
 const CONTRACT_BUNDLE_KIND = 'wesley.contract.bundle.v1';

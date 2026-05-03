@@ -169,7 +169,7 @@ Broad compatibility ranges still matter.
 They are how each repo declares what it understands.
 But the first consumer experience should land on one known-good release set.
 
-### 4. Compatible versions are chosen by stack profile, not by fake lockstep repo versioning
+### 4. Stack profiles choose compatibility, not fake lockstep versions
 
 This packet extends `0021-family-versions-vs-repo-versions` rather than
 replacing it.
@@ -234,11 +234,11 @@ The important product rule is:
 - it does **not** receive "please clone five sibling repos and wire them up by
   hand"
 
-### 6. Install locally what the host executes or builds against; reference remotely what is upstream authority
+### 6. Install host-local artifacts; reference upstream authority remotely
 
 The default bootstrap split is:
 
-**Installed or materialized locally in the host repo**
+#### Installed or materialized locally in the host repo
 
 - `warpspace.mjs`
 - `warpspace.lock.json`
@@ -247,7 +247,7 @@ The default bootstrap split is:
 - host-side package/crate dependencies
 - optional local caches under a `.warpspace/` directory
 
-**Referenced remotely by default**
+#### Referenced remotely by default
 
 - Continuum stack release manifests
 - Wesley package/binary releases
@@ -267,7 +267,7 @@ The current sibling-repo pattern:
 
 is a stack-development override mode, not the canonical consumer story.
 
-### 7. `warpspace.mjs` is host-local topology and override truth, not stack-semantic authority
+### 7. `warpspace.mjs` is host topology, not stack semantics
 
 `warpspace.mjs` remains a checked-in host file.
 It names:

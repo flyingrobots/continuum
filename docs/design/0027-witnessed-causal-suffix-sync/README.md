@@ -5,8 +5,8 @@ status: proposed
 
 # Witnessed Causal Suffix Sync
 
-**Cycle:** 0027-witnessed-causal-suffix-sync  
-**Legend:** SOURCE  
+**Cycle:** 0027-witnessed-causal-suffix-sync
+**Legend:** SOURCE
 **Type:** coordination cycle
 
 Depends on:

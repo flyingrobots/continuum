@@ -49,4 +49,3 @@ families that makes ownership and consumption obvious across the stack.
 - `schemas/continuum-runtime-boundary-family.graphql`
 - `docs/invariants/CONTINUUM.md`
 - `docs/OVERVIEW.md`
-

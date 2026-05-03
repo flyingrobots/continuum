@@ -45,22 +45,22 @@ This packet is the first bounded audit pass.
 
 ### Yellow
 
-- **1. One Graph Invariant**
+- **1. Shared Causal History Invariant**
 - **2. Published-Noun Parity Invariant**
 - **5. No Shadow Normalization Invariant**
 - **6. Witness Ladder Integrity Invariant**
-- **7. Settlement Before Handoff Invariant**
+- **7. Settlement Before Cross-Runtime Admission Invariant**
 - **9. Shared Carrier Invariant**
 - **10. One Observer Story Invariant**
 
 ### Red
 
 - **4. Shared Contract Authority Invariant**
-- **8. Temperature Handoff Invariant**
+- **8. Cross-Runtime Exchange Invariant**
 
 ## Invariant Audit
 
-### 1. One Graph Invariant — Yellow
+### 1. Shared Causal History Invariant — Yellow
 
 **Claim:** a Continuum client should observe one shared causal history with
 compatible readings, not one separate graph-shaped reality per engine.
@@ -199,11 +199,11 @@ collapse back into one blob.
   reintegration core and shell is not yet fully hardened in the public
   contract.
 
-### 7. Settlement Before Handoff Invariant — Yellow
+### 7. Settlement Before Cross-Runtime Admission Invariant — Yellow
 
-**Claim:** if runtime transition changes canonical visibility or durable status,
-the transition must be explainable through published settlement/reintegration
-categories.
+**Claim:** if peer-runtime admission changes canonical visibility or retained
+availability, the admission must be explainable through published
+settlement/reintegration categories.
 
 **Echo truth today:**
 

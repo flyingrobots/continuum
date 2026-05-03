@@ -1,15 +1,13 @@
 #!/usr/bin/env bats
 
-load 'bats-plugins/bats-support/load'
-load 'bats-plugins/bats-assert/load'
-load 'bats-plugins/bats-file/load'
+load 'test_helper'
 
 setup() {
     TEST_TEMP_DIR="$(mktemp -d -t wesley-bats-XXXXXX)"
     cd "$TEST_TEMP_DIR"
 
-    CLI_PATH="$BATS_TEST_DIRNAME/../../wesley-host-node/bin/wesley.mjs"
-    CONTINUUM_SCHEMA="$BATS_TEST_DIRNAME/../../../schemas/continuum-receipt-family.graphql"
+    continuum_setup_wesley_cli
+    CONTINUUM_SCHEMA="$CONTINUUM_REPO_ROOT/schemas/continuum-receipt-family.graphql"
 }
 
 teardown() {

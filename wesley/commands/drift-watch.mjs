@@ -9,8 +9,8 @@ import {
   resolveContinuumDriftWatchProfile
 } from '../profile/index.mjs';
 import { createCheck, summarizeChecks } from '../support/continuum-witness-support.mjs';
-import { inspectRealizationManifest } from '../../../wesley/packages/wesley-cli/src/commands/realization-integrity.mjs';
 import { inspectContinuumPublicationBoundary } from '../support/continuum-publication-boundary.mjs';
+import { inspectRealizationManifest } from '../support/realization-integrity.mjs';
 import {
   resolveContinuumWitnessOptions
 } from '../support/continuum-witness-report.mjs';

@@ -18,7 +18,7 @@ import {
 import { inspectContinuumPublicationBoundary } from './continuum-publication-boundary.mjs';
 import { inspectReceiptFamilySurface } from './continuum-receipt-family-witness.mjs';
 import { inspectSettlementFamilySurface } from './continuum-settlement-family-witness.mjs';
-import { inspectRealizationManifest } from '../../../wesley/packages/wesley-cli/src/commands/realization-integrity.mjs';
+import { inspectRealizationManifest } from './realization-integrity.mjs';
 
 const WITNESS_KIND = 'wesley.continuum.conformance.v1';
 const RECEIPT_FAMILY_FIXTURE_DIR = path.resolve(
