@@ -1,11 +1,16 @@
 # Continuum
 
-Continuum is the coordination membrane across the active stack:
+> [!WARNING]
+> **Status: Nascent / Experimental**
+> Continuum is still in active R&D. Expect raw edges, rapid iteration, and
+> breaking changes while the shared stack hardens.
 
-- [Echo](http://github.com/flyingrobots/echo) for hot execution/runtime truth
-- [`git-warp`](https://github.com/git-stunts/git-warp) for cold causal/storage truth
+Continuum is the coordination membrane across the active WARP stack:
+
+- [Echo](https://github.com/flyingrobots/echo) for hot execution and runtime truth
+- [`git-warp`](https://github.com/git-stunts/git-warp) for colder causal and storage truth
 - `warp-ttd` for shared debugger and operator surfaces
-- [Wesley](https://flyingrobots/Wesley) for shared contract compilation and witness lanes
+- [Wesley](https://github.com/flyingrobots/wesley) for shared contract compilation, manifests, witnesses, and toolchain handoff
 
 If you land here looking for "the engine," this repo is not it.
 
@@ -52,8 +57,8 @@ The intended stack looks like this:
 
 1. Continuum owns shared semantics and authored shared contract families.
 2. Wesley compiles those families into Rust, TypeScript, codecs, manifests,
-   and witnesses.
-3. Echo or `git-warp` is the runtime/engine layer.
+   witnesses, and toolchain handoff artifacts.
+3. Echo or `git-warp` is the runtime and engine layer.
 4. Apps compose their own domain GraphQL with Continuum shared families and
    the chosen engine family.
 
@@ -83,6 +88,18 @@ That is the point of Continuum: keep the stack honest enough that a debugger,
 tool, app, or agent does not have to learn a different conceptual language for
 each engine.
 
+## WARPspace and the User Entry Path
+
+Continuum now carries the first user-facing WARPspace bootstrap lane through
+the `warp` app:
+
+- [apps/warp/README.md](apps/warp/README.md)
+- [apps/warp/VISION.md](apps/warp/VISION.md)
+- [docs/releases/demo/README.md](docs/releases/demo/README.md)
+
+That lane is where Continuum starts to become consumable as a real stack
+instead of only a theory and coordination repo.
+
 ## Where To Start
 
 If you are new here, start with these:
@@ -90,25 +107,25 @@ If you are new here, start with these:
 - [APP_GLOSSARY.md](APP_GLOSSARY.md)
   Cross-repo noun map from app surfaces to WARP paper terms.
 - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-  The user entry point: where to begin, what to read first, and what to run.
-- [apps/warp/README.md](apps/warp/README.md)
-  The current Continuum-owned prototype for the user-facing WARPspace CLI.
+  The practical entry point: where to begin, what to read first, and what to run.
 - [docs/OVERVIEW.md](docs/OVERVIEW.md)
-  Brief synthesis of the current theory and repo ownership model.
-- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
-  Canonical cross-repo invariants.
+  Brief synthesis of the theory, ownership model, and current stack.
 - [docs/VISION.md](docs/VISION.md)
   Repo purpose and current app/runtime model.
 - [docs/BEARING.md](docs/BEARING.md)
-  Current hill and what this repo is actively trying to lock down.
+  The current hill and what this repo is actively trying to lock down.
+- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
+  Canonical cross-repo invariants.
+- [apps/warp/README.md](apps/warp/README.md)
+  The current Continuum-owned prototype for the WARPspace CLI and stack bootstrap.
 
 If you want the deeper theory behind the stack, read:
 
-- [AION](https://github.com/flyingrobots/aion)
+- [AIΩN](https://github.com/flyingrobots/aion)
 
 If you want the active engines, go to:
 
-- [Echo](http://github.com/flyingrobots/echo)
+- [Echo](https://github.com/flyingrobots/echo)
 - [`git-warp`](https://github.com/git-stunts/git-warp)
 
 ## Repo Truth
@@ -134,3 +151,14 @@ Process and signposts:
 - [docs/BEARING.md](docs/BEARING.md)
 - [docs/VISION.md](docs/VISION.md)
 - [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
+
+## License
+
+Continuum © 2026 by James Ross. Continuum is licensed under the
+[Apache License](./LICENSE), Version 2.0 OR
+[MIND-UCAL](https://github.com/universalcharter/mind-ucal).
+
+> [!NOTE]
+> In short: you may freely use the theory, papers, and documentation without
+> adopting MIND-UCAL; MIND-UCAL applies only to derivative ethical commitments,
+> not technical use.
