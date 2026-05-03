@@ -62,6 +62,26 @@ make_mirror_dir() {
     echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 1 and (.result.failures.mirror | length == 0)' >/dev/null
 }
 
+@test "drift-watch accepts a single mirror surface file" {
+    release_receipt_family_bundle
+
+    make_mirror_dir
+    mkdir -p "$MIRROR_TEMP_DIR/mock"
+    cp out/proof/targets/echo/mock/summary.json "$MIRROR_TEMP_DIR/mock/summary.json"
+
+    run node "$CLI_PATH" drift-watch \
+        --scope receipt-family \
+        --schema "$CONTINUUM_SCHEMA" \
+        --out-dir out/proof \
+        --ttd-dir out/proof/targets/warp-ttd \
+        --echo-dir out/proof/targets/echo \
+        --mirror-root "$MIRROR_TEMP_DIR/mock/summary.json" \
+        --json
+
+    assert_success
+    echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 1 and .result.surfaces.mirrors[0].surfaces[0].kind == "echo-summary"' >/dev/null
+}
+
 @test "drift-watch fails when a mirror summary drifts from the authored schema hash" {
     release_receipt_family_bundle
 

@@ -662,7 +662,7 @@ async function collectMirrorFiles(fs, root) {
   const files = [];
 
   const walk = async (target) => {
-    const entries = await fs.readDir?.(target);
+    const entries = await readDirectoryEntries(fs, target);
     if (!Array.isArray(entries)) {
       return;
     }
@@ -679,7 +679,7 @@ async function collectMirrorFiles(fs, root) {
     }
   };
 
-  const stats = await fs.readDir?.(root);
+  const stats = await readDirectoryEntries(fs, root);
   if (Array.isArray(stats)) {
     await walk(root);
     files.sort();
@@ -691,6 +691,22 @@ async function collectMirrorFiles(fs, root) {
   }
 
   return [];
+}
+
+async function readDirectoryEntries(fs, target) {
+  try {
+    return await fs.readDir?.(target);
+  } catch (error) {
+    if (isNotDirectoryError(error)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function isNotDirectoryError(error) {
+  return error?.code === 'ENOTDIR' ||
+    String(error?.message ?? error).includes('ENOTDIR');
 }
 
 async function collectMissingFiles(fs, paths) {
