@@ -23,8 +23,8 @@ teardown() {
 
 generate_local_inspect_surfaces() {
     require_current_minimum_schemas
-    node "$CLI_PATH" compile-ttd --schema "$TTD_SCHEMA" --out-dir out/ttd >/dev/null
-    node "$CLI_PATH" bundle-echo --schema "$ECHO_SCHEMA" --out-dir out/echo >/dev/null
+    node "$CLI_PATH" compile --schema "$TTD_SCHEMA" --target warp-ttd --out-dir out >/dev/null
+    node "$CLI_PATH" compile --schema "$ECHO_SCHEMA" --target echo --out-dir out >/dev/null
 }
 
 require_current_minimum_schemas() {
@@ -34,13 +34,11 @@ require_current_minimum_schemas() {
 }
 
 generate_receipt_family_surfaces() {
-    node "$CLI_PATH" compile-ttd --schema "$RECEIPT_SCHEMA" --out-dir out/receipt-family/ttd >/dev/null
-    node "$CLI_PATH" bundle-echo --schema "$RECEIPT_SCHEMA" --out-dir out/receipt-family/echo >/dev/null
+    node "$CLI_PATH" compile --schema "$RECEIPT_SCHEMA" --target warp-ttd,echo --out-dir out/receipt-family >/dev/null
 }
 
 generate_settlement_family_surfaces() {
-    node "$CLI_PATH" compile-ttd --schema "$SETTLEMENT_SCHEMA" --out-dir out/settlement-family/ttd >/dev/null
-    node "$CLI_PATH" bundle-echo --schema "$SETTLEMENT_SCHEMA" --out-dir out/settlement-family/echo >/dev/null
+    node "$CLI_PATH" compile --schema "$SETTLEMENT_SCHEMA" --target warp-ttd,echo --out-dir out/settlement-family >/dev/null
 }
 
 run_witness_continuum() {
@@ -80,7 +78,7 @@ run_witness_continuum() {
     generate_local_inspect_surfaces
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json \
         --json
@@ -103,7 +101,7 @@ run_witness_continuum() {
     mv out/echo/mock/summary.tmp out/echo/mock/summary.json
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -134,7 +132,7 @@ fs.writeFileSync('out/echo/mock/deliveries.jsonl', rows.map((row) => JSON.string
 EOF
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -149,7 +147,7 @@ EOF
     mv out/echo/mock/summary.tmp out/echo/mock/summary.json
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -164,7 +162,7 @@ EOF
     mv out/echo/ir.tmp out/echo/ir.json
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -176,7 +174,7 @@ EOF
     generate_local_inspect_surfaces
 
     run_witness_continuum \
-        --ttd-dir "out/ttd///" \
+        --ttd-dir "out/warp-ttd///" \
         --echo-dir "out/echo///" \
         --out out/witness/conformance.json \
         --json
@@ -189,12 +187,12 @@ EOF
 @test "witness-continuum accepts mixed relative and absolute schema paths for the same Echo schema" {
     require_current_minimum_schemas
     cd "$REPO_ROOT"
-    node "$CLI_PATH" compile-ttd --schema schemas/ttd-protocol.graphql --out-dir "$TEST_TEMP_DIR/out/ttd" >/dev/null
-    node "$CLI_PATH" bundle-echo --schema schemas/echo-core-types.graphql --out-dir "$TEST_TEMP_DIR/out/echo" >/dev/null
+    node "$CLI_PATH" compile --schema schemas/ttd-protocol.graphql --target warp-ttd --out-dir "$TEST_TEMP_DIR/out" >/dev/null
+    node "$CLI_PATH" compile --schema schemas/echo-core-types.graphql --target echo --out-dir "$TEST_TEMP_DIR/out" >/dev/null
     cd "$TEST_TEMP_DIR"
 
     run_witness_continuum \
-        --ttd-dir "$TEST_TEMP_DIR/out/ttd" \
+        --ttd-dir "$TEST_TEMP_DIR/out/warp-ttd" \
         --echo-dir "$TEST_TEMP_DIR/out/echo" \
         --out "$TEST_TEMP_DIR/out/witness/conformance.json" \
         --json
@@ -205,7 +203,7 @@ EOF
 @test "witness-continuum reports missing slash-heavy directories cleanly" {
     require_current_minimum_schemas
     run_witness_continuum \
-        --ttd-dir "out/ttd///" \
+        --ttd-dir "out/warp-ttd///" \
         --echo-dir "out/echo///" \
         --out out/witness/conformance.json
     assert_failure
@@ -221,7 +219,7 @@ EOF
     printf '%s\n%s\n' '{"envelope":"DeliveryObservationSummary","data":{"outcome":"delivered"}}' '{' > out/echo/mock/deliveries.jsonl
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -230,7 +228,7 @@ EOF
 
 @test "witness-continuum dry-run failure does not point at a report file that was not written" {
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json \
         --dry-run
@@ -250,7 +248,7 @@ type CursorState {
 EOF
 
     run_witness_continuum \
-        --ttd-dir out/ttd \
+        --ttd-dir out/warp-ttd \
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
@@ -265,7 +263,7 @@ EOF
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json \
         --json
@@ -287,14 +285,14 @@ EOF
     generate_receipt_family_surfaces
 
     jq '.footprints |= map(if .opName == "witnesses" then .reads = ["Receipt"] else . end)' \
-        out/receipt-family/ttd/manifest/contracts.json > out/receipt-family/ttd/manifest/contracts.tmp
-    mv out/receipt-family/ttd/manifest/contracts.tmp out/receipt-family/ttd/manifest/contracts.json
+        out/receipt-family/warp-ttd/manifest/contracts.json > out/receipt-family/warp-ttd/manifest/contracts.tmp
+    mv out/receipt-family/warp-ttd/manifest/contracts.tmp out/receipt-family/warp-ttd/manifest/contracts.json
 
     run node "$CLI_PATH" witness-continuum \
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json
     assert_failure
@@ -313,7 +311,7 @@ EOF
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json
     assert_failure
@@ -337,7 +335,7 @@ EOF
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json
     assert_failure
@@ -359,7 +357,7 @@ EOF
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json
     assert_failure
@@ -379,7 +377,7 @@ EOF
         --scope receipt-family \
         --ttd-schema "$RECEIPT_SCHEMA" \
         --echo-schema "$RECEIPT_SCHEMA" \
-        --ttd-dir out/receipt-family/ttd \
+        --ttd-dir out/receipt-family/warp-ttd \
         --echo-dir out/receipt-family/echo \
         --out out/witness/receipt-family.json
     assert_failure
@@ -394,7 +392,7 @@ EOF
         --scope settlement-family \
         --ttd-schema "$SETTLEMENT_SCHEMA" \
         --echo-schema "$SETTLEMENT_SCHEMA" \
-        --ttd-dir out/settlement-family/ttd \
+        --ttd-dir out/settlement-family/warp-ttd \
         --echo-dir out/settlement-family/echo \
         --out out/witness/settlement-family.json \
         --json
@@ -414,14 +412,14 @@ EOF
     generate_settlement_family_surfaces
 
     jq '.footprints |= map(if .opName == "settleLane" then .writes = ["SettlementResult"] else . end)' \
-        out/settlement-family/ttd/manifest/contracts.json > out/settlement-family/ttd/manifest/contracts.tmp
-    mv out/settlement-family/ttd/manifest/contracts.tmp out/settlement-family/ttd/manifest/contracts.json
+        out/settlement-family/warp-ttd/manifest/contracts.json > out/settlement-family/warp-ttd/manifest/contracts.tmp
+    mv out/settlement-family/warp-ttd/manifest/contracts.tmp out/settlement-family/warp-ttd/manifest/contracts.json
 
     run node "$CLI_PATH" witness-continuum \
         --scope settlement-family \
         --ttd-schema "$SETTLEMENT_SCHEMA" \
         --echo-schema "$SETTLEMENT_SCHEMA" \
-        --ttd-dir out/settlement-family/ttd \
+        --ttd-dir out/settlement-family/warp-ttd \
         --echo-dir out/settlement-family/echo \
         --out out/witness/settlement-family.json
     assert_failure
@@ -433,14 +431,14 @@ EOF
     generate_settlement_family_surfaces
 
     jq '(.types[] | select(.name == "ImportCandidate") | .fields) += [{"name":"reason","type":"ConflictReason","required":true}]' \
-        out/settlement-family/ttd/manifest/schema.json > out/settlement-family/ttd/manifest/schema.tmp
-    mv out/settlement-family/ttd/manifest/schema.tmp out/settlement-family/ttd/manifest/schema.json
+        out/settlement-family/warp-ttd/manifest/schema.json > out/settlement-family/warp-ttd/manifest/schema.tmp
+    mv out/settlement-family/warp-ttd/manifest/schema.tmp out/settlement-family/warp-ttd/manifest/schema.json
 
     run node "$CLI_PATH" witness-continuum \
         --scope settlement-family \
         --ttd-schema "$SETTLEMENT_SCHEMA" \
         --echo-schema "$SETTLEMENT_SCHEMA" \
-        --ttd-dir out/settlement-family/ttd \
+        --ttd-dir out/settlement-family/warp-ttd \
         --echo-dir out/settlement-family/echo \
         --out out/witness/settlement-family.json
     assert_failure
@@ -460,7 +458,7 @@ EOF
         --scope settlement-family \
         --ttd-schema "$SETTLEMENT_SCHEMA" \
         --echo-schema "$SETTLEMENT_SCHEMA" \
-        --ttd-dir out/settlement-family/ttd \
+        --ttd-dir out/settlement-family/warp-ttd \
         --echo-dir out/settlement-family/echo \
         --out out/witness/settlement-family.json
     assert_failure

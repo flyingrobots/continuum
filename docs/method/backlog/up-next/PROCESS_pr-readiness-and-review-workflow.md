@@ -28,6 +28,7 @@ Add a short PR readiness checklist covering:
 - minimum review count
 - status checks and lint/test evidence
 - rule that merge still requires explicit user approval
+- whether Markdown lint evidence covers only touched files or the full docs tree
 
 ## Suggested Checklist Shape
 
@@ -35,7 +36,8 @@ Add a short PR readiness checklist covering:
 - [ ] If draft, PR body says whether CodeRabbit should be manually triggered.
 - [ ] If generated artifacts changed, source files and build commands are
       documented.
-- [ ] Broad checks are either passing or known baseline failures are named.
+- [ ] Broad checks are either passing or known baseline failures and the
+      narrower enforced scope are named.
 - [ ] CodeRabbit has completed a real review or is intentionally deferred.
 - [ ] Required human review count is satisfied.
 - [ ] Merge approval has been requested explicitly and not inferred.

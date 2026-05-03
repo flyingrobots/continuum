@@ -1,12 +1,11 @@
 import { WesleyModule } from '../../wesley/packages/wesley-core/src/ports/WesleyModule.mjs';
-import { runBundleEcho } from '../../wesley/packages/wesley-cli/src/commands/bundle-echo.mjs';
-import { runCompileTtd } from '../../wesley/packages/wesley-cli/src/commands/compile-ttd.mjs';
 
 import { ContractCommand } from './commands/contract.mjs';
 import { DriftWatchCommand } from './commands/drift-watch.mjs';
 import { ObserverPlanCommand } from './commands/observer-plan.mjs';
 import { WitnessCommand } from './commands/witness.mjs';
 import { WitnessContinuumCommand } from './commands/witness-continuum.mjs';
+import { runBundleEcho, runCompileTtd } from './support/continuum-compile-targets.mjs';
 
 export class ContinuumCliModule extends WesleyModule {
   get apiVersion() {
@@ -28,11 +27,8 @@ export class ContinuumCliModule extends WesleyModule {
               ctx,
               schemaContent,
               schemaPath,
-              options: {
-                ...options,
-                target: 'manifest,typescript',
-                outDir
-              },
+              options,
+              outDir,
               logger
             })
           },
@@ -42,11 +38,8 @@ export class ContinuumCliModule extends WesleyModule {
               ctx,
               schemaContent,
               schemaPath,
-              options: {
-                ...options,
-                target: undefined,
-                outDir
-              },
+              options,
+              outDir,
               logger
             })
           }

@@ -6,13 +6,12 @@ import {
   resolveContinuumContractBundleProfile
 } from '../profile/index.mjs';
 import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
-import { runCompileTtd } from '../../../wesley/packages/wesley-cli/src/commands/compile-ttd.mjs';
-import { runBundleEcho } from '../../../wesley/packages/wesley-cli/src/commands/bundle-echo.mjs';
 import {
   buildContinuumWitnessReport,
   resolveContinuumWitnessOptions
 } from '../support/continuum-witness-report.mjs';
 import { buildRealizationManifest } from '../support/realization-integrity.mjs';
+import { runBundleEcho, runCompileTtd } from '../support/continuum-compile-targets.mjs';
 import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
 
 const CONTRACT_BUNDLE_KIND = 'wesley.contract.bundle.v1';
@@ -25,6 +24,7 @@ const PROFILE_PACKAGE_NAME = 'continuum/wesley/profile';
 const VALID_TARGETS = ['warp-ttd', 'echo'];
 const LEGACY_TARGET_ALIASES = new Map([['ttd', 'warp-ttd']]);
 const REQUIRED_WARP_TTD_EMITS = ['manifest', 'typescript'];
+const VALID_WARP_TTD_EMITS = ['manifest', 'typescript', 'rust'];
 
 export class ContractCommand extends WesleyCommand {
   constructor(ctx) {
@@ -107,7 +107,7 @@ export class ContractCommand extends WesleyCommand {
       selectedTargets,
       requiredTargets: profile.targets
     });
-    ensureRequiredWarpTtdEmits(options.emit);
+    const warpTtdEmits = ensureRequiredWarpTtdEmits(options.emit);
 
     const summary = {
       schemaPath: schemaData.schemaPath,
@@ -128,6 +128,8 @@ export class ContractCommand extends WesleyCommand {
           outDir: joinPath(profile.targetsRoot, 'warp-ttd'),
           target: options.emit
         },
+        outDir: joinPath(profile.targetsRoot, 'warp-ttd'),
+        emitTargets: warpTtdEmits,
         logger
       });
     }
@@ -142,6 +144,7 @@ export class ContractCommand extends WesleyCommand {
           dryRun: false,
           outDir: joinPath(profile.targetsRoot, 'echo')
         },
+        outDir: joinPath(profile.targetsRoot, 'echo'),
         logger
       });
     }
@@ -488,6 +491,13 @@ function ensureRequiredWarpTtdEmits(rawEmitTargets) {
     .split(',')
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
+  const invalid = selected.filter((emit) => !VALID_WARP_TTD_EMITS.includes(emit));
+  if (invalid.length > 0) {
+    throw new WesleyError(
+      'CONTRACT_RELEASE_EMITS_INVALID',
+      `Invalid warp-ttd emit target(s): ${invalid.join(', ')}. Valid emits: ${VALID_WARP_TTD_EMITS.join(', ')}.`
+    );
+  }
   const missing = REQUIRED_WARP_TTD_EMITS.filter((emit) => !selected.includes(emit));
   if (missing.length > 0) {
     throw new WesleyError(
@@ -495,6 +505,7 @@ function ensureRequiredWarpTtdEmits(rawEmitTargets) {
       `Continuum contract release requires warp-ttd emits "${REQUIRED_WARP_TTD_EMITS.join(', ')}". Missing: ${missing.join(', ')}.`
     );
   }
+  return [...new Set(selected)];
 }
 
 function parseTargets(rawTargets) {
