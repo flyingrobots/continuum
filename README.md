@@ -5,7 +5,7 @@ Continuum is the coordination membrane across the active stack:
 - [Echo](http://github.com/flyingrobots/echo) for hot execution/runtime truth
 - [`git-warp`](https://github.com/git-stunts/git-warp) for cold causal/storage truth
 - `warp-ttd` for shared debugger and operator surfaces
-- Wesley for shared contract compilation and witness lanes
+- [Wesley](https://flyingrobots/Wesley) for shared contract compilation and witness lanes
 
 If you land here looking for "the engine," this repo is not it.
 
