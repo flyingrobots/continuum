@@ -1,13 +1,24 @@
 % Build from repo root:
 %   mkdir -p /tmp/continuum-categories-build
-%   pdflatex -interaction=nonstopmode -halt-on-error \
+%   SOURCE_DATE_EPOCH=1777766400 FORCE_SOURCE_DATE=1 \
+%     pdflatex -interaction=nonstopmode -halt-on-error \
 %     -output-directory=/tmp/continuum-categories-build \
 %     docs/continuum-categories.tex
-%   pdflatex -interaction=nonstopmode -halt-on-error \
+%   SOURCE_DATE_EPOCH=1777766400 FORCE_SOURCE_DATE=1 \
+%     pdflatex -interaction=nonstopmode -halt-on-error \
 %     -output-directory=/tmp/continuum-categories-build \
 %     docs/continuum-categories.tex
 %   cp /tmp/continuum-categories-build/continuum-categories.pdf \
 %     docs/continuum-categories.pdf
+%
+% Some local TeX toolchains still vary PDF object metadata across temporary
+% build directories. When byte identity differs, validate source equivalence by
+% comparing extracted text:
+%   pdftotext docs/continuum-categories.pdf /tmp/continuum-categories.checked.txt
+%   pdftotext /tmp/continuum-categories-build/continuum-categories.pdf \
+%     /tmp/continuum-categories.generated.txt
+%   diff -u /tmp/continuum-categories.checked.txt \
+%     /tmp/continuum-categories.generated.txt
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools}

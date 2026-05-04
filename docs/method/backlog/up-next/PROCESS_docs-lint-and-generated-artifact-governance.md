@@ -28,6 +28,8 @@ Create one practical docs governance cut that covers:
 - a named distinction between changed-file lint, which is currently enforced,
   and broad repo lint, which still has known baseline debt
 - a documented build command for `docs/continuum-categories.tex`
+- a documented validation command for generated PDFs whose bytes vary because
+  of local TeX metadata
 - a small generated-artifact policy for when PDFs belong in repo truth
 
 ## Candidate Policy
@@ -50,4 +52,6 @@ repo.
 - the repo explicitly accepts or suppresses the current frontmatter/H1 pattern
 - the repo has a documented command for rebuilding
   `docs/continuum-categories.pdf` from `docs/continuum-categories.tex`
+- PRs that touch PDFs report either byte-reproducible builds or extracted-text
+  equivalence
 - generated PDFs have a short inclusion policy instead of ad hoc precedent
