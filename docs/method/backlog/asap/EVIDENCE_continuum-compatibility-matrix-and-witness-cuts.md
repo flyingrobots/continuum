@@ -7,12 +7,18 @@ status: proposed
 
 ## Why
 
-We have real contract and witness work in Wesley, but no single place that says
-which cross-repo claims are actually proved and which are still directional.
+The first Continuum-local compatibility matrix now exists:
+
+- [docs/contract-family-registry.md](../../../contract-family-registry.md)
+
+The remaining gap is evidence. Some rows are authored and some are
+fixture-witnessed, but none yet prove live sibling-runtime exchange.
 
 ## Goal
 
-Create a Continuum compatibility matrix that tracks, at minimum:
+Turn the registry's open cuts into witnessed evidence.
+
+Track, at minimum:
 
 - contract family
 - canonical authored home
@@ -23,6 +29,8 @@ Create a Continuum compatibility matrix that tracks, at minimum:
 
 ## Done When
 
-- one matrix exists in Continuum
-- it links outward to real evidence instead of repeating it
-- each unproved cross-repo claim is visible as a gap rather than folklore
+- the registry row for `runtime-boundary-family` has a Wesley profile
+- the registry row for `runtime-boundary-family` has fixture witness evidence
+- at least one sibling-runtime suffix exchange/admission claim is backed by an
+  inspectable witness
+- unproved cross-repo claims remain visible as gaps rather than folklore
