@@ -125,6 +125,8 @@ If you are new here, start with these:
   The current hill and what this repo is actively trying to lock down.
 - [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
   Canonical cross-repo invariants.
+- [docs/contract-family-registry.md](docs/contract-family-registry.md)
+  Current shared family registry, consumers, witness posture, and gaps.
 - [apps/warp/README.md](apps/warp/README.md)
   The current Continuum-owned prototype for the WARPspace CLI and stack bootstrap.
 

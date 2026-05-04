@@ -26,6 +26,9 @@ Current authored family:
 - `continuum-settlement-family.graphql`
 - `continuum-runtime-boundary-family.graphql`
 
+The cross-repo ownership, consumer, and witness posture for these families lives
+in [docs/contract-family-registry.md](../docs/contract-family-registry.md).
+
 Wesley compiles the schemas in this directory into Rust, TypeScript, manifests,
 and codec artifacts. Echo, `git-warp`, and `warp-ttd` should consume generated
 artifacts instead of re-authoring the same contracts by hand.
