@@ -1,175 +1,80 @@
-# Continuum
+<div align="center">
+  <img width="1288" height="188" alt="continuum" src="https://github.com/user-attachments/assets/7cb39622-4610-4db5-8fde-2cce456313a4" />
+  <h3>A Protocol for Distributed Causal Computation</h3>
+</div>
+
+**Continuum** is the shared coordination layer for the WARP stack.
+
+It provides the canonical vocabulary, contract families, admissibility rules, witness formats, and cross-repo invariants that allow multiple runtimes and tools to maintain **one coherent causal history** instead of drifting into incompatible schemas and interpretations.
+
+---
 
 > [!WARNING]
-> **Status: Nascent / Experimental**
-> Continuum is still in active R&D. Expect raw edges, rapid iteration, and
-> breaking changes while the shared stack hardens.
+> **Status: Nascent / Experimental**  
+> This repo is under active research and development. Expect rapid iteration, breaking changes, and evolving boundaries while the shared stack hardens.
 
-Continuum is the shared protocol, contract, admissibility, and witness language
-across the active WARP stack:
+### Purpose
 
-- [Echo](https://github.com/flyingrobots/echo) as a sibling Continuum runtime
-  implementation
-- [`git-warp`](https://github.com/git-stunts/git-warp) as a sibling Continuum
-  runtime implementation
-- `warp-ttd` for shared debugger and operator surfaces
-- [Wesley](https://github.com/flyingrobots/wesley) for shared contract
-  compilation, manifests, witnesses, and toolchain handoff
+Continuum exists to keep the WARP ecosystem honest:
 
-If you land here looking for "the engine," this repo is not it.
+- One semantic universe across sibling implementations
+- Authored, versioned contract families as the source of truth
+- Explicit ownership of nouns that cross repository boundaries
+- Witnessed compatibility and integration truth
+- Prevention of shadow schemas, adapter folklore, and renaming drift
 
-Continuum exists so those systems can tell **one story** instead of drifting
-into:
+It is **not** a runtime engine, compiler, or application framework.
 
-- different names for the same nouns
-- handwritten parallel schemas
-- adapter folklore
-- debugger-only normalizations
-- theory that never cashes out into shared contracts
+### Core Stack
 
-## What This Repo Is
+- **Continuum** — Shared semantics, contract families, invariants, and coordination truth (this repo)
+- **Wesley** — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
+- **Echo** — Primary runtime implementation
+- **git-warp** — Complementary runtime implementation (Git-backed)
+- **warp** — User-facing CLI for bootstrapping and managing WARPspaces
+- **warp-ttd** — Shared debugger and operator surfaces
 
-Continuum owns the cross-repo glue:
+A **Continuum runtime** is any implementation that can publish, admit, observe, export, and import witnessed causal history according to the shared contract families and admission laws.
 
-- shared vocabulary
-- shared protocol and admissibility language
-- authored shared contract families
-- ownership laws for nouns that cross repo boundaries
-- cross-repo invariants
-- witness and compatibility truth
-- integration scenarios and proof plans
+### What Continuum Owns
 
-The short version is one semantic universe, multiple engines, one published
-contract.
+- Shared GraphQL contract families (`schemas/`)
+- Cross-repo noun glossary and ownership map
+- Canonical invariants (`docs/invariants/`)
+- Witness and compatibility mechanisms
+- Integration scenarios and proof plans
+- WARPspace bootstrap templates and stack release manifests
+- METHOD-shaped process discipline for the stack
 
-## What This Repo Is Not
+### Key Artifacts
 
-Continuum is **not**:
+- **`schemas/`** — Authored contract families (Neighborhood Core, Receipt, Settlement, Runtime Boundary, etc.)
+- **`wesley/`** — Continuum-owned Wesley module with TTD compiler, invariant verifier, and code generators
+- **`apps/warp/`** — The `warp` CLI (`warp init`) and WARPspace templates
+- **`docs/`** — Design packets, bearing, vision, getting started, and contract registry
+- **`APP_GLOSSARY.md`** — Living map between app surfaces and WARP concepts
 
-- a third runtime engine
-- a replacement for Echo
-- a replacement for `git-warp`
-- a shadow compiler next to Wesley
-- the place where every app should directly run
+### Getting Started
 
-If a repo-local implementation detail matters only to Echo or only to
-`git-warp`, it should usually stay there.
+1. Read **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — practical entry point.
+2. Browse **[APP_GLOSSARY.md](APP_GLOSSARY.md)** — essential noun mapping.
+3. See the current direction in **[docs/BEARING.md](docs/BEARING.md)**.
+4. Explore shared contracts in **[docs/contract-family-registry.md](docs/contract-family-registry.md)**.
+5. Try the bootstrap: `node apps/warp/bin/warp.mjs init my-app --profile demo`
 
-## The Current Stack
+Deeper orientation:
+- **[docs/OVERVIEW.md](docs/OVERVIEW.md)**
+- **[docs/VISION.md](docs/VISION.md)**
+- **[METHOD.md](METHOD.md)** — how work is structured here
+- **[docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)** — core laws
 
-The intended stack looks like this:
-
-1. Continuum owns shared semantics and authored shared contract families.
-2. Wesley compiles those families into Rust, TypeScript, codecs, manifests,
-   witnesses, and toolchain handoff artifacts.
-3. Echo, `git-warp`, or another conforming sibling implementation is the
-   runtime layer.
-4. Apps compose their own domain GraphQL with Continuum shared families and
-   the chosen engine family.
-
-A Continuum runtime is any implementation that can publish, admit, observe,
-export, and import witnessed causal history according to Continuum contract
-families and admission laws.
-
-That means app authors should extend the engine they are actually running on,
-while consuming Continuum-defined shared contracts through Wesley-generated
-artifacts.
-
-Continuum does **not** require TypeScript or Rust as the one true app
-language. The stable extension surface is the authored GraphQL family plus the
-generated consumer artifacts for whatever target language the stack supports.
-
-## The Vision
-
-The interesting idea here is not merely "a family of apps that can work
-together."
-
-The stronger claim is:
-
-- a client should experience **one shared causal history with compatible
-  observer-relative readings**
-- Echo and `git-warp` are sibling runtime implementations over that history
-- the published nouns should remain the same across both
-- cross-runtime interoperability should be witnessed suffix exchange and
-  admission between peers
-
-That is the point of Continuum: keep the stack honest enough that a debugger,
-tool, app, or agent does not have to learn a different conceptual language for
-each engine.
-
-## WARPspace and the User Entry Path
-
-Continuum now carries the first user-facing WARPspace bootstrap lane through
-the `warp` app:
-
-- [apps/warp/README.md](apps/warp/README.md)
-- [apps/warp/VISION.md](apps/warp/VISION.md)
-- [docs/releases/demo/README.md](docs/releases/demo/README.md)
-
-That lane is where Continuum starts to become consumable as a real stack
-instead of only a theory and coordination repo.
-
-## Where To Start
-
-If you are new here, start with these:
-
-- [APP_GLOSSARY.md](APP_GLOSSARY.md)
-  Cross-repo noun map from app surfaces to WARP paper terms.
-- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-  The practical entry point: where to begin, what to read first, and what to run.
-- [docs/OVERVIEW.md](docs/OVERVIEW.md)
-  Brief synthesis of the theory, ownership model, and current stack.
-- [docs/VISION.md](docs/VISION.md)
-  Repo purpose and current app/runtime model.
-- [docs/BEARING.md](docs/BEARING.md)
-  The current hill and what this repo is actively trying to lock down.
-- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
-  Canonical cross-repo invariants.
-- [docs/contract-family-registry.md](docs/contract-family-registry.md)
-  Current shared family registry, consumers, witness posture, and gaps.
-- [apps/warp/README.md](apps/warp/README.md)
-  The current Continuum-owned prototype for the WARPspace CLI and stack bootstrap.
-
-If you want the deeper theory behind the stack, read:
-
-- [AIΩN](https://github.com/flyingrobots/aion)
-
-If you want the active engines, go to:
-
+Active sibling repositories:
 - [Echo](https://github.com/flyingrobots/echo)
-- [`git-warp`](https://github.com/git-stunts/git-warp)
+- [git-warp](https://github.com/git-stunts/git-warp)
+- [AIΩN](https://github.com/flyingrobots/aion) (theory)
 
-## Repo Truth
+### License
 
-Right now Continuum is succeeding when it can answer questions like:
+Continuum © 2026 by James Ross.
 
-- which repo owns this noun?
-- which schema is canonical?
-- what witness proves two generated legs agree?
-- what scenarios prove Echo and `git-warp` tell one story through `warp-ttd`?
-- what changed in the shared coordination surface?
-
-Continuum fails if it turns into another place where the same ideas get
-renamed, re-authored, and half-implemented.
-
-## Historical Salvage
-
-The seed salvage from the older Continuum work is in [GoodIdeas.md](GoodIdeas.md).
-
-Process and signposts:
-
-- [METHOD.md](METHOD.md)
-- [docs/BEARING.md](docs/BEARING.md)
-- [docs/VISION.md](docs/VISION.md)
-- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)
-
-## License
-
-Continuum © 2026 by James Ross. Continuum is licensed under the
-[Apache License](./LICENSE), Version 2.0 OR
-[MIND-UCAL](https://github.com/universalcharter/mind-ucal).
-
-> [!NOTE]
-> In short: you may freely use the theory, papers, and documentation without
-> adopting MIND-UCAL; MIND-UCAL applies only to derivative ethical commitments,
-> not technical use.
+Licensed under the [Apache License 2.0](./LICENSE)
