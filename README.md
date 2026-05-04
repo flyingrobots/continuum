@@ -4,7 +4,7 @@
 
 Continuum starts from one rule:
 
-**the graph is a coordinate chart over witnessed causal history.**
+**The graph is a coordinate chart over witnessed causal history.**
 
 There is no privileged, substrate-owned graph inside Echo, `git-warp`, or any
 other runtime.
@@ -108,15 +108,16 @@ budget.
 
 Different observers may chart the same causal history differently. Those charts
 may overlap, preserve plurality, disagree, be rights-gated, be partially
-translatable, or obstruct. Continuum records the witness for what was
-preserved, lost, blocked, or left plural.
+translatable, or obstruct. Continuum requires the published boundary to carry
+witness for what was preserved, lost, blocked, or left plural.
 
 ## Current Stack
 
 - **Continuum**: shared semantics, contract families, invariants, and
   coordination truth.
-- **Wesley**: contract compilation, manifests, witness tooling, codecs, and TTD
-  code generation.
+- **Wesley**: base compiler, manifest, witness, codec, and toolchain platform.
+- **Continuum Wesley module**: Continuum-owned command, profile, fixture, and
+  TTD protocol-family compiler surfaces under [wesley](wesley/README.md).
 - **Echo**: sibling Continuum runtime implementation.
 - **`git-warp`**: sibling Continuum runtime implementation.
 - **`warp-ttd`**: debugger and operator surfaces over generated contracts.
@@ -136,6 +137,7 @@ Continuum owns:
 - witness and compatibility doctrine
 - integration scenarios and proof plans
 - WARPspace bootstrap direction
+- Continuum-owned Wesley module surfaces under [wesley](wesley/README.md)
 - METHOD-shaped process discipline for this coordination repo
 
 Continuum does not own:
@@ -143,7 +145,7 @@ Continuum does not own:
 - Echo-local engine internals
 - `git-warp`-local engine internals
 - `warp-ttd` product/session internals
-- Wesley's compiler implementation truth
+- generic Wesley base-platform implementation truth
 - app-local domain schemas
 - one canonical materialized graph
 
@@ -187,11 +189,12 @@ Deeper orientation:
 - [docs/BEARING.md](docs/BEARING.md)
 - [METHOD.md](METHOD.md)
 
-Active sibling repositories:
+Related repositories:
 
-- [Echo](https://github.com/flyingrobots/echo)
-- [`git-warp`](https://github.com/git-stunts/git-warp)
-- [AIΩN](https://github.com/flyingrobots/aion)
+- [Echo](https://github.com/flyingrobots/echo): sibling runtime implementation.
+- [`git-warp`](https://github.com/git-stunts/git-warp): sibling runtime
+  implementation.
+- [AIΩN](https://github.com/flyingrobots/aion): deeper theory repo.
 
 ## Rule To Remember
 
