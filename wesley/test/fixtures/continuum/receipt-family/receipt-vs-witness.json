@@ -1,0 +1,17 @@
+{
+  "receiptOnlyFields": [
+    "writerId",
+    "inputTick",
+    "outputTick",
+    "admittedRewriteCount",
+    "rejectedRewriteCount",
+    "counterfactualCount",
+    "digest"
+  ],
+  "witnessOnlyFields": [
+    "witnessId",
+    "kind",
+    "residueHash",
+    "footprint"
+  ]
+}

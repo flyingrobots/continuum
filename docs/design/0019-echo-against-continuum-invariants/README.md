@@ -45,44 +45,45 @@ This packet is the first bounded audit pass.
 
 ### Yellow
 
-- **1. One Graph Invariant**
+- **1. Shared Causal History Invariant**
 - **2. Published-Noun Parity Invariant**
 - **5. No Shadow Normalization Invariant**
 - **6. Witness Ladder Integrity Invariant**
-- **7. Settlement Before Handoff Invariant**
+- **7. Settlement Before Cross-Runtime Admission Invariant**
 - **9. Shared Carrier Invariant**
 - **10. One Observer Story Invariant**
 
 ### Red
 
 - **4. Shared Contract Authority Invariant**
-- **8. Temperature Handoff Invariant**
+- **8. Cross-Runtime Exchange Invariant**
 
 ## Invariant Audit
 
-### 1. One Graph Invariant — Yellow
+### 1. Shared Causal History Invariant — Yellow
 
-**Claim:** a Continuum client should observe one logical graph, not one graph
-per engine.
+**Claim:** a Continuum client should observe one shared causal history with
+compatible readings, not one separate graph-shaped reality per engine.
 
 **Echo truth today:**
 
-- Echo is internally coherent around one graph/history model.
+- Echo is internally coherent around one shared causal-history model with
+  graph-shaped publication surfaces.
 - `NeighborhoodSite` gives Echo a first-class local site publication surface
   instead of requiring adapter reconstruction:
-  - [neighborhood.rs](/Users/james/git/echo/crates/warp-core/src/neighborhood.rs)
-  - [0007-braid-geometry-and-neighborhood-publication](/Users/james/git/echo/docs/design/0007-braid-geometry-and-neighborhood-publication/design.md)
+  - `echo/crates/warp-core/src/neighborhood.rs`
+  - `echo/docs/design/0007-braid-geometry-and-neighborhood-publication/design.md`
 - Settlement is now first-class instead of folklore:
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
-  - [0008-strand-settlement](/Users/james/git/echo/docs/design/0008-strand-settlement/design.md)
+  - `echo/crates/warp-core/src/settlement.rs`
+  - `echo/docs/design/0008-strand-settlement/design.md`
 
 **Why only yellow:**
 
-- Echo still does not publish any runtime-handoff object for crossing between
-  hot and cold execution/publication regimes.
-- That means Echo can support "one graph" locally, but it does not yet provide
-  the cross-runtime event boundary that Continuum now requires for the full
-  two-temperature story.
+- Echo still does not publish the full cross-runtime suffix exchange/import
+  family now required for sibling runtime interoperability.
+- That means Echo can support one coherent local causal-history/reading model,
+  but it does not yet provide the peer exchange boundary that Continuum now
+  requires for the full sibling-runtime story.
 
 ### 2. Published-Noun Parity Invariant — Yellow
 
@@ -99,9 +100,9 @@ categories across engines.
   - `ImportCandidate`
   - `ConflictArtifactDraft`
 - Those appear in both kernel/runtime code and ABI DTOs:
-  - [neighborhood.rs](/Users/james/git/echo/crates/warp-core/src/neighborhood.rs)
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
-  - [kernel_port.rs](/Users/james/git/echo/crates/echo-wasm-abi/src/kernel_port.rs)
+  - `echo/crates/warp-core/src/neighborhood.rs`
+  - `echo/crates/warp-core/src/settlement.rs`
+  - `echo/crates/echo-wasm-abi/src/kernel_port.rs`
 
 **Why only yellow:**
 
@@ -109,7 +110,7 @@ categories across engines.
   The main repo-truth statement remains the one from `0006`:
   reintegration truth is still scattered across receipts, provenance, and
   finalization artifacts.
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 - Receipt shell layering is still more explicit in design doctrine than in
   native runtime publication.
 - Effect-emission, delivery-observation, and observer-trace publication are not
@@ -122,10 +123,10 @@ shared published contract.
 
 **Echo truth today:**
 
-- Echo explicitly keeps hot-runtime-specific truths local:
+- Echo explicitly keeps runtime-specific truths local:
   scheduler state, ingress/admission policy, head/writer semantics, and
   engine-local finalization/control-plane detail.
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 - The current neighborhood and settlement work did not flatten Echo into
   Continuum terms internally; it added publication boundaries instead.
 
@@ -143,12 +144,12 @@ Wesley, not hand-authored independently in Echo.
 
 - Echo's runtime schema fragments are still locally authored and explicitly say
   generation is deferred.
-  - [schemas/runtime/README.md](/Users/james/git/echo/schemas/runtime/README.md)
+  - `echo/schemas/runtime/README.md`
 - Echo's proof-family runtime cutover is still backlog, not landed:
-  - [PLATFORM_continuum-proof-family-runtime-cutover](/Users/james/git/echo/docs/method/backlog/up-next/PLATFORM_continuum-proof-family-runtime-cutover.md)
+  - `echo/docs/method/backlog/up-next/PLATFORM_continuum-proof-family-runtime-cutover.md`
 - The published neighborhood and settlement ABI surfaces are still handwritten
   Echo-side DTOs:
-  - [kernel_port.rs](/Users/james/git/echo/crates/echo-wasm-abi/src/kernel_port.rs)
+  - `echo/crates/echo-wasm-abi/src/kernel_port.rs`
 
 **Why red:**
 
@@ -167,7 +168,7 @@ Wesley, not hand-authored independently in Echo.
   neighborhood and settlement.
 - `0005` remains honest that the older TTD path derived reintegration and shell
   summaries in the host/debugger layer:
-  - [0005-echo-ttd-witness-surface](/Users/james/git/echo/docs/design/0005-echo-ttd-witness-surface/design.md)
+  - `echo/docs/design/0005-echo-ttd-witness-surface/design.md`
 
 **Why only yellow:**
 
@@ -188,8 +189,8 @@ collapse back into one blob.
   - settlement family for import/conflict runway
   - rich shell/provenance artifacts remain present
 - The design docs understand the distinction:
-  - [0005-echo-ttd-witness-surface](/Users/james/git/echo/docs/design/0005-echo-ttd-witness-surface/design.md)
-  - [0006-echo-continuum-alignment](/Users/james/git/echo/docs/design/0006-echo-continuum-alignment/design.md)
+  - `echo/docs/design/0005-echo-ttd-witness-surface/design.md`
+  - `echo/docs/design/0006-echo-continuum-alignment/design.md`
 
 **Why only yellow:**
 
@@ -198,11 +199,11 @@ collapse back into one blob.
   reintegration core and shell is not yet fully hardened in the public
   contract.
 
-### 7. Settlement Before Handoff Invariant — Yellow
+### 7. Settlement Before Cross-Runtime Admission Invariant — Yellow
 
-**Claim:** if runtime transition changes canonical visibility or durable status,
-the transition must be explainable through published settlement/reintegration
-categories.
+**Claim:** if peer-runtime admission changes canonical visibility or retained
+availability, the admission must be explainable through published
+settlement/reintegration categories.
 
 **Echo truth today:**
 
@@ -211,27 +212,36 @@ categories.
 - Accepted imports and conflicts are recorded as first-class provenance events:
   - `MergeImport`
   - `ConflictArtifact`
-  - [settlement.rs](/Users/james/git/echo/crates/warp-core/src/settlement.rs)
+  - `echo/crates/warp-core/src/settlement.rs`
 
 **Why only yellow:**
 
 - Echo now has the settlement half of this invariant.
-- It does **not** yet have the handoff half.
+- It does **not** yet have the cross-runtime exchange half.
 - So the stack can explain import/conflict truth, but it cannot yet explain a
-  hot/cold runtime crossing as one published causal event.
+  peer-runtime suffix exchange as one published admission event.
 
-### 8. Temperature Handoff Invariant — Red
+### 8. Cross-Runtime Exchange Invariant — Red
 
-**Claim:** crossing between hot and cold runtimes must be represented as a
-first-class causal event.
+**Claim:** cross-runtime interoperability must be represented as witnessed
+suffix exchange and admission between sibling runtimes.
 
 **Echo truth today:**
 
-- No runtime-handoff publication surface is present in the current design or
-  kernel/ABI files.
+- No full suffix exchange/import publication surface is present in the current
+  design or kernel/ABI files.
 - A targeted search across Echo design docs and the relevant runtime crates
-  found no handoff or temperature-boundary object:
-  - `rg -n "handoff|temperature|source runtime|target runtime|cross-runtime|hot-to-cold|cold-to-hot" ...`
+  found settlement/evaluator internals, but no exported Echo operation that
+  publishes a sibling-runtime suffix admission event:
+
+  ```bash
+  rg -n \
+    "source runtime|target runtime|cross-runtime|suffix|import|export" \
+    ../echo/docs \
+    ../echo/crates/echo-runtime-schema/README.md \
+    ../echo/crates/warp-core/src \
+    ../echo/crates/echo-wasm-abi/src/kernel_port.rs
+  ```
 
 **Why red:**
 
@@ -248,9 +258,9 @@ same authored family, manifests, bytes, and interpretation.
   - canonical CBOR wire rules
   - deterministic ABI boundaries
   - explicit binary-compatibility doctrine
-  - [README.md](/Users/james/git/echo/README.md)
-  - [continuum-foundations.md](/Users/james/git/echo/docs/continuum-foundations.md)
-  - [THEORY.md](/Users/james/git/echo/docs/THEORY.md)
+  - `echo/README.md`
+  - `echo/docs/continuum-foundations.md`
+  - `echo/docs/THEORY.md`
 - Echo also has a real higher-layer carrier/packaging story around BTRs and
   wormhole carriers in theory, even if not all of it is fully landed runtime
   substrate yet.
@@ -295,8 +305,8 @@ The next required moves, in order, are:
    - Stop making consumers reconstruct seam truth from scattered receipt,
      provenance, and finalization state.
 
-3. **Define and publish a runtime-handoff event family**
-   - Make hot/cold crossing explicit in runtime history.
+3. **Define and publish a suffix exchange/import family**
+   - Make peer-runtime exchange explicit in witnessed causal history.
    - This is the biggest missing Continuum invariant leg in Echo now.
 
 4. **Only after that, extend broader shared observer families**
@@ -319,10 +329,9 @@ But it still does **not** satisfy the whole Continuum invariant surface.
 The current hard blockers are:
 
 - shared-contract authority is still local/handwritten in the proof slice
-- runtime handoff is not yet a published causal category
+- cross-runtime suffix exchange/import is not yet a published causal category
 
 So the honest summary is:
 
 **Echo is now structurally on the runway, but it is not yet the finished
 Continuum engine leg.**
-

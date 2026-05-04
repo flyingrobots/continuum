@@ -246,8 +246,8 @@ test('initWarp can hand off generation through staged node and Wesley toolchain 
     const result = await initWarp({
       projectDir,
       manifestPath,
-      runCommand: async ({ command, args, cwd }) => {
-        invocations.push({ command, args, cwd });
+      runCommand: async ({ command, args, cwd, env }) => {
+        invocations.push({ command, args, cwd, env });
         return {
           status: 0,
           stdout: '',
@@ -258,8 +258,7 @@ test('initWarp can hand off generation through staged node and Wesley toolchain 
 
     assert.equal(result.generated, 'completed');
     assert.equal(invocations.length, 4);
-    assert.ok(invocations.every(call => call.args.includes('--warpspace')));
-    assert.ok(invocations.every(call => call.args.includes(path.join(projectDir, 'warpspace.toml'))));
+    assert.ok(invocations.every(call => !call.args.includes('--warpspace')));
     assert.ok(invocations.every(call => call.command.endsWith(path.join('.warpspace', 'packages', 'node', 'current', 'bin', 'node'))));
     assert.deepEqual(
       invocations.map(call => call.args.slice(0, 2)),
@@ -274,14 +273,56 @@ test('initWarp can hand off generation through staged node and Wesley toolchain 
         ],
         [
           path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
-          'bundle-echo'
+          'compile'
         ],
         [
           path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'),
-          'compile-ttd'
+          'compile'
         ]
       ]
     );
+    assert.equal(invocations[0].args.at(-3), '--out-file');
+    assert.equal(
+      invocations[0].args.at(-2),
+      'packages/demo-web/src/generated/continuum/neighborhood-core/types.generated.ts'
+    );
+    assert.equal(invocations[1].args.at(-3), '--out-file');
+    assert.equal(
+      invocations[1].args.at(-2),
+      'packages/demo-web/src/generated/continuum/neighborhood-core/zod/zod.generated.ts'
+    );
+    assert.deepEqual(
+      invocations[2].args.slice(2),
+      [
+        '--schema',
+        'contracts/continuum/continuum-neighborhood-core-family.graphql',
+        '--target',
+        'echo',
+        '--out-dir',
+        'crates/demo-contracts/src/generated/echo/neighborhood-core',
+        '--json'
+      ]
+    );
+    assert.deepEqual(
+      invocations[3].args.slice(2),
+      [
+        '--schema',
+        'contracts/continuum/continuum-neighborhood-core-family.graphql',
+        '--target',
+        'warp-ttd',
+        '--out-dir',
+        'packages/demo-web/src/generated/warp-ttd/neighborhood-core',
+        '--json'
+      ]
+    );
+    assert.equal(invocations[0].env, undefined);
+    assert.equal(invocations[1].env, undefined);
+    assert.deepEqual(invocations[2].env, {
+      WESLEY_MODULES: path.join(authorityRoot, 'wesley', 'continuum-cli-module.mjs')
+    });
+    assert.deepEqual(invocations[3].env, {
+      WESLEY_MODULES: path.join(authorityRoot, 'wesley', 'continuum-cli-module.mjs')
+    });
     assert.ok(invocations.every(call => call.cwd === projectDir));
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -363,8 +404,8 @@ test('initWarp can install node and Wesley from a local-packages source site', a
     const result = await initWarp({
       projectDir,
       manifestPath,
-      runCommand: async ({ command, args, cwd }) => {
-        invocations.push({ command, args, cwd });
+      runCommand: async ({ command, args, cwd, env }) => {
+        invocations.push({ command, args, cwd, env });
         return {
           status: 0,
           stdout: '',
@@ -382,6 +423,10 @@ test('initWarp can install node and Wesley from a local-packages source site', a
       invocations.map(call => call.args[0]),
       Array(4).fill(path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley.mjs'))
     );
+    assert.ok(invocations.every(call => !call.args.includes('--warpspace')));
+    assert.deepEqual(invocations.slice(2).map(call => call.args[1]), ['compile', 'compile']);
+    assert.deepEqual(invocations.slice(2).map(call => call.args[4]), ['--target', '--target']);
+    assert.deepEqual(invocations.slice(2).map(call => call.args[5]), ['echo', 'warp-ttd']);
 
     const nodeReceipt = JSON.parse(
       await readFile(path.join(projectDir, '.warpspace', 'packages', 'node', 'current', 'install-receipt.json'), 'utf8')

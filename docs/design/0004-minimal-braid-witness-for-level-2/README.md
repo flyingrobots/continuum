@@ -190,7 +190,7 @@ So `O` is necessary.
 
 The following may be useful, but they are not part of the proposed minimum:
 
-- the entire graph state
+- the entire materialized graph reading
 - every future branch beyond the local site
 - every possible observer
 - fully materialized lowerings for every candidate alternative

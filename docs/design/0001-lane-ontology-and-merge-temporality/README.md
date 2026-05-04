@@ -28,7 +28,7 @@ The active stack already leans on these nouns:
 
 - `git-warp` uses `Worldline`, `Strand`, `Braid`, `Observer`, `Receipt`, and
   `Witness`
-- `warp-ttd` wants one honest debugger grammar across hot and cold hosts
+- `warp-ttd` wants one honest debugger grammar across sibling runtimes
 - merge and collapse work already assume richer causal geometry than ordinary
   text/source control
 

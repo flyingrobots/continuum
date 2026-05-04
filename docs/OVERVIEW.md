@@ -16,14 +16,15 @@ Continuum is the coordination spine for the active stack.
 
 It does **not** own:
 
-- a hot runtime
-- a cold substrate
+- a runtime implementation
+- a storage substrate
 - a shadow contract compiler
 - a parallel ontology
 
 It **does** own:
 
 - shared vocabulary
+- protocol and admissibility language
 - ownership laws for cross-repo nouns
 - witness and compatibility truth
 - integration proof plans
@@ -220,13 +221,20 @@ The current ownership law is:
   shared
 - **Wesley** owns compilation, publication, schema hashes, codecs, and witness
   lanes for shared contract families
-- **Echo** and **`git-warp`** own runtime truth
+- **Echo** and **`git-warp`** are sibling Continuum runtime implementations
 - **`warp-ttd`** owns observer/session/product surfaces
+
+A Continuum runtime is any implementation that can publish, admit, observe,
+export, and import witnessed causal history according to Continuum contract
+families and admission laws.
 
 The practical implication is:
 
 - engines can keep local runtime elaborations
 - Continuum tools should still see one shared observer/debugger contract family
+- runtime posture terms such as hot, cold, durable, archival, low-latency,
+  browser-hosted, or offline-first describe deployment profiles, not protocol
+  roles
 
 So the goal is **not** "make Echo and `git-warp` internally identical."
 
@@ -312,32 +320,35 @@ Detailed packet:
 
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
 
-## 11. One Graph, Two Temperatures
+## 11. One Witnessed History, Multiple Sibling Runtimes
 
-The current Continuum direction is not "two engines that maybe interoperate."
+The corrected Continuum direction is not "two halves of one hot/cold machine."
 
 The stronger claim is:
 
-- the client should experience **one logical graph**
-- Echo and `git-warp` are two **execution temperatures** over that graph
-- crossing between hot and cold must become an **inspectable causal event**
+- the client should experience **one shared causal history with compatible
+  observer-relative readings**
+- Echo and `git-warp` are sibling runtime implementations over that history
+- neither runtime owns privileged graph truth
+- cross-runtime interop is witnessed suffix exchange and admission between
+  peers
 
 That means:
 
-- hot/cold is a runtime and publication distinction, not permission for the
-  published nouns to diverge
+- graph-like and state-like values are observer-relative readings, cached
+  projections, retained artifacts, or implementation-local materializations
+- posture language is runtime metadata, not protocol ontology
 - a shared binary carrier helps only if both engines also agree on the same
   contracts and interpretation
-- a future Continuum runtime facade must stay thin and honest: it may route
-  work, but it may not invent semantics that the engines themselves do not
-  publish
+- Continuum must not become a runtime facade that invents semantics the
+  sibling runtimes themselves do not publish
 
 The practical invariants are:
 
-- one graph
+- one shared causal history plus compatible observer-relative readings
 - published-noun parity
 - engine-local freedom below the boundary
-- explicit temperature handoff
+- explicit cross-runtime import/export admission
 - no silent translation in adapters or tools
 
 Detailed packet:

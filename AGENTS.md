@@ -2,9 +2,9 @@
 
 ## Role
 
-Continuum is the coordination spine for the active stack. It does not own a hot
- runtime, a cold substrate, or a parallel ontology. It owns shared truth across
- Echo, `git-warp`, `warp-ttd`, and Wesley.
+Continuum is the coordination spine for the active stack. It does not own a
+runtime implementation, a substrate, or a parallel ontology. It owns shared
+truth across Echo, `git-warp`, `warp-ttd`, and Wesley.
 
 ## Git Safety
 
