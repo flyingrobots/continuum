@@ -16,6 +16,8 @@ Current honest posture:
 - this repo owns which Wesley surfaces belong to the Continuum module
 - the concrete command implementations, support code, fixtures, and profile
   helpers now live here
+- TTD protocol compilation now lives here under `wesley/ttd/`; generic Wesley
+  no longer owns the protocol-family compiler implementation
 - this module still imports generic Wesley base-platform pieces from the sibling
   Wesley repo through explicit relative paths
 - generic Wesley loads no domain module by default; Continuum must be loaded

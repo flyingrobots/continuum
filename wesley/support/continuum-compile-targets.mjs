@@ -1,4 +1,4 @@
-import { compileTtdProtocol } from '../../../wesley/packages/wesley-core/src/ttd/codegen/orchestrator.mjs';
+import { compileTtdProtocol } from '../ttd/codegen/orchestrator.mjs';
 import { computeSdlHash, WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
 import { schemaHashWithCrypto } from '../../../wesley/packages/wesley-core/src/domain/schemaHash.mjs';
 import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';

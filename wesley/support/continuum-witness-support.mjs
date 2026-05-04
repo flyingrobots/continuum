@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { WesleyError, computeSdlHash, schemaHash } from '../../../wesley/packages/wesley-core/src/index.mjs';
-import { hashSchema as hashTtdSchema } from '../../../wesley/packages/wesley-core/src/ttd/index.mjs';
+import { hashSchema as hashTtdSchema } from '../ttd/index.mjs';
 import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
 
 export const DEFAULT_TTD_REQUIRED_FILES = [
