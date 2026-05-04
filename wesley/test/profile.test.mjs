@@ -56,6 +56,7 @@ test('publication-boundary plan includes realization shell and family compat roo
     'test/fixtures/continuum/receipt-family',
     'schemas/continuum-receipt-family.graphql'
   ]);
+  assert.ok(plan.reservedRoots.includes('wesley/ttd/schemas/ttd-directives.graphql'));
   assert.ok(plan.rules[0].generatedArtifactPaths.includes('realization/manifest.json'));
 });
 

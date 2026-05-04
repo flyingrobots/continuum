@@ -14,7 +14,7 @@ export const CONTINUUM_SCOPE_ORDER = [
 const COMMON_PUBLICATION_BOUNDARY_RESERVED_ROOTS = [
   { path: 'schemas/continuum-receipt-family.graphql', reason: 'owned family schema used as a compatibility fixture' },
   { path: 'schemas/continuum-settlement-family.graphql', reason: 'owned family schema used as a compatibility fixture' },
-  { path: 'schemas/directives.graphql', reason: 'shared Wesley directive definitions' }
+  { path: 'wesley/ttd/schemas/ttd-directives.graphql', reason: 'Continuum-owned TTD directive definitions' }
 ];
 const PUBLICATION_BOUNDARY_RESERVED_ROOTS_BY_SCOPE = {
   [CURRENT_MINIMUM_SCOPE]: [

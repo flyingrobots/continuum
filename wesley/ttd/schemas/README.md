@@ -3,6 +3,8 @@
 This directory holds schemas owned by the Continuum Wesley TTD compiler module.
 
 - `ttd-ir.schema.json` describes the compiler's emitted TTD IR shape.
+- `ttd-directives.graphql` declares the TTD-only SDL directive family parsed by
+  `../directives.mjs`.
 
 Do not treat this directory as the authored home for product protocol schemas:
 
