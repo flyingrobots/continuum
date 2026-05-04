@@ -267,8 +267,6 @@ function buildPublicationBoundaryReservedRoots(scope) {
       'test',
       'packages/wesley-cli/test',
       'packages/wesley-core/test',
-      'packages/wesley-generator-echo/test',
-      'packages/wesley-generator-ttd/test',
       'test/fixtures/continuum/receipt-family',
       'test/fixtures/continuum/settlement-family',
       'schemas/continuum-receipt-family.graphql',

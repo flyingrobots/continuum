@@ -128,8 +128,9 @@ export async function initWarp({
         ...await invokeWesleyForFamily({
           nodeBin: toolchain.node.commandPath,
           wesleyEntrypoint: toolchain.wesley.entrypointPath,
-          warpspacePath,
+          defaultOutputs: manifest.bootstrap.defaultOutputs,
           family,
+          continuumModulePath: path.join(resolvedAuthorityRoot, 'wesley', 'continuum-cli-module.mjs'),
           projectDir: resolvedProjectDir,
           runCommand
         })
@@ -750,8 +751,9 @@ function isRetryableLinkError(error) {
 async function invokeWesleyForFamily({
   nodeBin,
   wesleyEntrypoint,
-  warpspacePath,
+  defaultOutputs,
   family,
+  continuumModulePath,
   projectDir,
   runCommand
 }) {
@@ -765,7 +767,14 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['typescript', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
+      args: [
+        'typescript',
+        '--schema',
+        schemaPath,
+        '--out-file',
+        projectionOutFile(defaultOutputs, 'typescript', 'types.generated.ts'),
+        '--json'
+      ]
     }));
   }
   if (projections.has('zod')) {
@@ -774,7 +783,14 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['zod', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
+      args: [
+        'zod',
+        '--schema',
+        schemaPath,
+        '--out-file',
+        projectionOutFile(defaultOutputs, 'zod', 'zod.generated.ts'),
+        '--json'
+      ]
     }));
   }
   if (projections.has('echo-ir')) {
@@ -783,7 +799,19 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['bundle-echo', '--schema', schemaPath, '--warpspace', warpspacePath, '--json']
+      args: [
+        'compile',
+        '--schema',
+        schemaPath,
+        '--target',
+        'echo',
+        '--out-dir',
+        projectionOutputRoot(defaultOutputs, 'echo-ir'),
+        '--json'
+      ],
+      env: {
+        WESLEY_MODULES: continuumModulePath
+      }
     }));
   }
   if (projections.has('warp-ttd')) {
@@ -792,20 +820,45 @@ async function invokeWesleyForFamily({
       wesleyEntrypoint,
       projectDir,
       runCommand,
-      args: ['compile-ttd', '--schema', schemaPath, '--warpspace', warpspacePath, '--target', 'manifest,typescript', '--json']
+      args: [
+        'compile',
+        '--schema',
+        schemaPath,
+        '--target',
+        'warp-ttd',
+        '--out-dir',
+        projectionOutputRoot(defaultOutputs, 'warp-ttd'),
+        '--json'
+      ],
+      env: {
+        WESLEY_MODULES: continuumModulePath
+      }
     }));
   }
 
   return commands;
 }
 
-async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand, args }) {
+function projectionOutputRoot(defaultOutputs, projection) {
+  const outputRoot = defaultOutputs?.[projection];
+  if (typeof outputRoot !== 'string' || outputRoot.trim().length === 0) {
+    throw new Error(`Stack release manifest bootstrap.defaultOutputs must declare "${projection}".`);
+  }
+  return outputRoot.trim();
+}
+
+function projectionOutFile(defaultOutputs, projection, fileName) {
+  return path.posix.join(projectionOutputRoot(defaultOutputs, projection), fileName);
+}
+
+async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand, args, env }) {
   const command = path.resolve(nodeBin);
   const fullArgs = [path.resolve(wesleyEntrypoint), ...args];
   const result = await runCommand({
     command,
     args: fullArgs,
-    cwd: projectDir
+    cwd: projectDir,
+    env: env == null ? undefined : { ...env }
   });
 
   if (result.status !== 0) {
@@ -817,7 +870,8 @@ async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand,
   return {
     command,
     args: fullArgs,
-    cwd: projectDir
+    cwd: projectDir,
+    env: env == null ? undefined : { ...env }
   };
 }
 
@@ -987,9 +1041,10 @@ function compareSemver(left, right) {
   return 0;
 }
 
-async function defaultRunCommand({ command, args, cwd }) {
+async function defaultRunCommand({ command, args, cwd, env }) {
   const result = spawnSync(command, args, {
     cwd,
+    env: env == null ? process.env : { ...process.env, ...env },
     encoding: 'utf8'
   });
 

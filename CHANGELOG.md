@@ -7,3 +7,5 @@
   surface paths.
 - Fixed Continuum Wesley target compilation against the current sibling Wesley
   CLI target-capability surface.
+- Updated `warp init` generation handoff to use explicit Wesley output paths
+  and module-owned `compile` targets instead of removed WARPspace CLI defaults.
