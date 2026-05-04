@@ -1,5 +1,4 @@
-import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
-import { WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
+import { WesleyCommand, WesleyError } from '../support/wesley-deps.mjs';
 import {
   CURRENT_MINIMUM_SCOPE,
   resolveContinuumWitnessProfile

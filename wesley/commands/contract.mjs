@@ -1,25 +1,30 @@
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
+import { rm } from 'node:fs/promises';
+import {
+  canonicalizeSchemaPath,
+  joinPath,
+  WesleyCommand,
+  WesleyError,
+  WESLEY_CLI_PACKAGE_VERSION
+} from '../support/wesley-deps.mjs';
 import {
   CONTINUUM_CONTRACT_PROFILE,
   resolveContinuumContractBundleProfile
 } from '../profile/index.mjs';
-import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
 import {
   buildContinuumWitnessReport,
   resolveContinuumWitnessOptions
 } from '../support/continuum-witness-report.mjs';
 import { buildRealizationManifest } from '../support/realization-integrity.mjs';
 import { runBundleEcho, runCompileTtd } from '../support/continuum-compile-targets.mjs';
-import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
 
 const CONTRACT_BUNDLE_KIND = 'wesley.contract.bundle.v1';
 const CONTRACT_SYNC_KIND = 'wesley.contract.sync.v1';
 const CONTRACT_AUTHORITY_KIND = 'wesley.contract.bundle.authority.v1';
 const CONTRACT_SYNC_VERIFICATION_KIND = 'wesley.contract.sync.verification.v1';
 const CLI_PACKAGE_NAME = '@wesley/cli';
-const CLI_PACKAGE_VERSION = '0.1.0';
+const CLI_PACKAGE_VERSION = WESLEY_CLI_PACKAGE_VERSION;
 const PROFILE_PACKAGE_NAME = 'continuum/wesley/profile';
 const VALID_TARGETS = ['warp-ttd', 'echo'];
 const LEGACY_TARGET_ALIASES = new Map([['ttd', 'warp-ttd']]);
@@ -253,7 +258,15 @@ export class ContractCommand extends WesleyCommand {
       );
     }
 
-    const bundle = JSON.parse(await this.ctx.fs.read(bundlePath));
+    let bundle;
+    try {
+      bundle = JSON.parse(await this.ctx.fs.read(bundlePath));
+    } catch (error) {
+      throw new WesleyError(
+        'CONTRACT_BUNDLE_PARSE_FAILED',
+        `Contract bundle at ${bundlePath} is not valid JSON: ${error.message}`
+      );
+    }
     validateBundleManifest(bundle, bundlePath);
     const requestedProfile = normalizeOptionalText(options.profile) ?? bundle.profile;
     if (requestedProfile !== bundle.profile) {
@@ -266,6 +279,7 @@ export class ContractCommand extends WesleyCommand {
     const consumer = resolveBundleConsumer(bundle, consumerName);
     const repoRoot = normalizeRequiredText(options.repo, 'Consumer repository root');
     const copiedFiles = [];
+    const removedFiles = [];
     for (const projection of consumer.projections) {
       const writes = projection.kind === 'directory'
         ? await syncDirectoryProjection({
@@ -284,6 +298,13 @@ export class ContractCommand extends WesleyCommand {
         });
       copiedFiles.push(...writes);
     }
+    removedFiles.push(...await pruneConsumerProjectionExtras({
+      fs: this.ctx.fs,
+      bundleRoot,
+      consumer,
+      repoRoot,
+      dryRun: Boolean(options.dryRun)
+    }));
 
     const verification = options.dryRun
       ? {
@@ -322,6 +343,8 @@ export class ContractCommand extends WesleyCommand {
       dryRun: Boolean(options.dryRun),
       fileCount: copiedFiles.length,
       files: copiedFiles,
+      removedFileCount: removedFiles.length,
+      removedFiles,
       verification
     };
   }
@@ -372,7 +395,7 @@ async function buildContractBundleManifest({
     realization: {
       path: 'realization/manifest.json',
       kind: realizationManifest.kind,
-      integrityStatus: realizationManifest.integrity?.status ?? null,
+      generationStatus: realizationManifest.generation?.status ?? null,
       digest: realizationDigest
     },
     witness: {
@@ -392,17 +415,8 @@ async function buildContractBundleManifest({
         allowedExtraFilesByRoot: consumer.allowedExtraFilesByRoot ?? {}
       }))
     },
-    proves: [
-      'one versioned contract bundle binds semver, source identity, realization, and bounded witness output together',
-      'consumer sync projections are declared from the bundle rather than inferred from compiler internals',
-      'neighboring repositories can consume generated projections without importing Wesley compiler packages directly'
-    ],
-    doesNotProve: [
-      'runtime semantics',
-      'storage semantics',
-      'debugger semantics',
-      'consumer runtime compatibility beyond the emitted contract projections'
-    ]
+    proves: [...profile.proves],
+    doesNotProve: [...profile.doesNotProve]
   };
 }
 
@@ -447,25 +461,27 @@ function buildTargetEntries({ selectedTargets, summary }) {
       });
     }
     if (target === 'echo' && summary.echo) {
+      const echoTarget = summary.echo;
+      const echoInspectSummary = echoTarget.echo;
       entries.push({
         target,
         root: 'targets/echo',
-        schemaHash: summary.echo.schemaHash,
-        files: summary.echo.echo.files.map((file) => ({
+        schemaHash: echoTarget.schemaHash,
+        files: echoInspectSummary.files.map((file) => ({
           path: file.path,
           size: file.size
         })).concat([
           {
             path: relativizeToRoot({
               root: joinPath(summary.outDir, 'echo'),
-              targetPath: summary.echo.mock.outputPath
+              targetPath: echoTarget.mock.outputPath
             }),
             size: null
           },
           {
             path: relativizeToRoot({
               root: joinPath(summary.outDir, 'echo'),
-              targetPath: summary.echo.mock.summaryPath
+              targetPath: echoTarget.mock.summaryPath
             }),
             size: null
           }
@@ -611,6 +627,29 @@ async function syncFileProjection({ fs, bundleRoot, repoRoot, projection, dryRun
   }];
 }
 
+async function pruneConsumerProjectionExtras({ fs, bundleRoot, consumer, repoRoot, dryRun }) {
+  const removals = [];
+  const plans = buildConsumerVerificationPlans({
+    consumer,
+    bundleRoot,
+    repoRoot
+  });
+
+  for (const plan of plans) {
+    const extraFiles = await listPlanExtraFiles({ fs, plan });
+    for (const relativePath of extraFiles) {
+      const destinationPath = joinPath(plan.destinationRoot, relativePath);
+      if (!dryRun) {
+        await removeFile(fs, destinationPath);
+      }
+      removals.push({
+        destination: normalizeSeparators(path.relative(repoRoot, destinationPath))
+      });
+    }
+  }
+  return removals;
+}
+
 async function verifySyncedConsumer({
   fs,
   bundleRoot,
@@ -694,6 +733,50 @@ function validateBundleManifest(bundle, bundlePath) {
       `Contract bundle at ${bundlePath} is missing profile metadata.`
     );
   }
+  for (const consumer of bundle.compatibility?.consumers ?? []) {
+    for (const projection of consumer.projections ?? []) {
+      if (projection.kind !== 'directory' && projection.kind !== 'file') {
+        throw new WesleyError(
+          'CONTRACT_BUNDLE_PROJECTION_KIND_INVALID',
+          `Contract bundle at ${bundlePath} has unsupported projection kind: ${projection.kind}.`
+        );
+      }
+      validateProjectionPath(projection.fromRoot, {
+        bundlePath,
+        field: 'projection.fromRoot',
+        required: projection.kind === 'directory'
+      });
+      validateProjectionPath(projection.toRoot, {
+        bundlePath,
+        field: 'projection.toRoot',
+        required: projection.kind === 'directory'
+      });
+      validateProjectionPath(projection.from, {
+        bundlePath,
+        field: 'projection.from',
+        required: projection.kind === 'file'
+      });
+      validateProjectionPath(projection.to, {
+        bundlePath,
+        field: 'projection.to',
+        required: projection.kind === 'file'
+      });
+    }
+    for (const [root, allowedFiles] of Object.entries(consumer.allowedExtraFilesByRoot ?? {})) {
+      validateProjectionPath(root, {
+        bundlePath,
+        field: 'allowedExtraFilesByRoot root',
+        required: true
+      });
+      for (const allowedFile of allowedFiles ?? []) {
+        validateProjectionPath(allowedFile, {
+          bundlePath,
+          field: `allowedExtraFilesByRoot.${root}`,
+          required: true
+        });
+      }
+    }
+  }
 }
 
 async function computeTextDigest({ crypto, text }) {
@@ -706,7 +789,7 @@ async function computeTextDigest({ crypto, text }) {
   }
 
   const digest = await subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Buffer.from(digest).toString('hex');
+  return hexFromArrayBuffer(digest);
 }
 
 function relativizeToRoot({ root, targetPath }) {
@@ -856,6 +939,30 @@ async function verifyDirectoryPlan({ fs, plan, checks }) {
   };
 }
 
+async function listPlanExtraFiles({ fs, plan }) {
+  if (!(await fs.exists(plan.destinationRoot))) {
+    return [];
+  }
+  if (plan.mode === 'directory') {
+    const sourceFiles = await listFilesRecursive(fs, plan.sourceRoot);
+    const destinationFiles = await listFilesRecursive(fs, plan.destinationRoot);
+    const sourceRelativeFiles = new Set(sourceFiles.map((filePath) => normalizeSeparators(path.relative(plan.sourceRoot, filePath))));
+    return destinationFiles
+      .map((filePath) => normalizeSeparators(path.relative(plan.destinationRoot, filePath)))
+      .filter((relativePath) => !sourceRelativeFiles.has(relativePath))
+      .filter((relativePath) => !isAllowedExtraFile(relativePath, plan.allowedExtraFiles))
+      .sort((left, right) => left.localeCompare(right));
+  }
+
+  const destinationFiles = await listFilesRecursive(fs, plan.destinationRoot);
+  const managedRelativeFiles = new Set(plan.managedFiles.map((file) => normalizeSeparators(file.relativePath)));
+  return destinationFiles
+    .map((filePath) => normalizeSeparators(path.relative(plan.destinationRoot, filePath)))
+    .filter((relativePath) => !managedRelativeFiles.has(relativePath))
+    .filter((relativePath) => !isAllowedExtraFile(relativePath, plan.allowedExtraFiles))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 async function verifyManagedFilePlan({ fs, plan, checks }) {
   const destinationFiles = await listFilesRecursive(fs, plan.destinationRoot);
   const destinationRelativeFiles = destinationFiles.map((filePath) => normalizeSeparators(path.relative(plan.destinationRoot, filePath)));
@@ -914,6 +1021,14 @@ async function verifyManagedFilePlan({ fs, plan, checks }) {
     extraFiles,
     checks
   };
+}
+
+async function removeFile(fs, filePath) {
+  if (typeof fs.remove === 'function') {
+    await fs.remove(filePath);
+    return;
+  }
+  await rm(filePath, { force: true });
 }
 
 async function fileContentsMatch(fs, leftPath, rightPath) {
@@ -982,6 +1097,44 @@ function normalizeOptionalText(value) {
 
 function normalizeSeparators(value) {
   return value.replace(/\\/g, '/');
+}
+
+function isAllowedExtraFile(relativePath, allowedExtraFiles) {
+  const normalized = normalizeSeparators(relativePath);
+  return new Set((allowedExtraFiles ?? []).map(normalizeSeparators)).has(normalized);
+}
+
+function validateProjectionPath(value, { bundlePath, field, required }) {
+  const text = normalizeOptionalText(value);
+  if (text == null) {
+    if (required) {
+      throw new WesleyError(
+        'CONTRACT_BUNDLE_PROJECTION_PATH_INVALID',
+        `Contract bundle at ${bundlePath} is missing ${field}.`
+      );
+    }
+    return;
+  }
+
+  const normalized = normalizeSeparators(text);
+  const segments = normalized.split('/').filter(Boolean);
+  if (
+    path.posix.isAbsolute(normalized) ||
+    normalized.startsWith('../') ||
+    normalized === '..' ||
+    segments.includes('..')
+  ) {
+    throw new WesleyError(
+      'CONTRACT_BUNDLE_PROJECTION_PATH_INVALID',
+      `Contract bundle at ${bundlePath} has unsafe ${field}: ${text}.`
+    );
+  }
+}
+
+function hexFromArrayBuffer(buffer) {
+  return [...new Uint8Array(buffer)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 function mergeCommandOptions(command) {

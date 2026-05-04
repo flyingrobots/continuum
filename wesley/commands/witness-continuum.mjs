@@ -1,4 +1,4 @@
-import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
+import { WesleyCommand } from '../support/wesley-deps.mjs';
 import {
   configureContinuumWitnessCommander,
   executeContinuumWitnessCommand,

@@ -57,9 +57,10 @@ make_mirror_dir() {
         --json
 
     assert_success
-    echo "$output" | jq -e '.success == true and .result.status == "pass" and .result.summary.failed == 0' >/dev/null
-    echo "$output" | jq -e '.result.judgmentProfile.profilePackage == "continuum/wesley/profile" and .result.judgmentProfile.enginePackage == "@wesley/holmes"' >/dev/null
-    echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 1 and (.result.failures.mirror | length == 0)' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true and .result.status == "pass" and .result.summary.failed == 0'
+    assert_json "$json" '.result.judgmentProfile.profilePackage == "continuum/wesley/profile" and .result.judgmentProfile.enginePackage == "@wesley/holmes"'
+    assert_json "$json" '.result.surfaces.mirrors[0].surfaceCount == 1 and (.result.failures.mirror | length == 0)'
 }
 
 @test "drift-watch accepts a single mirror surface file" {
@@ -79,7 +80,8 @@ make_mirror_dir() {
         --json
 
     assert_success
-    echo "$output" | jq -e '.result.surfaces.mirrors[0].surfaceCount == 1 and .result.surfaces.mirrors[0].surfaces[0].kind == "echo-summary"' >/dev/null
+    local json="$output"
+    assert_json "$json" '.result.surfaces.mirrors[0].surfaceCount == 1 and .result.surfaces.mirrors[0].surfaces[0].kind == "echo-summary"'
 }
 
 @test "drift-watch fails when a mirror summary drifts from the authored schema hash" {

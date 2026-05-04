@@ -33,9 +33,9 @@ export async function buildRealizationManifest({
       hash: summary.schemaHash ?? await digestText({ crypto, text: schemaContent })
     },
     generatedLegs,
-    integrity: {
-      status: 'pass',
-      checkedFiles: Object.values(generatedLegs)
+    generation: {
+      status: 'generated',
+      generatedFiles: Object.values(generatedLegs)
         .reduce((total, leg) => total + leg.fileCount, 0)
     }
   };
@@ -55,8 +55,27 @@ export async function inspectRealizationManifest({
     return null;
   }
 
-  const manifest = JSON.parse(await fs.read(manifestPath));
   const checks = [];
+  let manifest;
+  try {
+    manifest = JSON.parse(await fs.read(manifestPath));
+  } catch (error) {
+    checks.push(createCheck(
+      'realization.manifest-json',
+      false,
+      `Realization manifest at ${manifestPath} is not valid JSON: ${error.message}`,
+      {
+        manifestPath,
+        error: error.message
+      }
+    ));
+    return {
+      manifestPath,
+      manifest: null,
+      checks
+    };
+  }
+
   checks.push(createCheck(
     'realization.manifest-kind',
     manifest.kind === REALIZATION_MANIFEST_KIND,
@@ -147,7 +166,7 @@ async function collectManifestFiles({ fs, crypto, root }) {
 async function digestText({ crypto, text }) {
   const subtle = crypto?.subtle ?? globalThis.crypto?.subtle;
   const digest = await subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Buffer.from(digest).toString('hex');
+  return hexFromArrayBuffer(digest);
 }
 
 function joinPath(...segments) {
@@ -156,4 +175,10 @@ function joinPath(...segments) {
 
 function normalizePath(value) {
   return value.replace(/\\/g, '/');
+}
+
+function hexFromArrayBuffer(buffer) {
+  return [...new Uint8Array(buffer)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }

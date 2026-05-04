@@ -231,8 +231,17 @@ suffix exchange and admission between sibling runtimes.
 - No full suffix exchange/import publication surface is present in the current
   design or kernel/ABI files.
 - A targeted search across Echo design docs and the relevant runtime crates
-  found no cross-runtime exchange boundary object:
-  - `rg -n "source runtime|target runtime|cross-runtime|suffix|import|export" ...`
+  found settlement/evaluator internals, but no exported Echo operation that
+  publishes a sibling-runtime suffix admission event:
+
+  ```bash
+  rg -n \
+    "source runtime|target runtime|cross-runtime|suffix|import|export" \
+    ../echo/docs \
+    ../echo/crates/echo-runtime-schema/README.md \
+    ../echo/crates/warp-core/src \
+    ../echo/crates/echo-wasm-abi/src/kernel_port.rs
+  ```
 
 **Why red:**
 

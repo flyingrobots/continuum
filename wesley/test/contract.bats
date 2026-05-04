@@ -36,7 +36,8 @@ teardown() {
         --json
 
     assert_success
-    echo "$output" | jq -e '.success == true and .result.profile == "continuum" and .result.family == "receipt-family" and .result.witness.status == "pass"' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true and .result.profile == "continuum" and .result.family == "receipt-family" and .result.witness.status == "pass"'
     assert_file_exist out/bundle/bundle.json
     assert_file_exist out/bundle/source/authority.json
     assert_file_exist out/bundle/source/admitted.graphql
@@ -66,7 +67,8 @@ teardown() {
         --repo consumers/warp-ttd \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true and .result.consumer == "warp-ttd" and .result.fileCount > 2 and .result.verification.status == "pass"' >/dev/null
+    local warp_json="$output"
+    assert_json "$warp_json" '.success == true and .result.consumer == "warp-ttd" and .result.fileCount > 2 and .result.verification.status == "pass"'
     assert_file_exist consumers/warp-ttd/manifest/manifest.json
     assert_file_exist consumers/warp-ttd/typescript/index.ts
     assert_file_exist out/bundle/witness/sync-warp-ttd.json
@@ -78,13 +80,14 @@ teardown() {
         --repo consumers/echo \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true and .result.consumer == "echo" and .result.fileCount == 4 and .result.verification.status == "pass"' >/dev/null
+    local echo_json="$output"
+    assert_json "$echo_json" '.success == true and .result.consumer == "echo" and .result.fileCount == 4 and .result.verification.status == "pass"'
     assert_file_exist consumers/echo/packages/ttd-protocol-ts/index.ts
     assert_file_exist consumers/echo/packages/ttd-protocol-ts/zod.ts
     assert_file_exist out/bundle/witness/sync-echo.json
 }
 
-@test "contract sync fails when the consumer surface still drifts after copy" {
+@test "contract sync prunes destination-only generated files" {
     cp "$CONTINUUM_SCHEMA" schema.graphql
     node "$CLI_PATH" contract release \
         --profile continuum \
@@ -104,11 +107,50 @@ EOF
         --profile continuum \
         --bundle out/bundle \
         --consumer echo \
-        --repo consumers/echo
+        --repo consumers/echo \
+        --json
+
+    assert_success
+    local json="$output"
+    assert_json "$json" '.success == true and .result.consumer == "echo" and .result.removedFileCount == 1 and .result.verification.status == "pass"'
+    assert_file_not_exist consumers/echo/packages/ttd-protocol-ts/manual.ts
+    assert_file_exist out/bundle/witness/sync-echo.json
+}
+
+@test "contract sync rejects unsafe bundle projection paths" {
+    cp "$CONTINUUM_SCHEMA" schema.graphql
+    node "$CLI_PATH" contract release \
+        --profile continuum \
+        --family receipt-family \
+        --schema schema.graphql \
+        --release 0.1.0 \
+        --bundle-out out/bundle >/dev/null
+
+    jq '.compatibility.consumers[0].projections[0].toRoot = "../escaped"' \
+        out/bundle/bundle.json > out/bundle/bundle.tmp
+    mv out/bundle/bundle.tmp out/bundle/bundle.json
+    mkdir -p consumers/warp-ttd
+
+    run node "$CLI_PATH" contract sync \
+        --profile continuum \
+        --bundle out/bundle \
+        --consumer warp-ttd \
+        --repo consumers/warp-ttd
 
     assert_failure
-    assert_output --partial "Contract sync left echo drifted"
-    assert_file_exist out/bundle/witness/sync-echo.json
-    run jq -e '.checks[] | select(.id == "packages/ttd-protocol-ts.extras" and .status == "fail")' out/bundle/witness/sync-echo.json
-    assert_success
+    assert_output --partial "unsafe projection.toRoot"
+}
+
+@test "contract sync reports malformed bundle JSON with context" {
+    mkdir -p out/bundle consumers/warp-ttd
+    printf '{not-json' > out/bundle/bundle.json
+
+    run node "$CLI_PATH" contract sync \
+        --profile continuum \
+        --bundle out/bundle \
+        --consumer warp-ttd \
+        --repo consumers/warp-ttd
+
+    assert_failure
+    assert_output --partial "Contract bundle at out/bundle/bundle.json is not valid JSON"
 }

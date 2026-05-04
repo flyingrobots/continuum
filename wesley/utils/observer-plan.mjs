@@ -83,7 +83,7 @@ export function generateObserverPlanTypeScript(plan) {
     '  readonly source: Record<string, string>;',
     '}',
     '',
-    `export const ${exportConstName} = ${schemaField} as const satisfies ObserverPlan;`,
+    `export const ${exportConstName} = ${schemaField} as const;`,
     '',
     `export type ${toPascalCase(exportConstName)} = typeof ${exportConstName};`,
     ''
@@ -149,12 +149,16 @@ function toCamelCase(value) {
 }
 
 function toPascalCase(value) {
-  return value
+  const words = value
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/[^a-zA-Z0-9]+/g, ' ')
     .trim()
     .split(/\s+/)
-    .filter(Boolean)
+    .filter(Boolean);
+  if (words.length === 0) {
+    return 'ObserverPlan';
+  }
+  return words
     .map(capitalize)
     .join('');
 }

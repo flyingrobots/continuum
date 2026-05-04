@@ -147,9 +147,9 @@ type Mutation {
   settleLane(sourceLaneId: String!, targetLaneId: String!, requestId: ID): SettlementResult!
     @wes_op(name: "settleLane")
     @wes_footprint(
-      reads: ["SettlementDelta", "SettlementPlan"],
+      reads: ["SettlementDelta", "SettlementPlan", "SettlementRequest"],
       writes: ["SettlementResult", "ImportCandidate", "ConflictArtifact"],
-      creates: ["ImportCandidate", "ConflictArtifact"]
+      creates: ["SettlementResult", "ImportCandidate", "ConflictArtifact"]
     )
 }
 
@@ -170,5 +170,7 @@ type ContinuumSettlementFamilyInvariants
     severity: "error"
   )
 {
-  _placeholder: Boolean
+  delta_window_is_non_negative: Boolean
+  plan_decision_count_matches_rows: Boolean
+  result_links_plan: Boolean
 }

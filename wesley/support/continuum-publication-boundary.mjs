@@ -1,7 +1,10 @@
 import { realpath } from 'node:fs/promises';
 import path from 'node:path';
-import { parse, Kind } from './graphql-from-wesley.mjs';
 import { createCheck } from './continuum-witness-support.mjs';
+import {
+  declarationPatternForExtension,
+  extractContractNames
+} from './graphql-contract-names.mjs';
 
 const CONTRACT_FILE_EXTENSIONS = new Set([
   '.graphql',
@@ -25,7 +28,6 @@ const IGNORED_DIRECTORIES = new Set([
   '.next',
   'out'
 ]);
-const ROOT_OPERATION_TYPE_NAMES = new Set(['Query', 'Mutation', 'Subscription']);
 
 export async function inspectContinuumPublicationBoundary({
   fs,
@@ -195,8 +197,11 @@ async function collectCompatMirrorFiles(fs, compatRoots) {
   const seen = new Set();
 
   for (const root of compatRoots) {
+    if (!(await fs.exists(root))) {
+      continue;
+    }
     const normalizedRoot = await canonicalizePath(root);
-    if (seen.has(normalizedRoot) || !(await fs.exists(root))) {
+    if (seen.has(normalizedRoot)) {
       continue;
     }
 
@@ -257,41 +262,6 @@ function classifyAuthority(filePath, rule) {
   return 'unknown';
 }
 
-function extractContractNames(schemaContent) {
-  let document;
-  try {
-    document = parse(schemaContent, { noLocation: true });
-  } catch (error) {
-    return {
-      names: [],
-      error: error instanceof Error ? error.message : String(error)
-    };
-  }
-  const names = [];
-  for (const definition of document.definitions) {
-    if (!definition.name?.value) {
-      continue;
-    }
-
-    if (
-      definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
-      definition.kind === Kind.INTERFACE_TYPE_DEFINITION ||
-      definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-      definition.kind === Kind.UNION_TYPE_DEFINITION ||
-      definition.kind === Kind.ENUM_TYPE_DEFINITION ||
-      definition.kind === Kind.SCALAR_TYPE_DEFINITION
-    ) {
-      if (!ROOT_OPERATION_TYPE_NAMES.has(definition.name.value)) {
-        names.push(definition.name.value);
-      }
-    }
-  }
-  return {
-    names,
-    error: null
-  };
-}
-
 function looksLikeShadowContract(filePath, content, familyNames) {
   if (familyNames.size === 0) {
     return false;
@@ -305,20 +275,6 @@ function looksLikeShadowContract(filePath, content, familyNames) {
     }
   }
   return false;
-}
-
-function declarationPatternForExtension(extension, familyName) {
-  const name = escapeRegExp(familyName);
-  if (extension === '.graphql' || extension === '.gql') {
-    return new RegExp(`\\b(type|enum|input|interface|union|scalar)\\s+${name}\\b`, 'm');
-  }
-  if (extension === '.ts' || extension === '.tsx' || extension === '.js' || extension === '.mjs' || extension === '.cjs') {
-    return new RegExp(`\\b(export\\s+)?(type|interface|class|enum)\\s+${name}\\b`, 'm');
-  }
-  if (extension === '.rs') {
-    return new RegExp(`\\b(pub\\s+)?(struct|enum|type)\\s+${name}\\b`, 'm');
-  }
-  return null;
 }
 
 function looksLikeGeneratedArtifactLeak(filePath, content, rule) {
@@ -392,10 +348,6 @@ function normalizeArtifactPath(value) {
   return normalizeSeparators(value.trim()).replace(/^\.?\//, '');
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 async function resolvePath(fs, targetPath) {
   const resolved = fs.resolve
     ? await fs.resolve(targetPath)
@@ -434,6 +386,8 @@ class RootPublicationBoundary extends PublicationBoundary {
   }
 }
 
+// Intentional empty subclass used as a semantic marker for generated roots.
 class GeneratedRootBoundary extends RootPublicationBoundary {}
 
+// Intentional empty subclass used as a semantic marker for compatibility roots.
 class CompatRootBoundary extends RootPublicationBoundary {}

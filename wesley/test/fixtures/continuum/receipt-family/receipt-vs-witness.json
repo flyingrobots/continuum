@@ -13,18 +13,5 @@
     "kind",
     "residueHash",
     "footprint"
-  ],
-  "deliveryObservationForbiddenFields": [
-    "writerId",
-    "inputTick",
-    "outputTick",
-    "admittedRewriteCount",
-    "rejectedRewriteCount",
-    "counterfactualCount",
-    "digest",
-    "witnessId",
-    "kind",
-    "residueHash",
-    "footprint"
   ]
 }

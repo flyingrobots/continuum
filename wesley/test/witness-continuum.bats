@@ -8,8 +8,10 @@ setup() {
 
     continuum_setup_wesley_cli
     REPO_ROOT="$CONTINUUM_REPO_ROOT"
-    TTD_SCHEMA="$REPO_ROOT/schemas/ttd-protocol.graphql"
-    ECHO_SCHEMA="$REPO_ROOT/schemas/echo-core-types.graphql"
+    WARP_TTD_REPO_ROOT="${WARP_TTD_REPO_ROOT:-$CONTINUUM_REPO_ROOT/../warp-ttd}"
+    ECHO_REPO_ROOT="${ECHO_REPO_ROOT:-$CONTINUUM_REPO_ROOT/../echo}"
+    TTD_SCHEMA="$WARP_TTD_REPO_ROOT/schemas/warp-ttd-protocol.graphql"
+    ECHO_SCHEMA="$ECHO_REPO_ROOT/schemas/wesley-relocated/echo-core-types.graphql"
     RECEIPT_SCHEMA="$REPO_ROOT/schemas/continuum-receipt-family.graphql"
     SETTLEMENT_SCHEMA="$REPO_ROOT/schemas/continuum-settlement-family.graphql"
     RECEIPT_FIXTURE_DIR="$REPO_ROOT/wesley/test/fixtures/continuum/receipt-family"
@@ -29,7 +31,7 @@ generate_local_inspect_surfaces() {
 
 require_current_minimum_schemas() {
     if [[ ! -f "$TTD_SCHEMA" || ! -f "$ECHO_SCHEMA" ]]; then
-        skip "current-minimum TTD/Echo schemas are not tracked in this checkout"
+        skip "current-minimum TTD/Echo schemas require sibling warp-ttd and echo checkouts"
     fi
 }
 
@@ -69,9 +71,10 @@ run_witness_continuum() {
         --out-dir out/proof \
         --json
     assert_success
-    echo "$output" | jq -e '.result.scope == "receipt-family"' >/dev/null
-    echo "$output" | jq -e '.result.outputPath == "out/proof/witness/conformance.json"' >/dev/null
-    echo "$output" | jq -e '.result.status == "pass"' >/dev/null
+    local json="$output"
+    assert_json "$json" '.result.scope == "receipt-family"'
+    assert_json "$json" '.result.outputPath == "out/proof/witness/conformance.json"'
+    assert_json "$json" '.result.status == "pass"'
 }
 
 @test "witness-continuum writes a passing conformance report" {
@@ -83,14 +86,15 @@ run_witness_continuum() {
         --out out/witness/conformance.json \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true' >/dev/null
-    echo "$output" | jq -e '.result.status == "pass"' >/dev/null
-    echo "$output" | jq -e '.result.scope == "current-minimum-shared-surface"' >/dev/null
-    echo "$output" | jq -e '.result.judgmentProfile.profilePackage == "continuum/wesley/profile" and .result.judgmentProfile.enginePackage == "@wesley/holmes"' >/dev/null
-    echo "$output" | jq -e '.result.summary.failed == 0' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "continuum.delivery-vs-receipt-separation" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "publication-boundary.ttd-protocol" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "publication-boundary.echo-core-types" and .status == "pass")' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true'
+    assert_json "$json" '.result.status == "pass"'
+    assert_json "$json" '.result.scope == "current-minimum-shared-surface"'
+    assert_json "$json" '.result.judgmentProfile.profilePackage == "continuum/wesley/profile" and .result.judgmentProfile.enginePackage == "@wesley/holmes"'
+    assert_json "$json" '.result.summary.failed == 0'
+    assert_json "$json" '.result.checks[] | select(.id == "continuum.delivery-vs-receipt-separation" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "publication-boundary.ttd-protocol" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "publication-boundary.echo-core-types" and .status == "pass")'
     assert_file_exist out/witness/conformance.json
 }
 
@@ -115,6 +119,10 @@ run_witness_continuum() {
 
 @test "witness-continuum fails when mocked deliveries lose required observation fields" {
     generate_local_inspect_surfaces
+
+    if ! grep -q '[^[:space:]]' out/echo/mock/deliveries.jsonl; then
+        skip "current-minimum Echo schema emits no mocked deliveries"
+    fi
 
     node - <<'EOF'
 const fs = require('fs');
@@ -179,16 +187,16 @@ EOF
         --out out/witness/conformance.json \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true' >/dev/null
-    echo "$output" | jq -e '.result.status == "pass"' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true'
+    assert_json "$json" '.result.status == "pass"'
     assert_file_exist out/witness/conformance.json
 }
 
 @test "witness-continuum accepts mixed relative and absolute schema paths for the same Echo schema" {
     require_current_minimum_schemas
-    cd "$REPO_ROOT"
-    node "$CLI_PATH" compile --schema schemas/ttd-protocol.graphql --target warp-ttd --out-dir "$TEST_TEMP_DIR/out" >/dev/null
-    node "$CLI_PATH" compile --schema schemas/echo-core-types.graphql --target echo --out-dir "$TEST_TEMP_DIR/out" >/dev/null
+    node "$CLI_PATH" compile --schema "$TTD_SCHEMA" --target warp-ttd --out-dir "$TEST_TEMP_DIR/out" >/dev/null
+    node "$CLI_PATH" compile --schema "$ECHO_SCHEMA" --target echo --out-dir "$TEST_TEMP_DIR/out" >/dev/null
     cd "$TEST_TEMP_DIR"
 
     run_witness_continuum \
@@ -197,7 +205,8 @@ EOF
         --out "$TEST_TEMP_DIR/out/witness/conformance.json" \
         --json
     assert_success
-    echo "$output" | jq -e '.result.checks[] | select(.id == "echo.summary-traceability" and .status == "pass")' >/dev/null
+    local json="$output"
+    assert_json "$json" '.result.checks[] | select(.id == "echo.summary-traceability" and .status == "pass")'
 }
 
 @test "witness-continuum reports missing slash-heavy directories cleanly" {
@@ -242,7 +251,7 @@ EOF
 
     mkdir -p shadow
     cat > shadow/cursor-shadow.graphql <<'EOF'
-type CursorState {
+type HostHello {
   fake: String
 }
 EOF
@@ -268,16 +277,17 @@ EOF
         --out out/witness/receipt-family.json \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true' >/dev/null
-    echo "$output" | jq -e '.result.scope == "receipt-family"' >/dev/null
-    echo "$output" | jq -e '.result.status == "pass"' >/dev/null
-    echo "$output" | jq -e '.result.summary.failed == 0' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "receipt-family.ttd-fixture-shape" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "receipt-family.boundary-fixture" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "receipt-family.roundtrip-fixture-vectors" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "receipt-family.receipt-vs-witness-separation" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "publication-boundary.receipt-family" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.surfaces.publicationBoundary.rules[] | select(.id == "receipt-family") | .declaredCompatMirrors | length >= 1' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true'
+    assert_json "$json" '.result.scope == "receipt-family"'
+    assert_json "$json" '.result.status == "pass"'
+    assert_json "$json" '.result.summary.failed == 0'
+    assert_json "$json" '.result.checks[] | select(.id == "receipt-family.ttd-fixture-shape" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "receipt-family.boundary-fixture" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "receipt-family.roundtrip-fixture-vectors" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "receipt-family.receipt-vs-witness-separation" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "publication-boundary.receipt-family" and .status == "pass")'
+    assert_json "$json" '.result.surfaces.publicationBoundary.rules[] | select(.id == "receipt-family") | .declaredCompatMirrors | length >= 1'
     assert_file_exist out/witness/receipt-family.json
 }
 
@@ -397,14 +407,15 @@ EOF
         --out out/witness/settlement-family.json \
         --json
     assert_success
-    echo "$output" | jq -e '.success == true' >/dev/null
-    echo "$output" | jq -e '.result.scope == "settlement-family"' >/dev/null
-    echo "$output" | jq -e '.result.status == "pass"' >/dev/null
-    echo "$output" | jq -e '.result.summary.failed == 0' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "settlement-family.ttd-fixture-shape" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "settlement-family.boundary-fixture" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "settlement-family.decision-separation" and .status == "pass")' >/dev/null
-    echo "$output" | jq -e '.result.checks[] | select(.id == "publication-boundary.settlement-family" and .status == "pass")' >/dev/null
+    local json="$output"
+    assert_json "$json" '.success == true'
+    assert_json "$json" '.result.scope == "settlement-family"'
+    assert_json "$json" '.result.status == "pass"'
+    assert_json "$json" '.result.summary.failed == 0'
+    assert_json "$json" '.result.checks[] | select(.id == "settlement-family.ttd-fixture-shape" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "settlement-family.boundary-fixture" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "settlement-family.decision-separation" and .status == "pass")'
+    assert_json "$json" '.result.checks[] | select(.id == "publication-boundary.settlement-family" and .status == "pass")'
     assert_file_exist out/witness/settlement-family.json
 }
 

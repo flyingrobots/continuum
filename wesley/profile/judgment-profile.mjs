@@ -1,3 +1,18 @@
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function deepFreeze(value) {
+  if (value == null || typeof value !== 'object') {
+    return value;
+  }
+  Object.freeze(value);
+  for (const nested of Object.values(value)) {
+    deepFreeze(nested);
+  }
+  return value;
+}
+
 const CONTINUUM_JUDGMENT_PROFILE = deepFreeze({
   profilePackage: 'continuum/wesley/profile',
   enginePackage: '@wesley/holmes',
@@ -76,19 +91,4 @@ export { CONTINUUM_JUDGMENT_PROFILE };
 
 export function getContinuumJudgmentProfile() {
   return cloneJson(CONTINUUM_JUDGMENT_PROFILE);
-}
-
-function cloneJson(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
-function deepFreeze(value) {
-  if (value == null || typeof value !== 'object') {
-    return value;
-  }
-  Object.freeze(value);
-  for (const nested of Object.values(value)) {
-    deepFreeze(nested);
-  }
-  return value;
 }

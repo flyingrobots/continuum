@@ -34,12 +34,14 @@ Create one practical docs governance cut that covers:
 
 ## Candidate Policy
 
-Generated PDFs should belong in repo truth only when at least one of these is
-true:
+Generated PDFs should belong in repo truth only when all required conditions
+hold:
 
-- the PDF is externally meaningful release or review material
 - the source is tracked and the build command is documented
-- the PDF is the artifact consumers actually inspect
+- the build command is runnable from repo root
+- and at least one of these is true:
+  - the PDF is externally meaningful release or review material
+  - the PDF is the artifact consumers actually inspect
 
 Otherwise, prefer source-only documentation and generated artifacts outside the
 repo.

@@ -1,5 +1,6 @@
 import path from 'node:path';
-import { WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
+
+import { WesleyError } from '../support/wesley-deps.mjs';
 
 export const CURRENT_MINIMUM_SCOPE = 'current-minimum-shared-surface';
 export const RECEIPT_FAMILY_SCOPE = 'receipt-family';
@@ -10,11 +11,28 @@ export const CONTINUUM_SCOPE_ORDER = [
   SETTLEMENT_FAMILY_SCOPE
 ];
 
+const COMMON_PUBLICATION_BOUNDARY_RESERVED_ROOTS = [
+  { path: 'schemas/continuum-receipt-family.graphql', reason: 'owned family schema used as a compatibility fixture' },
+  { path: 'schemas/continuum-settlement-family.graphql', reason: 'owned family schema used as a compatibility fixture' },
+  { path: 'schemas/directives.graphql', reason: 'shared Wesley directive definitions' }
+];
+const PUBLICATION_BOUNDARY_RESERVED_ROOTS_BY_SCOPE = {
+  [CURRENT_MINIMUM_SCOPE]: [
+    { path: 'test', reason: 'Wesley upstream test corpus, not product contract truth' },
+    { path: 'packages/wesley-cli/test', reason: 'Wesley CLI tests, not product contract truth' },
+    { path: 'packages/wesley-core/test', reason: 'Wesley core tests, not product contract truth' },
+    { path: 'test/fixtures/continuum/receipt-family', reason: 'receipt-family witness fixture root' },
+    { path: 'test/fixtures/continuum/settlement-family', reason: 'settlement-family witness fixture root' },
+    ...COMMON_PUBLICATION_BOUNDARY_RESERVED_ROOTS
+  ],
+  default: [...COMMON_PUBLICATION_BOUNDARY_RESERVED_ROOTS]
+};
+
 const CONTINUUM_SCOPE_DEFINITIONS = deepFreeze({
   [CURRENT_MINIMUM_SCOPE]: {
     defaultOutDir: '.wesley-cache/continuum/local-inspect',
-    defaultTtdSchemaPath: 'schemas/ttd-protocol.graphql',
-    defaultEchoSchemaPath: 'schemas/echo-core-types.graphql',
+    defaultTtdSchemaPath: '../warp-ttd/schemas/warp-ttd-protocol.graphql',
+    defaultEchoSchemaPath: '../echo/schemas/wesley-relocated/echo-core-types.graphql',
     proves: [
       'schema-to-artifact consistency for the current TTD and Echo minimum surfaces',
       'manifest and source traceability for emitted local inspect outputs',
@@ -165,7 +183,6 @@ export function resolveContinuumDriftWatchProfile({
 
   return {
     ...witnessProfile,
-    outputPath: witnessProfile.outputPath,
     mirrorRoots: [...new Set((Array.isArray(mirrorRoots) ? mirrorRoots : [mirrorRoots])
       .map((item) => normalizeOptionalPath(item))
       .filter(Boolean))]
@@ -262,26 +279,9 @@ export function buildContinuumPublicationBoundaryPlan({
 }
 
 function buildPublicationBoundaryReservedRoots(scope) {
-  if (scope === CURRENT_MINIMUM_SCOPE) {
-    return [
-      'test',
-      'packages/wesley-cli/test',
-      'packages/wesley-core/test',
-      'test/fixtures/continuum/receipt-family',
-      'test/fixtures/continuum/settlement-family',
-      'schemas/continuum-receipt-family.graphql',
-      'schemas/continuum-settlement-family.graphql',
-      'schemas/directives.graphql'
-    ];
-  }
-
-  return [
-    'schemas/ttd-protocol.graphql',
-    'schemas/echo-core-types.graphql',
-    'schemas/continuum-receipt-family.graphql',
-    'schemas/continuum-settlement-family.graphql',
-    'schemas/directives.graphql'
-  ];
+  return (PUBLICATION_BOUNDARY_RESERVED_ROOTS_BY_SCOPE[scope] ??
+    PUBLICATION_BOUNDARY_RESERVED_ROOTS_BY_SCOPE.default)
+    .map((entry) => entry.path);
 }
 
 function buildGeneratedArtifactPaths(rootDir, files) {

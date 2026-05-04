@@ -1,4 +1,4 @@
-import { WesleyModule } from '../../wesley/packages/wesley-core/src/ports/WesleyModule.mjs';
+import { WesleyModule } from './support/wesley-deps.mjs';
 
 import { ContractCommand } from './commands/contract.mjs';
 import { DriftWatchCommand } from './commands/drift-watch.mjs';

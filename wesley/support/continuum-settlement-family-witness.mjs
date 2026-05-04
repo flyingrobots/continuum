@@ -10,7 +10,7 @@ import {
   fieldsPresent,
   readJson
 } from './continuum-witness-support.mjs';
-import { joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
+import { joinPath } from './wesley-deps.mjs';
 
 export async function inspectSettlementFamilySurface({
   fs,

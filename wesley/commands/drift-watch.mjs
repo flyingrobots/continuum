@@ -1,7 +1,16 @@
 import path from 'node:path';
-import { Kind, parse } from '../support/graphql-from-wesley.mjs';
-import { WesleyCommand } from '../../../wesley/packages/wesley-cli/src/framework/WesleyCommand.mjs';
-import { WesleyError, computeSdlHash, schemaHash } from '../../../wesley/packages/wesley-core/src/index.mjs';
+import {
+  computeSdlHash,
+  joinPath,
+  schemaHash,
+  WesleyCommand,
+  WesleyError
+} from '../support/wesley-deps.mjs';
+import {
+  declarationPatternForExtension,
+  escapeRegExp,
+  extractContractNames
+} from '../support/graphql-contract-names.mjs';
 import {
   CONTINUUM_JUDGMENT_PROFILE,
   RECEIPT_FAMILY_SCOPE,
@@ -14,10 +23,8 @@ import { inspectRealizationManifest } from '../support/realization-integrity.mjs
 import {
   resolveContinuumWitnessOptions
 } from '../support/continuum-witness-report.mjs';
-import { joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
 
 const DRIFT_WATCH_KIND = 'wesley.continuum.drift-watch.v1';
-const ROOT_OPERATION_TYPE_NAMES = new Set(['Query', 'Mutation', 'Subscription']);
 const MIRROR_FILE_EXTENSIONS = new Set(['.graphql', '.gql', '.json', '.ts', '.tsx', '.js', '.mjs', '.cjs', '.rs']);
 const IGNORED_DIRECTORIES = new Set([
   '.git',
@@ -268,6 +275,7 @@ async function inspectAuthoredSurfaces({ fs, schemaPaths, checks }) {
     const surface = await inspectAuthoredSchema({
       fs,
       schemaPath,
+      id: entry.id,
       checkId: `authored.${entry.id}.schema-input-validity`,
       checks
     });
@@ -278,7 +286,7 @@ async function inspectAuthoredSurfaces({ fs, schemaPaths, checks }) {
   return surfaces;
 }
 
-async function inspectAuthoredSchema({ fs, schemaPath, checkId, checks }) {
+async function inspectAuthoredSchema({ fs, schemaPath, id, checkId, checks }) {
   let schemaContent = null;
   let sourceHash = null;
   let irHash = null;
@@ -314,7 +322,7 @@ async function inspectAuthoredSchema({ fs, schemaPath, checkId, checks }) {
   ));
 
   return {
-    id: checkId.slice('authored.'.length, -'.schema-input-validity'.length),
+    id,
     schemaPath,
     sourceHash,
     irHash,
@@ -336,18 +344,18 @@ async function inspectLocalTtdSurface({ fs, authored, outDir, checks }) {
     passRequired,
     passRequired
       ? 'Found TTD schema and manifest outputs needed for drift watch.'
-      : `Missing TTD drift-watch artifacts: ${missing.map((item) => describeRelative(outDir, item)).join(', ')}`,
+      : `Missing TTD drift-watch artifacts: ${missing.map((item) => describePath(outDir, item)).join(', ')}`,
     {
       outDir,
-      requiredFiles: required.map((item) => describeRelative(outDir, item)),
-      missingFiles: missing.map((item) => describeRelative(outDir, item))
+      requiredFiles: required.map((item) => describePath(outDir, item)),
+      missingFiles: missing.map((item) => describePath(outDir, item))
     }
   ));
 
   if (!passRequired) {
     return {
       outDir,
-      missingFiles: missing.map((item) => describeRelative(outDir, item))
+      missingFiles: missing.map((item) => describePath(outDir, item))
     };
   }
 
@@ -403,18 +411,18 @@ async function inspectLocalEchoSurface({ fs, authored, outDir, checks }) {
     passRequired,
     passRequired
       ? 'Found Echo inspect outputs needed for drift watch.'
-      : `Missing Echo drift-watch artifacts: ${missing.map((item) => describeRelative(outDir, item)).join(', ')}`,
+      : `Missing Echo drift-watch artifacts: ${missing.map((item) => describePath(outDir, item)).join(', ')}`,
     {
       outDir,
-      requiredFiles: required.map((item) => describeRelative(outDir, item)),
-      missingFiles: missing.map((item) => describeRelative(outDir, item))
+      requiredFiles: required.map((item) => describePath(outDir, item)),
+      missingFiles: missing.map((item) => describePath(outDir, item))
     }
   ));
 
   if (!passRequired) {
     return {
       outDir,
-      missingFiles: missing.map((item) => describeRelative(outDir, item))
+      missingFiles: missing.map((item) => describePath(outDir, item))
     };
   }
 
@@ -719,37 +727,6 @@ async function collectMissingFiles(fs, paths) {
   return missing;
 }
 
-function extractContractNames(schemaContent) {
-  let document;
-  try {
-    document = parse(schemaContent, { noLocation: true });
-  } catch (error) {
-    return {
-      names: [],
-      error: error instanceof Error ? error.message : String(error)
-    };
-  }
-  const names = [];
-  for (const definition of document.definitions) {
-    if (!definition.name?.value) {
-      continue;
-    }
-    if (
-      definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
-      definition.kind === Kind.INTERFACE_TYPE_DEFINITION ||
-      definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-      definition.kind === Kind.UNION_TYPE_DEFINITION ||
-      definition.kind === Kind.ENUM_TYPE_DEFINITION ||
-      definition.kind === Kind.SCALAR_TYPE_DEFINITION
-    ) {
-      if (!ROOT_OPERATION_TYPE_NAMES.has(definition.name.value)) {
-        names.push(definition.name.value);
-      }
-    }
-  }
-  return { names, error: null };
-}
-
 function looksLikeFamilyDeclaration(extension, content, familyNames) {
   if (!(familyNames instanceof Set) || familyNames.size === 0) {
     return false;
@@ -761,20 +738,6 @@ function looksLikeFamilyDeclaration(extension, content, familyNames) {
     }
   }
   return false;
-}
-
-function declarationPatternForExtension(extension, familyName) {
-  const name = escapeRegExp(familyName);
-  if (extension === '.graphql' || extension === '.gql') {
-    return new RegExp(`\\b(type|enum|input|interface|union|scalar)\\s+${name}\\b`, 'm');
-  }
-  if (extension === '.ts' || extension === '.tsx' || extension === '.js' || extension === '.mjs' || extension === '.cjs') {
-    return new RegExp(`\\b(export\\s+)?(type|interface|class|enum)\\s+${name}\\b`, 'm');
-  }
-  if (extension === '.rs') {
-    return new RegExp(`\\b(pub\\s+)?(struct|enum|type)\\s+${name}\\b`, 'm');
-  }
-  return null;
 }
 
 function extractMirrorHashFromJson(value) {
@@ -862,16 +825,7 @@ async function resolveRepoRoot(fs) {
   return process.cwd();
 }
 
-function describeRelative(root, targetPath) {
-  const relativePath = path.relative(root, targetPath);
-  return relativePath.startsWith('..') ? targetPath : relativePath;
-}
-
 function describePath(repoRoot, targetPath) {
   const relativePath = path.relative(repoRoot, targetPath);
   return relativePath.startsWith('..') ? targetPath : relativePath;
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

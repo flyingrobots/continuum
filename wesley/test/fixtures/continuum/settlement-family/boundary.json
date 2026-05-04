@@ -11,7 +11,9 @@
       "summary"
     ],
     "ContinuumSettlementFamilyInvariants": [
-      "_placeholder"
+      "delta_window_is_non_negative",
+      "plan_decision_count_matches_rows",
+      "result_links_plan"
     ],
     "ImportCandidate": [
       "candidateId",

@@ -88,9 +88,15 @@ test('generateObserverPlanTypeScript emits a plan constant and interface', () =>
       revelationTier: 'CANONICAL_TEXT_ONLY',
       redactionPolicy: 'HIDE_NON_CANONICAL_LANES'
     }
+  }, {
+    specPath: 'src/app/jedit-observer-spec.ts',
+    exportName: 'createWorldlineSnapshotObserverSpec'
   }));
 
   assert.match(code, /export interface ObserverPlan/);
   assert.match(code, /export const worldlinesnapshotobserverplan/i);
   assert.match(code, /"operationName": "worldlineSnapshot"/);
+  assert.match(code, /"specPath": "src\/app\/jedit-observer-spec\.ts"/);
+  assert.match(code, /"exportName": "createWorldlineSnapshotObserverSpec"/);
+  assert.doesNotMatch(code, /satisfies ObserverPlan/);
 });

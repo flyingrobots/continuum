@@ -38,6 +38,14 @@ assert_failure() {
     fi
 }
 
+assert_json() {
+    local json="$1"
+    local expression="$2"
+
+    run jq -e "$expression" <<<"$json"
+    assert_success
+}
+
 assert_output() {
     if [[ "${1:-}" == "--partial" ]]; then
         shift

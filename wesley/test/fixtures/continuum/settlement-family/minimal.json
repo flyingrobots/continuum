@@ -73,7 +73,8 @@
       "opName": "settleLane",
       "reads": [
         "SettlementDelta",
-        "SettlementPlan"
+        "SettlementPlan",
+        "SettlementRequest"
       ],
       "writes": [
         "SettlementResult",
@@ -81,6 +82,7 @@
         "ConflictArtifact"
       ],
       "creates": [
+        "SettlementResult",
         "ImportCandidate",
         "ConflictArtifact"
       ],

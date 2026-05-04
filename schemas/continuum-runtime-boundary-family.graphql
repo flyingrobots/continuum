@@ -159,6 +159,10 @@ type Query {
     @wes_op(name: "observerPlans", readonly: true)
     @wes_footprint(reads: ["ObserverPlan"])
 
+  observationRequests(planId: ID, laneId: String, sourceKind: ObservationSourceKind): [ObservationRequest!]!
+    @wes_op(name: "observationRequests", readonly: true)
+    @wes_footprint(reads: ["ObservationRequest"])
+
   readingEnvelopes(planId: ID, laneId: String!, frameIndex: Int): [ReadingEnvelope!]!
     @wes_op(name: "readingEnvelopes", readonly: true)
     @wes_footprint(reads: ["ReadingEnvelope"])
@@ -175,17 +179,17 @@ type Query {
 type ContinuumRuntimeBoundaryFamilyInvariants
   @wes_invariant(
     name: "tick_result_links_intent",
-    expr: "forall r in TickResult: exists i in IntentEnvelope: r.intentId == i.intentId",
+    expr: "forall r in TickResult: exists i in IntentEnvelope: r.intentId == i.intentId and r.laneId == i.targetLaneId",
     severity: "error"
   )
   @wes_invariant(
     name: "reading_envelope_links_request_and_plan",
-    expr: "forall e in ReadingEnvelope: exists q in ObservationRequest: e.requestId == q.requestId and exists p in ObserverPlan: e.planId == p.planId",
+    expr: "forall e in ReadingEnvelope: exists q in ObservationRequest: exists p in ObserverPlan: q.requestId == e.requestId and p.planId == e.planId and q.planId == p.planId",
     severity: "error"
   )
   @wes_invariant(
     name: "import_outcome_links_shell",
-    expr: "forall o in ImportOutcome: exists s in SuffixShell: o.shellId == s.shellId",
+    expr: "forall o in ImportOutcome: exists s in SuffixShell: o.shellId == s.shellId and o.laneId == s.laneId",
     severity: "error"
   )
 {

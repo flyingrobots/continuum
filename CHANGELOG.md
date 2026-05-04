@@ -11,3 +11,7 @@
   and module-owned `compile` targets instead of removed WARPspace CLI defaults.
 - Moved the TTD protocol compiler implementation into the Continuum-owned
   Wesley module surface.
+- Fixed PR feedback on contract sync pruning, bundle path validation, malformed
+  JSON errors, generated Echo type references, and Bats JSON diagnostics.
+- Tightened runtime-boundary and settlement-family contract fixtures, docs
+  governance policy, and generated-artifact review evidence.

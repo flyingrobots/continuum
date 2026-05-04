@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
+import { WesleyError } from './wesley-deps.mjs';
 import {
   CONTINUUM_JUDGMENT_PROFILE,
   RECEIPT_FAMILY_SCOPE,

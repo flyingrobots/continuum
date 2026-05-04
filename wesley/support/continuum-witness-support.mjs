@@ -1,7 +1,12 @@
 import path from 'node:path';
-import { WesleyError, computeSdlHash, schemaHash } from '../../../wesley/packages/wesley-core/src/index.mjs';
 import { hashSchema as hashTtdSchema } from '../ttd/index.mjs';
-import { canonicalizeSchemaPath, joinPath } from '../../../wesley/packages/wesley-cli/src/commands/path-utils.mjs';
+import {
+  canonicalizeSchemaPath,
+  computeSdlHash,
+  joinPath,
+  schemaHash,
+  WesleyError
+} from './wesley-deps.mjs';
 
 export const DEFAULT_TTD_REQUIRED_FILES = [
   'manifest/schema.json',
@@ -454,9 +459,9 @@ export function fieldsAbsent(actual, forbiddenFields) {
 
 async function collectMissingFiles(fs, paths) {
   const missing = [];
-  for (const path of paths) {
-    if (!(await fs.exists(path))) {
-      missing.push(path);
+  for (const filePath of paths) {
+    if (!(await fs.exists(filePath))) {
+      missing.push(filePath);
     }
   }
   return missing;

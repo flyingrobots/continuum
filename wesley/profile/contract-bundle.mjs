@@ -1,4 +1,4 @@
-import { WesleyError } from '../../../wesley/packages/wesley-core/src/index.mjs';
+import { WesleyError } from '../support/wesley-deps.mjs';
 import {
   RECEIPT_FAMILY_SCOPE,
   SETTLEMENT_FAMILY_SCOPE,
