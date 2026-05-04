@@ -1,80 +1,207 @@
-<div align="center">
-  <img width="1288" height="188" alt="continuum" src="https://github.com/user-attachments/assets/7cb39622-4610-4db5-8fde-2cce456313a4" />
-  <h3>A Protocol for Distributed Causal Computation</h3>
-</div>
+# Continuum
 
-**Continuum** is the shared coordination layer for the WARP stack.
+## There Is No Graph
 
-It provides the canonical vocabulary, contract families, admissibility rules, witness formats, and cross-repo invariants that allow multiple runtimes and tools to maintain **one coherent causal history** instead of drifting into incompatible schemas and interpretations.
+Continuum starts from one rule:
 
----
+**the graph is a coordinate chart over witnessed causal history.**
+
+There is no privileged, substrate-owned graph inside Echo, `git-warp`, or any
+other runtime.
+
+What is real at the Continuum boundary is witnessed causal history:
+
+- admitted transitions
+- frontiers
+- lane identities
+- payload hashes
+- receipts, witnesses, checkpoints, and related boundary artifacts
+
+What people casually call "the graph" is a reading emitted by an observer or
+optic over that history. Graph-like state can be useful, cached, retained, or
+materialized, but it is not the primary ontology.
+
+Continuum exists to keep that boundary honest across the WARP stack.
 
 > [!WARNING]
-> **Status: Nascent / Experimental**  
-> This repo is under active research and development. Expect rapid iteration, breaking changes, and evolving boundaries while the shared stack hardens.
+> **Status: Nascent / Experimental**
+> Continuum is under active research and development. Expect rapid iteration,
+> breaking changes, and evolving boundaries while the shared stack hardens.
 
-### Purpose
+## What Continuum Is
 
-Continuum exists to keep the WARP ecosystem honest:
+Continuum is the shared protocol, contract, admissibility, and witness language
+for distributed causal computation.
 
-- One semantic universe across sibling implementations
-- Authored, versioned contract families as the source of truth
-- Explicit ownership of nouns that cross repository boundaries
-- Witnessed compatibility and integration truth
-- Prevention of shadow schemas, adapter folklore, and renaming drift
+It owns coordination truth:
 
-It is **not** a runtime engine, compiler, or application framework.
+- shared vocabulary
+- authored shared contract families
+- admission and compatibility language
+- witness and receipt boundaries
+- cross-repo noun ownership
+- compatibility evidence and open cuts
+- invariants that keep sibling runtimes interoperable
 
-### Core Stack
+It does not own runtime truth.
 
-- **Continuum** — Shared semantics, contract families, invariants, and coordination truth (this repo)
-- **Wesley** — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
-- **Echo** — Primary runtime implementation
-- **git-warp** — Complementary runtime implementation (Git-backed)
-- **warp** — User-facing CLI for bootstrapping and managing WARPspaces
-- **warp-ttd** — Shared debugger and operator surfaces
+Echo, `git-warp`, and any later conforming implementation remain free to choose
+their own storage, scheduler, indexes, caches, checkpoints, retained readings,
+and local materializations.
 
-A **Continuum runtime** is any implementation that can publish, admit, observe, export, and import witnessed causal history according to the shared contract families and admission laws.
+The shared boundary is not "the graph." The shared boundary is the witnessed
+causal history and the contract-shaped artifacts that make it admissible,
+observable, exportable, and importable.
 
-### What Continuum Owns
+## Why This Matters
 
-- Shared GraphQL contract families (`schemas/`)
-- Cross-repo noun glossary and ownership map
-- Canonical invariants (`docs/invariants/`)
-- Witness and compatibility mechanisms
-- Integration scenarios and proof plans
-- WARPspace bootstrap templates and stack release manifests
-- METHOD-shaped process discipline for the stack
+Bad designs start by assuming:
 
-### Key Artifacts
+- the runtime stores one universal graph
+- synchronization means copying state
+- queries read a god's-eye object
+- one engine must own privileged truth
+- tools may normalize incompatible host stories by hand
 
-- **`schemas/`** — Authored contract families (Neighborhood Core, Receipt, Settlement, Runtime Boundary, etc.)
-- **`wesley/`** — Continuum-owned Wesley module with TTD compiler, invariant verifier, and code generators
-- **`apps/warp/`** — The `warp` CLI (`warp init`) and WARPspace templates
-- **`docs/`** — Design packets, bearing, vision, getting started, and contract registry
-- **`APP_GLOSSARY.md`** — Living map between app surfaces and WARP concepts
+Continuum takes the stricter model:
 
-### Getting Started
+- runtimes participate in shared causal history
+- runtimes exchange witnessed suffixes, not state snapshots
+- incoming claims are admitted, braided, staged, rejected, or obstructed
+- observers emit what can be lawfully seen from available evidence
+- graph-like values are observer-relative readings
 
-1. Read **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — practical entry point.
-2. Browse **[APP_GLOSSARY.md](APP_GLOSSARY.md)** — essential noun mapping.
-3. See the current direction in **[docs/BEARING.md](docs/BEARING.md)**.
-4. Explore shared contracts in **[docs/contract-family-registry.md](docs/contract-family-registry.md)**.
-5. Try the bootstrap: `node apps/warp/bin/warp.mjs init my-app --profile demo`
+That is how Echo and `git-warp` can be sibling runtime implementations without
+one being subordinate to the other.
+
+## Layer Model
+
+Think in layers:
+
+1. Shared causal history
+2. Boundary artifacts and witnessed suffixes
+3. Lawful observers and optics
+4. Observer-relative readings
+5. Optional graph-like materializations
+
+The materialized graph-like thing may be real as a reading. It is not primary
+as ontology.
+
+The territory is causal history. The chart is what an observer can lawfully
+emit.
+
+## Observer Rule
+
+An observer is not just a query.
+
+An observer has:
+
+- an aperture
+- a basis
+- state
+- an update law
+- an emission law
+
+A reading is therefore never "the graph itself." It is what this lawful
+observer can emit from this causal history, at this frontier, under this
+budget.
+
+Different observers may chart the same causal history differently. Those charts
+may overlap, preserve plurality, disagree, be rights-gated, be partially
+translatable, or obstruct. Continuum records the witness for what was
+preserved, lost, blocked, or left plural.
+
+## Current Stack
+
+- **Continuum**: shared semantics, contract families, invariants, and
+  coordination truth.
+- **Wesley**: contract compilation, manifests, witness tooling, codecs, and TTD
+  code generation.
+- **Echo**: sibling Continuum runtime implementation.
+- **`git-warp`**: sibling Continuum runtime implementation.
+- **`warp-ttd`**: debugger and operator surfaces over generated contracts.
+- **`warp`**: user-facing CLI for bootstrapping and managing WARPspaces.
+
+A Continuum runtime is any implementation that can publish, admit, observe,
+export, and import witnessed causal history according to Continuum contract
+families and admission laws.
+
+## What Continuum Owns
+
+Continuum owns:
+
+- shared GraphQL contract families in [schemas](schemas/README.md)
+- cross-repo noun maps and ownership laws
+- canonical invariants in [docs/invariants](docs/invariants/CONTINUUM.md)
+- witness and compatibility doctrine
+- integration scenarios and proof plans
+- WARPspace bootstrap direction
+- METHOD-shaped process discipline for this coordination repo
+
+Continuum does not own:
+
+- Echo-local engine internals
+- `git-warp`-local engine internals
+- `warp-ttd` product/session internals
+- Wesley's compiler implementation truth
+- app-local domain schemas
+- one canonical materialized graph
+
+## Key Artifacts
+
+- [schemas](schemas/README.md): authored Continuum contract families.
+- [wesley](wesley/README.md): Continuum-owned Wesley module surfaces.
+- [apps/warp](apps/warp/README.md): `warp init` and WARPspace templates.
+- [docs/contract-family-registry.md](docs/contract-family-registry.md):
+  current family registry, consumer posture, witness status, and gaps.
+- [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md):
+  cross-repo invariants.
+- [APP_GLOSSARY.md](APP_GLOSSARY.md): living map between app surfaces and WARP
+  concepts.
+
+## Practical Translation
+
+Prefer saying:
+
+- "causal history" over "graph database"
+- "witnessed suffix exchange" over "graph sync"
+- "materialized reading" over "graph state"
+- "observe through an optic" over "query the graph"
+
+## Getting Started
+
+1. Read [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+2. Browse [APP_GLOSSARY.md](APP_GLOSSARY.md).
+3. Read [docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md).
+4. Check [docs/contract-family-registry.md](docs/contract-family-registry.md).
+5. Try the bootstrap:
+
+```bash
+node apps/warp/bin/warp.mjs init my-app --profile demo
+```
 
 Deeper orientation:
-- **[docs/OVERVIEW.md](docs/OVERVIEW.md)**
-- **[docs/VISION.md](docs/VISION.md)**
-- **[METHOD.md](METHOD.md)** — how work is structured here
-- **[docs/invariants/CONTINUUM.md](docs/invariants/CONTINUUM.md)** — core laws
+
+- [docs/OVERVIEW.md](docs/OVERVIEW.md)
+- [docs/VISION.md](docs/VISION.md)
+- [docs/BEARING.md](docs/BEARING.md)
+- [METHOD.md](METHOD.md)
 
 Active sibling repositories:
-- [Echo](https://github.com/flyingrobots/echo)
-- [git-warp](https://github.com/git-stunts/git-warp)
-- [AIΩN](https://github.com/flyingrobots/aion) (theory)
 
-### License
+- [Echo](https://github.com/flyingrobots/echo)
+- [`git-warp`](https://github.com/git-stunts/git-warp)
+- [AIΩN](https://github.com/flyingrobots/aion)
+
+## Rule To Remember
+
+There is no canonical materialized graph.
+
+There is witnessed causal history, and graph-like structure is an
+observer-relative reading over that history.
+
+## License
 
 Continuum © 2026 by James Ross.
 
-Licensed under the [Apache License 2.0](./LICENSE)
+Licensed under the [Apache License 2.0](./LICENSE).
