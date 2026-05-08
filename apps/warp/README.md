@@ -34,9 +34,11 @@ Current posture:
 - scaffolds the demo host template
 - materializes Continuum family sources into the host repo
 - stages the current-process Node runtime under `.warpspace/packages/node/`
-- stages the sibling Wesley entrypoint declared by the demo manifest under
+- stages the Wesley tool declared by the stack manifest under
   `.warpspace/packages/wesley/`
 - invokes Wesley through those staged paths using the real `warpspace.toml`
+- supports both the legacy Node Wesley entrypoint and the native Rust Wesley
+  binary runner; new Wesley work should target the Rust runner
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
 

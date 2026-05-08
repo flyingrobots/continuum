@@ -126,8 +126,7 @@ export async function initWarp({
     for (const family of manifest.families) {
       generatedCommands.push(
         ...await invokeWesleyForFamily({
-          nodeBin: toolchain.node.commandPath,
-          wesleyEntrypoint: toolchain.wesley.entrypointPath,
+          toolchain,
           defaultOutputs: manifest.bootstrap.defaultOutputs,
           family,
           continuumModulePath: path.join(resolvedAuthorityRoot, 'wesley', 'continuum-cli-module.mjs'),
@@ -520,6 +519,9 @@ async function installWesleyTool({
   const source = requiredText(install.source, 'toolchain.wesley.install.source');
 
   if (source === 'local-sibling-entrypoint') {
+    const runner = normalizeWesleyRunner('node-entrypoint');
+    const commandSet = normalizeWesleyCommandSet(wesleySpec.commandSet ?? 'legacy-node');
+    validateWesleyRunnerCommandSet({ runner, commandSet });
     const sourcePath = path.resolve(
       authorityRoot,
       requiredText(install.path, 'toolchain.wesley.install.path')
@@ -542,6 +544,8 @@ async function installWesleyTool({
       kind: 'warp.tool-install-receipt.v1',
       tool: 'wesley',
       source,
+      runner,
+      commandSet,
       package: wesleySpec.package ?? null,
       version: wesleySpec.version ?? null,
       sourcePath,
@@ -553,6 +557,55 @@ async function installWesleyTool({
       package: wesleySpec.package ?? null,
       version: wesleySpec.version ?? null,
       source,
+      runner,
+      commandSet,
+      sourcePath,
+      entrypointPath,
+      receiptPath
+    };
+  }
+
+  if (source === 'local-sibling-binary') {
+    const runner = normalizeWesleyRunner('native-binary');
+    const commandSet = normalizeWesleyCommandSet(wesleySpec.commandSet ?? 'native-rust');
+    validateWesleyRunnerCommandSet({ runner, commandSet });
+    const sourcePath = path.resolve(
+      authorityRoot,
+      requiredText(install.path, 'toolchain.wesley.install.path')
+    );
+    if (!await pathExists(sourcePath)) {
+      throw new Error(`Configured Wesley binary does not exist: ${sourcePath}`);
+    }
+
+    const entrypointPath = path.join(
+      projectDir,
+      install.managedPath ?? path.join(installLayout.packages, 'wesley', 'current', 'bin', 'wesley')
+    );
+    await stageFileReference({
+      sourcePath,
+      targetPath: entrypointPath
+    });
+
+    const receiptPath = path.join(path.dirname(entrypointPath), 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'wesley',
+      source,
+      runner,
+      commandSet,
+      package: wesleySpec.package ?? null,
+      version: wesleySpec.version ?? null,
+      sourcePath,
+      stagedPath: entrypointPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      package: wesleySpec.package ?? null,
+      version: wesleySpec.version ?? null,
+      source,
+      runner,
+      commandSet,
       sourcePath,
       entrypointPath,
       receiptPath
@@ -560,6 +613,11 @@ async function installWesleyTool({
   }
 
   if (source === 'package-source') {
+    const runner = normalizeWesleyRunner(install.runner ?? wesleySpec.runner ?? 'node-entrypoint');
+    const commandSet = normalizeWesleyCommandSet(
+      wesleySpec.commandSet ?? (runner === 'native-binary' ? 'native-rust' : 'legacy-node')
+    );
+    validateWesleyRunnerCommandSet({ runner, commandSet });
     const packageInstall = await installPackageFromSource({
       installSpec: {
         ...install,
@@ -576,6 +634,8 @@ async function installWesleyTool({
       kind: 'warp.tool-install-receipt.v1',
       tool: 'wesley',
       source,
+      runner,
+      commandSet,
       package: packageInstall.package,
       version: packageInstall.version,
       variant: packageInstall.variant,
@@ -589,6 +649,8 @@ async function installWesleyTool({
       package: packageInstall.package,
       version: packageInstall.version,
       source,
+      runner,
+      commandSet,
       sourceSite: packageInstall.sourceSite,
       sourcePath: packageInstall.sourcePath,
       installRoot: packageInstall.installRoot,
@@ -599,8 +661,39 @@ async function installWesleyTool({
 
   throw new Error(
     `Unsupported toolchain.wesley.install.source "${source}". ` +
-    'The current prototype supports "local-sibling-entrypoint" and "package-source".'
+    'The current prototype supports "local-sibling-entrypoint", "local-sibling-binary", and "package-source".'
   );
+}
+
+function normalizeWesleyRunner(value) {
+  const runner = requiredText(value, 'Wesley runner');
+  if (runner !== 'node-entrypoint' && runner !== 'native-binary') {
+    throw new Error(
+      `Unsupported Wesley runner "${runner}". ` +
+      'Expected "node-entrypoint" or "native-binary".'
+    );
+  }
+  return runner;
+}
+
+function normalizeWesleyCommandSet(value) {
+  const commandSet = requiredText(value, 'Wesley command set');
+  if (commandSet !== 'legacy-node' && commandSet !== 'native-rust') {
+    throw new Error(
+      `Unsupported Wesley command set "${commandSet}". ` +
+      'Expected "legacy-node" or "native-rust".'
+    );
+  }
+  return commandSet;
+}
+
+function validateWesleyRunnerCommandSet({ runner, commandSet }) {
+  if (runner === 'node-entrypoint' && commandSet !== 'legacy-node') {
+    throw new Error('Wesley node-entrypoint runner requires the legacy-node command set.');
+  }
+  if (runner === 'native-binary' && commandSet !== 'native-rust') {
+    throw new Error('Wesley native-binary runner requires the native-rust command set.');
+  }
 }
 
 function resolvePackageSources({ packageSources, authorityRoot }) {
@@ -749,8 +842,7 @@ function isRetryableLinkError(error) {
 }
 
 async function invokeWesleyForFamily({
-  nodeBin,
-  wesleyEntrypoint,
+  toolchain,
   defaultOutputs,
   family,
   continuumModulePath,
@@ -759,12 +851,27 @@ async function invokeWesleyForFamily({
 }) {
   const schemaPath = family.materializeTo;
   const projections = new Set(Array.isArray(family.defaultProjections) ? family.defaultProjections : []);
+  const commandSet = toolchain.wesley.commandSet ?? 'legacy-node';
   const commands = [];
+
+  if (commandSet === 'native-rust') {
+    return invokeRustNativeWesleyForFamily({
+      toolchain,
+      defaultOutputs,
+      projections,
+      schemaPath,
+      projectDir,
+      runCommand
+    });
+  }
+
+  if (commandSet !== 'legacy-node') {
+    throw new Error(`Unsupported Wesley command set "${commandSet}".`);
+  }
 
   if (projections.has('typescript')) {
     commands.push(await invokeWesley({
-      nodeBin,
-      wesleyEntrypoint,
+      toolchain,
       projectDir,
       runCommand,
       args: [
@@ -779,8 +886,7 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('zod')) {
     commands.push(await invokeWesley({
-      nodeBin,
-      wesleyEntrypoint,
+      toolchain,
       projectDir,
       runCommand,
       args: [
@@ -795,8 +901,7 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('echo-ir')) {
     commands.push(await invokeWesley({
-      nodeBin,
-      wesleyEntrypoint,
+      toolchain,
       projectDir,
       runCommand,
       args: [
@@ -816,8 +921,7 @@ async function invokeWesleyForFamily({
   }
   if (projections.has('warp-ttd')) {
     commands.push(await invokeWesley({
-      nodeBin,
-      wesleyEntrypoint,
+      toolchain,
       projectDir,
       runCommand,
       args: [
@@ -839,6 +943,58 @@ async function invokeWesleyForFamily({
   return commands;
 }
 
+async function invokeRustNativeWesleyForFamily({
+  toolchain,
+  defaultOutputs,
+  projections,
+  schemaPath,
+  projectDir,
+  runCommand
+}) {
+  const unsupported = [...projections].filter(
+    projection => projection !== 'typescript' && projection !== 'rust'
+  );
+  if (unsupported.length > 0) {
+    throw new Error(
+      `Rust-native Wesley command set does not support projection(s): ${unsupported.join(', ')}.`
+    );
+  }
+
+  const commands = [];
+  if (projections.has('typescript')) {
+    commands.push(await invokeWesley({
+      toolchain,
+      projectDir,
+      runCommand,
+      args: [
+        'emit',
+        'typescript',
+        '--schema',
+        schemaPath,
+        '--out',
+        projectionOutFile(defaultOutputs, 'typescript', 'types.generated.ts')
+      ]
+    }));
+  }
+  if (projections.has('rust')) {
+    commands.push(await invokeWesley({
+      toolchain,
+      projectDir,
+      runCommand,
+      args: [
+        'emit',
+        'rust',
+        '--schema',
+        schemaPath,
+        '--out',
+        projectionOutFile(defaultOutputs, 'rust', 'models.generated.rs')
+      ]
+    }));
+  }
+
+  return commands;
+}
+
 function projectionOutputRoot(defaultOutputs, projection) {
   const outputRoot = defaultOutputs?.[projection];
   if (typeof outputRoot !== 'string' || outputRoot.trim().length === 0) {
@@ -851,9 +1007,10 @@ function projectionOutFile(defaultOutputs, projection, fileName) {
   return path.posix.join(projectionOutputRoot(defaultOutputs, projection), fileName);
 }
 
-async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand, args, env }) {
-  const command = path.resolve(nodeBin);
-  const fullArgs = [path.resolve(wesleyEntrypoint), ...args];
+async function invokeWesley({ toolchain, projectDir, runCommand, args, env }) {
+  const invocation = buildWesleyInvocation({ toolchain, args });
+  const command = invocation.command;
+  const fullArgs = invocation.args;
   const result = await runCommand({
     command,
     args: fullArgs,
@@ -873,6 +1030,23 @@ async function invokeWesley({ nodeBin, wesleyEntrypoint, projectDir, runCommand,
     cwd: projectDir,
     env: env == null ? undefined : { ...env }
   };
+}
+
+function buildWesleyInvocation({ toolchain, args }) {
+  const runner = toolchain.wesley.runner ?? 'node-entrypoint';
+  if (runner === 'node-entrypoint') {
+    return {
+      command: path.resolve(toolchain.node.commandPath),
+      args: [path.resolve(toolchain.wesley.entrypointPath), ...args]
+    };
+  }
+  if (runner === 'native-binary') {
+    return {
+      command: path.resolve(toolchain.wesley.entrypointPath),
+      args
+    };
+  }
+  throw new Error(`Unsupported Wesley runner "${runner}".`);
 }
 
 function buildLock({
@@ -943,6 +1117,8 @@ function renderWarpspaceToml({ manifest, installLayout }) {
     `node_version_range = ${tomlString(manifest.toolchain?.node?.versionRange ?? 'unknown')}`,
     `wesley_package = ${tomlString(manifest.toolchain?.wesley?.package ?? 'unknown')}`,
     `wesley_version = ${tomlString(manifest.toolchain?.wesley?.version ?? 'unknown')}`,
+    `wesley_runner = ${tomlString(manifestWesleyRunner(manifest.toolchain?.wesley))}`,
+    `wesley_command_set = ${tomlString(manifestWesleyCommandSet(manifest.toolchain?.wesley))}`,
     '',
     '[install]',
     `root = ${tomlString(installLayout.root)}`,
@@ -975,6 +1151,27 @@ function renderWarpspaceToml({ manifest, installLayout }) {
 
   lines.push('');
   return lines.join('\n');
+}
+
+function manifestWesleyRunner(wesleySpec) {
+  const explicitRunner = wesleySpec?.runner ?? wesleySpec?.install?.runner;
+  if (explicitRunner != null) {
+    return explicitRunner;
+  }
+  if (wesleySpec?.install?.source === 'local-sibling-binary') {
+    return 'native-binary';
+  }
+  return 'node-entrypoint';
+}
+
+function manifestWesleyCommandSet(wesleySpec) {
+  if (wesleySpec?.commandSet != null) {
+    return wesleySpec.commandSet;
+  }
+  if (manifestWesleyRunner(wesleySpec) === 'native-binary') {
+    return 'native-rust';
+  }
+  return 'legacy-node';
 }
 
 function tomlKey(key) {

@@ -38,6 +38,8 @@
       "commit": "a80e47accb76854f68236c6cafd1f314e53b05ff",
       "bundleFormat": 1,
       "command": "wesley",
+      "runner": "node-entrypoint",
+      "commandSet": "legacy-node",
       "install": {
         "source": "local-sibling-entrypoint",
         "path": "../wesley/packages/wesley-host-node/bin/wesley.mjs",
@@ -132,7 +134,8 @@
   "notes": [
     "This manifest is the first concrete bridge between the bootstrap doctrine and an eventual warp init implementation.",
     "git-warp is pinned as part of the compatible stack tuple even though the first neighborhood-core demo does not yet materialize a git-warp-facing output cut.",
-    "The current demo flow stages the current-process Node runtime and a sibling Wesley entrypoint into .warpspace/packages/ for local development proof.",
+    "The current demo flow stages the current-process Node runtime and a sibling legacy Wesley entrypoint into .warpspace/packages/ for local development proof.",
+    "The demo profile remains on the legacy-node Wesley command set until Rust-native equivalents exist for the requested zod, echo-ir, and warp-ttd projections.",
     "Moving from this manifest to a released bootstrap path still requires downloadable toolchain artifacts and managed Node bundles for released profiles."
   ]
 }
