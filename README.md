@@ -28,11 +28,11 @@ It is **not** a runtime engine, compiler, or application framework.
 ### Core Stack
 
 - **Continuum** — Shared semantics, contract families, invariants, and coordination truth (this repo)
-- **Wesley** — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
-- **Echo** — Primary runtime implementation
-- **git-warp** — Complementary runtime implementation (Git-backed)
+- [**Wesley**](https://github.com/flyingrobots/wesley) — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
+- [**Echo**](https://github.com/flyingrobots/echo) — Primary runtime implementation
+- [**git-warp**](https://github.com/git-stunts/git-warp) — Complementary runtime implementation (Git-backed)
 - **warp** — User-facing CLI for bootstrapping and managing WARPspaces
-- **warp-ttd** — Shared debugger and operator surfaces
+- [**warp-ttd**](https://github.com/flyingrobots/warp-ttd) — Shared debugger and operator surfaces
 
 A **Continuum runtime** is any implementation that can publish, admit, observe, export, and import witnessed causal history according to the shared contract families and admission laws.
 
