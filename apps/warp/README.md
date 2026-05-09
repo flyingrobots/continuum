@@ -25,6 +25,10 @@ described in [0025 - Warp Native Distribution And Node Runtime Policy](../../doc
 Prototype commands available here today:
 
 - `warp init`
+- `warp warpspace lock`
+- `warp warpspace verify`
+- `warp warpspace sync`
+- `warp warpspace doctor`
 
 Current posture:
 
@@ -41,6 +45,10 @@ Current posture:
   binary runner; new Wesley work should target the Rust runner
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
+- supports a narrow constellation flow for pinned Git repos:
+  `warp warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
+  local checkouts, `sync` clones/fetches/checks out the locked commits, and
+  `doctor` reports verification health
 
 ## Run It
 
@@ -48,4 +56,7 @@ From this repo:
 
 ```bash
 node apps/warp/bin/warp.mjs init my-app --profile demo
+node apps/warp/bin/warp.mjs warpspace lock docs/warpspaces/jedit-echo-dev.toml
+node apps/warp/bin/warp.mjs warpspace sync docs/warpspaces/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+node apps/warp/bin/warp.mjs warpspace verify docs/warpspaces/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 ```

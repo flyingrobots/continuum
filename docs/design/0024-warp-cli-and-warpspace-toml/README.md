@@ -145,6 +145,9 @@ Current prototype note:
 
 - Wesley now consumes `warpspace.toml` directly
 - no engine-local bridge file is required for normal bootstrap or build flows
+- `warp warpspace lock`, `verify`, `sync`, and `doctor` now cover the first
+  pinned-Git constellation flow for repos such as Wesley, Echo, `jedit`, and
+  `warp-ttd`
 
 ### 5. WARPspace templates are a first-class bootstrap artifact
 
@@ -200,6 +203,9 @@ The smallest artifact that proves this hill is:
   that references a WARPspace template
 - a checked-in WARPspace template artifact under `apps/warp/templates/`
 - a bootstrap run that writes `warpspace.toml` and `warpspace.lock.json`
+- a constellation manifest such as
+  [jedit-echo-dev.toml](../../warpspaces/jedit-echo-dev.toml) that can be
+  locked and synced by `warp warpspace`
 
 ## Consequences
 

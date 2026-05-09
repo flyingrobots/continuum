@@ -1,0 +1,59 @@
+{
+  "kind": "warpspace.constellation-lock.v1",
+  "version": 1,
+  "lockedAt": "2026-05-09T18:36:39.097Z",
+  "manifest": {
+    "path": "jedit-echo-dev.toml",
+    "sha256": "d31e5d715fddf60781d3ead729c3db14d59458e5db0aea39e3efdbb73f7f0c0d"
+  },
+  "warpspace": {
+    "name": "jedit-echo-dev",
+    "version": 1
+  },
+  "repos": [
+    {
+      "name": "wesley",
+      "git": "git@github.com:flyingrobots/wesley.git",
+      "rev": "d5e264427f0888c5010c7fe228a44bc24f00ba98",
+      "resolved": "d5e264427f0888c5010c7fe228a44bc24f00ba98",
+      "path": "wesley",
+      "resolution": "literal-sha"
+    },
+    {
+      "name": "echo",
+      "git": "git@github.com:flyingrobots/echo.git",
+      "rev": "c2328292cd6742c34d45a7ddd2b0ac3b94a92c30",
+      "resolved": "c2328292cd6742c34d45a7ddd2b0ac3b94a92c30",
+      "path": "echo",
+      "resolution": "literal-sha"
+    },
+    {
+      "name": "jedit",
+      "git": "git@github.com:flyingrobots/jedit.git",
+      "rev": "a7d9fbf2ec5c1168da453e51c9912041ad795aae",
+      "resolved": "a7d9fbf2ec5c1168da453e51c9912041ad795aae",
+      "path": "jedit",
+      "resolution": "literal-sha"
+    },
+    {
+      "name": "warp-ttd",
+      "git": "git@github.com:flyingrobots/warp-ttd.git",
+      "rev": "eb80aa4b762e74513ddb79dd575113491109efb9",
+      "resolved": "eb80aa4b762e74513ddb79dd575113491109efb9",
+      "path": "warp-ttd",
+      "resolution": "literal-sha"
+    }
+  ],
+  "crates": {
+    "wesley-core": "0.0.2"
+  },
+  "contracts": {
+    "jedit-text": {
+      "repo": "jedit",
+      "schema": "contracts/jedit-text.graphql",
+      "generator_repo": "echo",
+      "generator": "echo-wesley-gen",
+      "wesley_core": "0.0.2"
+    }
+  }
+}

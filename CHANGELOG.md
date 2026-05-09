@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `warp warpspace lock`, `verify`, `sync`, and `doctor` for the first
+  pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.
 - Fixed `drift-watch` single-file `--mirror-root` handling for mirror
   surface paths.
