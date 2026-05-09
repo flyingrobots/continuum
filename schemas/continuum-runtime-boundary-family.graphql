@@ -5,7 +5,7 @@
 # - set-side intent carriage
 # - immediate admission result contracts
 # - get-side observer planning and reading request contracts
-# - distributed suffix exchange and import result contracts
+# - distributed witnessed suffix exchange and import result contracts
 #
 # These are GraphQL-authored contract families.
 # Wesley compiles artifacts for them.
@@ -16,16 +16,64 @@
 # - `TickResult` names the immediate admission-result family, not the later reading
 # - `ObserverPlan` names the plan family, not the observer instance
 # - `ReadingEnvelope` names the observer-relative reading family, not the substrate itself
-# - `SuffixShell` is a witnessed import/export shell, not a patch list or
-#   materialized state snapshot
+# - `WitnessedSuffixShell` is compact suffix evidence, not a patch list
+# - `CausalSuffixBundle` is the transport/import question, not a materialized
+#   state snapshot
 
 scalar Hash
+scalar UInt64
 
 enum RuntimeAdmissionOutcomeKind {
   DERIVED
   PLURAL
   CONFLICT
   OBSTRUCTION
+}
+
+enum ReadingResidualPosture {
+  COMPLETE
+  RESIDUAL
+  PLURALITY_PRESERVED
+  OBSTRUCTED
+  BUDGET_LIMITED
+  RIGHTS_LIMITED
+}
+
+enum ConflictReason {
+  CHANNEL_POLICY_CONFLICT
+  UNSUPPORTED_IMPORT
+  BASE_DIVERGENCE
+  PARENT_FOOTPRINT_OVERLAP
+  QUANTUM_MISMATCH
+}
+
+enum SettlementParentRevalidationKind {
+  AT_ANCHOR
+  PARENT_ADVANCED_DISJOINT
+  REVALIDATION_REQUIRED
+}
+
+enum SettlementOverlapRevalidationKind {
+  CLEAN
+  OBSTRUCTED
+  CONFLICT
+}
+
+enum WitnessedSuffixAdmissionOutcomeKind {
+  ADMITTED
+  STAGED
+  PLURAL
+  CONFLICT
+  OBSTRUCTED
+}
+
+enum ImportNoveltyPosture {
+  NOVEL
+  ALREADY_ADJUDICATED
+  SELF_ECHO
+  SUPPORT_SUPPLEMENT
+  ALTERNATE_SUPPORT_PATH
+  STATE_EQUIVALENT_DIFFERENT_WITNESS
 }
 
 enum ObservationSourceKind {
@@ -114,34 +162,140 @@ type ReadingEnvelope
   summary: String! @wes_stateField
 }
 
-type SuffixShell
+type ProvenanceRef
   @wes_codec(format: "cbor", canonical: true)
   @wes_registry(id: 134)
   @wes_version(major: 0, minor: 1)
 {
-  shellId: ID! @wes_stateField(key: true)
-  historyId: String! @wes_stateField
-  laneId: String! @wes_stateField
-  sourceRuntimeId: String! @wes_stateField
-  sourceWriterId: String! @wes_stateField
-  baseFrontierDigest: Hash! @wes_stateField
-  targetFrontierDigest: Hash! @wes_stateField
-  transitionCount: Int! @wes_stateField @wes_constraint(min: 0)
-  witnessDigest: Hash! @wes_stateField
-  summary: String! @wes_stateField
+  refId: ID! @wes_stateField(key: true)
+  worldlineId: String! @wes_stateField
+  worldlineTick: UInt64! @wes_stateField
+  commitHash: Hash! @wes_stateField
 }
 
-type ImportOutcome
+type BaseRef
   @wes_codec(format: "cbor", canonical: true)
   @wes_registry(id: 135)
   @wes_version(major: 0, minor: 1)
 {
+  baseRefId: ID! @wes_stateField(key: true)
+  sourceWorldlineId: String! @wes_stateField
+  forkTick: UInt64! @wes_stateField
+  commitHash: Hash! @wes_stateField
+  boundaryHash: Hash! @wes_stateField
+  provenanceRef: ProvenanceRef! @wes_stateField
+}
+
+type SettlementParentRevalidation
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 136)
+  @wes_version(major: 0, minor: 1)
+{
+  revalidationId: ID! @wes_stateField(key: true)
+  kind: SettlementParentRevalidationKind! @wes_stateField
+  parentFrom: ProvenanceRef @wes_stateField
+  parentTo: ProvenanceRef @wes_stateField
+  overlappingSlotCount: UInt64 @wes_stateField
+  overlappingSlotsDigest: Hash @wes_stateField
+}
+
+type SettlementBasisReport
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 137)
+  @wes_version(major: 0, minor: 1)
+{
+  reportId: ID! @wes_stateField(key: true)
+  parentAnchor: BaseRef! @wes_stateField
+  childWorldlineId: String! @wes_stateField
+  sourceSuffixStartTick: UInt64! @wes_stateField
+  sourceSuffixEndTick: UInt64 @wes_stateField
+  realizedParentRef: ProvenanceRef! @wes_stateField
+  ownedClosedSlotCount: UInt64! @wes_stateField
+  parentWrittenSlotCount: UInt64! @wes_stateField
+  parentRevalidation: SettlementParentRevalidation! @wes_stateField
+}
+
+type SettlementOverlapRevalidation
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 138)
+  @wes_version(major: 0, minor: 1)
+{
+  revalidationId: ID! @wes_stateField(key: true)
+  kind: SettlementOverlapRevalidationKind! @wes_stateField
+  overlappingSlotCount: UInt64! @wes_stateField
+  overlappingSlotsDigest: Hash! @wes_stateField
+}
+
+type WitnessedSuffixShell
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 139)
+  @wes_version(major: 0, minor: 1)
+{
+  shellId: ID! @wes_stateField(key: true)
+  sourceWorldlineId: String! @wes_stateField
+  sourceSuffixStartTick: UInt64! @wes_stateField
+  sourceSuffixEndTick: UInt64 @wes_stateField
+  sourceEntries: [ProvenanceRef!]! @wes_stateField
+  boundaryWitness: ProvenanceRef @wes_stateField
+  witnessDigest: Hash! @wes_stateField
+  basisReport: SettlementBasisReport @wes_stateField
+}
+
+type CausalSuffixBundle
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 140)
+  @wes_version(major: 0, minor: 1)
+{
+  bundleId: ID! @wes_stateField(key: true)
+  baseFrontier: ProvenanceRef! @wes_stateField
+  targetFrontier: ProvenanceRef! @wes_stateField
+  sourceSuffix: WitnessedSuffixShell! @wes_stateField
+  bundleDigest: Hash! @wes_stateField
+}
+
+type WitnessedSuffixAdmissionOutcome
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 141)
+  @wes_version(major: 0, minor: 1)
+{
   outcomeId: ID! @wes_stateField(key: true)
-  shellId: ID! @wes_stateField
+  kind: WitnessedSuffixAdmissionOutcomeKind! @wes_stateField
+  targetWorldlineId: String @wes_stateField
+  admittedRefs: [ProvenanceRef!]! @wes_stateField
+  stagedRefs: [ProvenanceRef!]! @wes_stateField
+  candidateRefs: [ProvenanceRef!]! @wes_stateField
+  residualPosture: ReadingResidualPosture @wes_stateField
+  basisReport: SettlementBasisReport @wes_stateField
+  reason: ConflictReason @wes_stateField
+  sourceRef: ProvenanceRef @wes_stateField
+  evidenceDigest: Hash @wes_stateField
+  overlapRevalidation: SettlementOverlapRevalidation @wes_stateField
+}
+
+type WitnessedSuffixAdmissionResponse
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 142)
+  @wes_version(major: 0, minor: 1)
+{
+  responseId: ID! @wes_stateField(key: true)
+  sourceShellDigest: Hash! @wes_stateField
+  targetBasis: ProvenanceRef! @wes_stateField
+  outcome: WitnessedSuffixAdmissionOutcome! @wes_stateField
+}
+
+type ImportOutcome
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 143)
+  @wes_version(major: 0, minor: 1)
+{
+  outcomeId: ID! @wes_stateField(key: true)
+  bundleDigest: Hash! @wes_stateField
+  bundle: CausalSuffixBundle! @wes_stateField
   targetRuntimeId: String! @wes_stateField
-  laneId: String! @wes_stateField
-  outcomeKind: RuntimeAdmissionOutcomeKind! @wes_stateField
-  frontierDigest: Hash @wes_stateField
+  targetWorldlineId: String! @wes_stateField
+  targetBasis: ProvenanceRef! @wes_stateField
+  noveltyPosture: ImportNoveltyPosture! @wes_stateField
+  admission: WitnessedSuffixAdmissionResponse! @wes_stateField
   receiptId: ID @wes_stateField
   summary: String! @wes_stateField
 }
@@ -167,13 +321,17 @@ type Query {
     @wes_op(name: "readingEnvelopes", readonly: true)
     @wes_footprint(reads: ["ReadingEnvelope"])
 
-  suffixShells(laneId: String!, sourceRuntimeId: String): [SuffixShell!]!
-    @wes_op(name: "suffixShells", readonly: true)
-    @wes_footprint(reads: ["SuffixShell"])
+  witnessedSuffixShells(sourceWorldlineId: String!): [WitnessedSuffixShell!]!
+    @wes_op(name: "witnessedSuffixShells", readonly: true)
+    @wes_footprint(reads: ["WitnessedSuffixShell", "ProvenanceRef", "SettlementBasisReport"])
 
-  importOutcomes(shellId: ID, targetRuntimeId: String): [ImportOutcome!]!
+  causalSuffixBundles(bundleDigest: Hash, sourceWorldlineId: String): [CausalSuffixBundle!]!
+    @wes_op(name: "causalSuffixBundles", readonly: true)
+    @wes_footprint(reads: ["CausalSuffixBundle", "WitnessedSuffixShell", "ProvenanceRef"])
+
+  importOutcomes(bundleDigest: Hash, targetRuntimeId: String): [ImportOutcome!]!
     @wes_op(name: "importOutcomes", readonly: true)
-    @wes_footprint(reads: ["ImportOutcome"])
+    @wes_footprint(reads: ["ImportOutcome", "CausalSuffixBundle", "WitnessedSuffixAdmissionResponse"])
 }
 
 type ContinuumRuntimeBoundaryFamilyInvariants
@@ -188,8 +346,13 @@ type ContinuumRuntimeBoundaryFamilyInvariants
     severity: "error"
   )
   @wes_invariant(
-    name: "import_outcome_links_shell",
-    expr: "forall o in ImportOutcome: exists s in SuffixShell: o.shellId == s.shellId and o.laneId == s.laneId",
+    name: "bundle_links_source_shell",
+    expr: "forall b in CausalSuffixBundle: b.baseFrontier.worldlineId == b.sourceSuffix.sourceWorldlineId and b.targetFrontier.worldlineId == b.sourceSuffix.sourceWorldlineId",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "import_outcome_links_bundle",
+    expr: "forall o in ImportOutcome: exists b in CausalSuffixBundle: o.bundleDigest == b.bundleDigest",
     severity: "error"
   )
 {

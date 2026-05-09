@@ -27,7 +27,8 @@ Freeze one minimum authored family containing:
 - `ObserverPlan`
 - `ObservationRequest`
 - `ReadingEnvelope`
-- `SuffixShell`
+- `WitnessedSuffixShell`
+- `CausalSuffixBundle`
 - `ImportOutcome`
 
 and make that family the next concrete compiler/runtime target.

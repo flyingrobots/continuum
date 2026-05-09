@@ -80,7 +80,10 @@ Echo and `git-warp` should exchange a shared bundle category whose meaning is:
 - any required payload/checkpoint/wormhole references
 - one witness proving what is being claimed and why it should be importable
 
-That unit should be called a **causal suffix bundle**.
+That unit should be called a **causal suffix bundle**. Echo's runtime model is
+now the source shape for this family: `WitnessedSuffixShell` carries compact
+source evidence, and `CausalSuffixBundle` wraps that shell with base/target
+frontiers and bundle identity.
 
 ### 2. Synchronization is not state replication
 
@@ -150,18 +153,10 @@ The first concrete shared sync object should look roughly like this:
 
 ```text
 CausalSuffixBundle {
-    history_id:        HistoryId,
-    source_runtime_id: RuntimeId,
-    source_writer_id:  WriterId,
-    lane_id:           LaneId,
     base_frontier:     Frontier,
     target_frontier:   Frontier,
-    transitions:       Vec<BoundaryTransitionRecord>,
-    payload_refs:      Vec<PayloadRef>,
-    checkpoints:       Option<Vec<CheckpointRef>>,
-    wormholes:         Option<Vec<WormholeRecord>>,
-    signatures:        Option<Vec<SignatureEnvelope>>,
-    export_witness:    ExportWitness,
+    source_suffix:     WitnessedSuffixShell,
+    bundle_digest:     BundleDigest,
 }
 ```
 
@@ -169,31 +164,24 @@ The exact field names may vary by family cut, but the shared meaning must not.
 
 ### Required meaning
 
-- `history_id`
-  - shared witnessed causal-history identity
-- `source_runtime_id`
-  - which runtime exported the suffix
-- `source_writer_id`
-  - which writer produced the transitions
-- `lane_id`
-  - which lane/worldline the suffix belongs to
 - `base_frontier`
   - the frontier the source claims this suffix extends
 - `target_frontier`
   - the frontier after applying the suffix
-- `transitions`
-  - the ordered witnessed causal records being claimed
-- `payload_refs`
-  - stable references to any required content-addressed payload material
-- `checkpoints`
-  - optional imported checkpoint aids; not causal truth on their own
-- `wormholes`
-  - optional folded-history material where reopening or verification is needed
-- `signatures`
-  - optional signed envelopes over the claim
-- `export_witness`
-  - the witness explaining what the exporting runtime believes it is handing
-    off
+- `source_suffix`
+  - the compact `WitnessedSuffixShell`: source worldline, suffix tick bounds,
+    ordered source provenance entries, optional boundary witness, witness
+    digest, and optional basis evidence
+- `bundle_digest`
+  - deterministic identity for retained shell equivalence and loop prevention
+
+Payload, checkpoint, wormhole, and signature refs may be added around the bundle
+as the family grows. They must not replace the shell evidence or become
+canonical state snapshots.
+
+Runtime, writer, history, and lane labels may be carried by the surrounding
+publication or receipt envelope. They are useful routing and audit metadata, but
+they do not replace the Echo-shaped bundle identity.
 
 ## Shared Import Result Algebra
 
@@ -201,29 +189,12 @@ The import result should be a first-class shared outcome family, not an engine
 private boolean.
 
 ```text
-ImportAdmissionResult =
-    Admitted {
-        frontier: Frontier,
-        receipt: Receipt,
-    }
-  | Staged {
-        lane_id: LaneId,
-        reason: StageReason,
-        receipt: Receipt,
-    }
-  | Braided {
-        braid_id: BraidId,
-        cells: Vec<BraidCell>,
-        receipt: Receipt,
-    }
-  | Conflict {
-        artifact: ConflictArtifact,
-        receipt: Receipt,
-    }
-  | Obstructed {
-        witness: ObstructionWitness,
-        receipt: Receipt,
-    }
+WitnessedSuffixAdmissionOutcome =
+    Admitted { target_worldline_id, admitted_refs, basis_report }
+  | Staged { staged_refs, basis_report }
+  | Plural { candidate_refs, residual_posture, basis_report }
+  | Conflict { reason, source_ref, evidence_digest, overlap_revalidation }
+  | Obstructed { source_ref, residual_posture, evidence_digest }
 ```
 
 The exact internal mechanics may vary, but the exported meaning should remain
@@ -235,7 +206,7 @@ The two shared operations should be:
 
 ```text
 exportSuffix(from_frontier, to_frontier?) -> CausalSuffixBundle
-importSuffix(bundle) -> ImportAdmissionResult
+importSuffix(bundle) -> ImportOutcome
 ```
 
 ### `exportSuffix`
