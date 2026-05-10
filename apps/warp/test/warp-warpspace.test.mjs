@@ -9,7 +9,8 @@ import { main } from '../src/cli.mjs';
 import {
   lockWarpspace,
   syncWarpspace,
-  verifyWarpspace
+  verifyWarpspace,
+  defaultRunCommand
 } from '../src/warpspace.mjs';
 
 test('warpspace lock resolves repo refs, syncs checkouts, and verifies clean heads', async () => {
@@ -228,6 +229,11 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.equal(shortFlagError.code, 1);
   assert.match(shortFlagError.stderr, /Missing value for --root/);
   assert.match(shortFlagError.stderr, /Usage: warp warpspace sync <warpspace\.lock\.json>/);
+
+  const disallowedFlag = await runCli(['warpspace', 'lock', 'demo.toml', '--root', os.tmpdir()]);
+  assert.equal(disallowedFlag.code, 1);
+  assert.match(disallowedFlag.stderr, /Unknown option: --root/);
+  assert.match(disallowedFlag.stderr, /Usage: warp warpspace lock <manifest\.toml>/);
 });
 
 test('warpspace lock rejects unquoted barewords in TOML', async () => {
@@ -267,6 +273,56 @@ test('warpspace lock rejects unquoted barewords in TOML', async () => {
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+});
+
+test('warpspace lock rejects unknown literal SHA revisions', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const manifestPath = path.join(tempDir, 'unknown-sha.toml');
+  const lockPath = path.join(tempDir, 'unknown-sha.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "unknown-sha"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        'rev = "0000000000000000000000000000000000000000aa"',
+        'path = "echo"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath, lockPath }),
+      /Cannot resolve literal sha|not found|No resolvable git ref found/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('defaultRunCommand returns command-execution failures in stderr', () => {
+  const result = defaultRunCommand({
+    command: 'definitely-not-a-real-command',
+    args: [],
+    cwd: undefined
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /not found|ENOENT/);
 });
 
 async function createGitRepo({ repoPath, fileName, content }) {

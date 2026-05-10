@@ -17,3 +17,7 @@
   JSON errors, generated Echo type references, and Bats JSON diagnostics.
 - Tightened runtime-boundary and settlement-family contract fixtures, docs
   governance policy, and generated-artifact review evidence.
+- Fixed warpspace lock resolution to validate 40-hex revisions against the
+  target repository before writing locks, surfaced command-execution errors from
+  `spawnSync` in `defaultRunCommand` diagnostics, and scoped `warpspace` CLI flag
+  parsing to subcommand-specific flags to reject unsupported options.

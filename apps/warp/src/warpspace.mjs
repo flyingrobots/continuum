@@ -436,10 +436,32 @@ function stripTomlComment(line) {
 
 async function resolveGitRef({ git, rev, runCommand }) {
   if (/^[0-9a-f]{40}$/i.test(rev)) {
-    return {
-      resolved: rev.toLowerCase(),
-      resolution: 'literal-sha'
-    };
+    const remoteExisting = runGit(['ls-remote', git, `${rev}^{}`], { runCommand });
+    if (remoteExisting.status === 0 && remoteExisting.stdout.trim() !== '') {
+      return {
+        resolved: rev.toLowerCase(),
+        resolution: 'literal-sha'
+      };
+    }
+
+    const localExisting = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
+      cwd: git,
+      runCommand
+    });
+    if (localExisting.status === 0 && localExisting.stdout.trim() === rev.toLowerCase()) {
+      return {
+        resolved: rev.toLowerCase(),
+        resolution: 'literal-sha'
+      };
+    }
+
+    if (remoteExisting.status !== 0 && localExisting.status !== 0) {
+      throw new Error(
+        `Cannot resolve literal sha ${rev} in ${git}: ${((remoteExisting.stderr || remoteExisting.stdout || localExisting.stderr || localExisting.stdout || 'not found')).trim()}`.trim()
+      );
+    }
+
+    throw new Error(`Cannot resolve literal sha ${rev} in ${git}: not found`);
   }
 
   // Prefer peeled tags first, then the tag object, then branches, then exact
@@ -594,10 +616,13 @@ function defaultRunCommand({ command, args, cwd }) {
     cwd,
     encoding: 'utf8'
   });
+  const spawnError = result.error?.message ? `${result.error.message}\n` : '';
 
   return {
     status: result.status ?? 1,
     stdout: result.stdout ?? '',
-    stderr: result.stderr ?? ''
+    stderr: `${spawnError}${result.stderr ?? ''}`
   };
 }
+
+export { defaultRunCommand };

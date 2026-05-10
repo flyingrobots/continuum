@@ -106,7 +106,10 @@ async function runWarpspace(argv, { stdout, stderr }) {
       return 0;
     }
     try {
-      const { options, positionals } = parseWarpspaceArgs(rest, usage);
+      const { options, positionals } = parseWarpspaceArgs(rest, usage, new Set([
+        '--lock',
+        '--json'
+      ]));
       if (positionals.length !== 1) {
         throw new UsageError('Expected exactly one manifest path.', usage);
       }
@@ -133,7 +136,11 @@ async function runWarpspace(argv, { stdout, stderr }) {
       return 0;
     }
     try {
-      const { options, positionals } = parseWarpspaceArgs(rest, usage);
+      const { options, positionals } = parseWarpspaceArgs(rest, usage, new Set([
+        '--root',
+        '--allow-dirty',
+        '--json'
+      ]));
       if (positionals.length !== 1) {
         throw new UsageError('Expected exactly one warpspace lock path.', usage);
       }
@@ -162,7 +169,10 @@ async function runWarpspace(argv, { stdout, stderr }) {
       return 0;
     }
     try {
-      const { options, positionals } = parseWarpspaceArgs(rest, usage);
+      const { options, positionals } = parseWarpspaceArgs(rest, usage, new Set([
+        '--root',
+        '--json'
+      ]));
       if (positionals.length !== 1 || options.root == null) {
         throw new UsageError('Expected exactly one warpspace lock path and --root <dir>.', usage);
       }
@@ -191,7 +201,11 @@ async function runWarpspace(argv, { stdout, stderr }) {
       return 0;
     }
     try {
-      const { options, positionals } = parseWarpspaceArgs(rest, usage);
+      const { options, positionals } = parseWarpspaceArgs(rest, usage, new Set([
+        '--root',
+        '--allow-dirty',
+        '--json'
+      ]));
       if (positionals.length !== 1) {
         throw new UsageError('Expected exactly one warpspace lock path.', usage);
       }
@@ -292,9 +306,10 @@ function parseInitArgs(argv, usage) {
   return { options, positionals };
 }
 
-function parseWarpspaceArgs(argv, usage) {
+function parseWarpspaceArgs(argv, usage, allowedFlags = new Set()) {
   const options = {};
   const positionals = [];
+  const flags = allowedFlags instanceof Set ? allowedFlags : new Set(allowedFlags);
 
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -302,6 +317,10 @@ function parseWarpspaceArgs(argv, usage) {
     if (!token.startsWith('--')) {
       positionals.push(token);
       continue;
+    }
+
+    if (!flags.has(token)) {
+      throw new UsageError(`Unknown option: ${token}`, usage);
     }
 
     switch (token) {
