@@ -49,6 +49,13 @@ Echo, `git-warp`, and any later conforming implementation remain free to choose
 their own storage, scheduler, indexes, caches, checkpoints, retained readings,
 and local materializations.
 
+- **Continuum** — Shared semantics, contract families, invariants, and coordination truth (this repo)
+- [**Wesley**](https://github.com/flyingrobots/wesley) — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
+- [**Echo**](https://github.com/flyingrobots/echo) — Primary runtime implementation
+- [**git-warp**](https://github.com/git-stunts/git-warp) — Complementary runtime implementation (Git-backed)
+- **warp** — User-facing CLI for bootstrapping and managing WARPspaces
+- [**warp-ttd**](https://github.com/flyingrobots/warp-ttd) — Shared debugger and operator surfaces
+
 The shared boundary is not "the graph." The shared boundary is the witnessed
 causal history and the contract-shaped artifacts that make it admissible,
 observable, exportable, and importable.
