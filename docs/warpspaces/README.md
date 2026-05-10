@@ -9,5 +9,5 @@ tool has a stable registry release.
 
 Current manifests:
 
-- `jedit-echo-dev.toml` pins the first Wesley/Echo/`jedit`/`warp-ttd`
+- [`jedit-echo-dev.toml`](./jedit-echo-dev.toml) pins the first Wesley/Echo/`jedit`/`warp-ttd`
   development constellation.

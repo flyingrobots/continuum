@@ -4,22 +4,22 @@ version = 1
 name = "jedit-echo-dev"
 
 [repos.wesley]
-git = "git@github.com:flyingrobots/wesley.git"
+git = "https://github.com/flyingrobots/wesley.git"
 rev = "d5e264427f0888c5010c7fe228a44bc24f00ba98"
 path = "wesley"
 
 [repos.echo]
-git = "git@github.com:flyingrobots/echo.git"
+git = "https://github.com/flyingrobots/echo.git"
 rev = "c2328292cd6742c34d45a7ddd2b0ac3b94a92c30"
 path = "echo"
 
 [repos.jedit]
-git = "git@github.com:flyingrobots/jedit.git"
+git = "https://github.com/flyingrobots/jedit.git"
 rev = "a7d9fbf2ec5c1168da453e51c9912041ad795aae"
 path = "jedit"
 
 [repos.warp-ttd]
-git = "git@github.com:flyingrobots/warp-ttd.git"
+git = "https://github.com/flyingrobots/warp-ttd.git"
 rev = "eb80aa4b762e74513ddb79dd575113491109efb9"
 path = "warp-ttd"
 
@@ -31,4 +31,3 @@ repo = "jedit"
 schema = "contracts/jedit-text.graphql"
 generator_repo = "echo"
 generator = "echo-wesley-gen"
-wesley_core = "0.0.2"

@@ -41,8 +41,9 @@ Current posture:
 - stages the Wesley tool declared by the stack manifest under
   `.warpspace/packages/wesley/`
 - invokes Wesley through those staged paths using the real `warpspace.toml`
-- supports both the legacy Node Wesley entrypoint and the native Rust Wesley
-  binary runner; new Wesley work should target the Rust runner
+- supports both the legacy Node Wesley entrypoint (`.mjs` via Node) and the
+  native Rust Wesley binary runner (direct binary execution); new Wesley work
+  should target the Rust runner
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
 - supports a narrow constellation flow for pinned Git repos:
@@ -56,7 +57,7 @@ From this repo:
 
 ```bash
 node apps/warp/bin/warp.mjs init my-app --profile demo
-node apps/warp/bin/warp.mjs warpspace lock docs/warpspaces/jedit-echo-dev.toml
-node apps/warp/bin/warp.mjs warpspace sync docs/warpspaces/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
-node apps/warp/bin/warp.mjs warpspace verify docs/warpspaces/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+node apps/warp/bin/warp.mjs warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
+node apps/warp/bin/warp.mjs warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+node apps/warp/bin/warp.mjs warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 ```
