@@ -68,8 +68,8 @@ function buildBaseManifest({
     toolchain: {
       node: nodeToolchain,
       wesley: {
-        package: wesleyToolchain.package ?? '@wesley/host-node',
-        version: wesleyToolchain.version ?? '0.1.0',
+        package: '@wesley/host-node',
+        version: '0.1.0',
         ...wesleyToolchain,
         install: wesleyInstall
       }
@@ -392,6 +392,7 @@ test('initWarp can stage and invoke a native Rust Wesley binary', async () => {
     });
 
     assert.equal(result.generated, 'completed');
+    assert.equal(result.toolchain.node, null);
     assert.equal(result.toolchain.wesley.source, 'local-sibling-binary');
     assert.equal(result.toolchain.wesley.runner, 'native-binary');
     assert.equal(result.toolchain.wesley.commandSet, 'native-rust');
@@ -631,6 +632,7 @@ test('initWarp can install and invoke native Rust Wesley from a package source',
     });
 
     assert.equal(result.toolchain.wesley.source, 'package-source');
+    assert.equal(result.toolchain.node, null);
     assert.equal(result.toolchain.wesley.runner, 'native-binary');
     assert.equal(result.toolchain.wesley.commandSet, 'native-rust');
     assert.equal(invocations.length, 1);
@@ -638,12 +640,13 @@ test('initWarp can install and invoke native Rust Wesley from a package source',
       invocations[0].command,
       path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley')
     );
-    assert.deepEqual(invocations[0].args.slice(0, 5), [
+    assert.deepEqual(invocations[0].args, [
       'emit',
       'typescript',
       '--schema',
       'contracts/continuum/continuum-neighborhood-core-family.graphql',
-      '--out'
+      '--out',
+      'packages/demo-web/src/generated/continuum/neighborhood-core/types.generated.ts'
     ]);
 
     const wesleyReceipt = JSON.parse(

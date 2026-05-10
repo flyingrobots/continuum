@@ -115,7 +115,7 @@ export async function initWarp({
   const warpspacePath = path.join(resolvedProjectDir, 'warpspace.toml');
   await writeFile(
     warpspacePath,
-    renderWarpspaceToml({ manifest, installLayout }),
+    renderWarpspaceToml({ manifest, installLayout, toolchain }),
     'utf8'
   );
 
@@ -237,7 +237,7 @@ function validateManifest(manifest, manifestPath) {
   if (!manifest.toolchain || typeof manifest.toolchain !== 'object') {
     throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain settings.`);
   }
-  if (!manifest.toolchain.node || typeof manifest.toolchain.node !== 'object') {
+  if (manifestRequiresNode(manifest) && (!manifest.toolchain.node || typeof manifest.toolchain.node !== 'object')) {
     throw new Error(`Stack release manifest at ${manifestPath} must declare toolchain.node.`);
   }
   if (!manifest.toolchain.wesley || typeof manifest.toolchain.wesley !== 'object') {
@@ -396,12 +396,14 @@ async function installManagedToolchain({
     packageSources: manifest.packageSources ?? {},
     authorityRoot
   });
-  const node = await installNodeRuntime({
-    nodeSpec: manifest.toolchain.node,
-    packageSources,
-    projectDir,
-    installLayout
-  });
+  const node = manifestRequiresNode(manifest)
+    ? await installNodeRuntime({
+      nodeSpec: manifest.toolchain.node,
+      packageSources,
+      projectDir,
+      installLayout
+    })
+    : null;
   const wesley = await installWesleyTool({
     wesleySpec: manifest.toolchain.wesley,
     packageSources,
@@ -1102,7 +1104,7 @@ function buildLock({
   };
 }
 
-function renderWarpspaceToml({ manifest, installLayout }) {
+function renderWarpspaceToml({ manifest, installLayout, toolchain }) {
   const lines = [
     'version = 1',
     `profile = ${tomlString(manifest.profile)}`,
@@ -1112,13 +1114,13 @@ function renderWarpspaceToml({ manifest, installLayout }) {
     `template = ${tomlString(manifest.bootstrap.template.id)}`,
     '',
     '[toolchain]',
-    `node_runtime = ${tomlString(manifest.toolchain?.node?.runtime ?? 'node')}`,
-    `node_source = ${tomlString(manifest.toolchain?.node?.source ?? 'unknown')}`,
-    `node_version_range = ${tomlString(manifest.toolchain?.node?.versionRange ?? 'unknown')}`,
-    `wesley_package = ${tomlString(manifest.toolchain?.wesley?.package ?? 'unknown')}`,
-    `wesley_version = ${tomlString(manifest.toolchain?.wesley?.version ?? 'unknown')}`,
-    `wesley_runner = ${tomlString(manifestWesleyRunner(manifest.toolchain?.wesley))}`,
-    `wesley_command_set = ${tomlString(manifestWesleyCommandSet(manifest.toolchain?.wesley))}`,
+    `node_runtime = ${tomlString(toolchain.node?.runtime ?? 'unknown')}`,
+    `node_source = ${tomlString(toolchain.node?.source ?? 'unknown')}`,
+    `node_version_range = ${tomlString(toolchain.node?.requestedRange ?? 'unknown')}`,
+    `wesley_package = ${tomlString(toolchain.wesley.package ?? 'unknown')}`,
+    `wesley_version = ${tomlString(toolchain.wesley.version ?? 'unknown')}`,
+    `wesley_runner = ${tomlString(toolchain.wesley.runner ?? 'unknown')}`,
+    `wesley_command_set = ${tomlString(toolchain.wesley.commandSet ?? 'unknown')}`,
     '',
     '[install]',
     `root = ${tomlString(installLayout.root)}`,
@@ -1154,7 +1156,7 @@ function renderWarpspaceToml({ manifest, installLayout }) {
 }
 
 function manifestWesleyRunner(wesleySpec) {
-  const explicitRunner = wesleySpec?.runner ?? wesleySpec?.install?.runner;
+  const explicitRunner = wesleySpec?.install?.runner ?? wesleySpec?.runner;
   if (explicitRunner != null) {
     return explicitRunner;
   }
@@ -1172,6 +1174,10 @@ function manifestWesleyCommandSet(wesleySpec) {
     return 'native-rust';
   }
   return 'legacy-node';
+}
+
+function manifestRequiresNode(manifest) {
+  return manifestWesleyRunner(manifest.toolchain?.wesley) !== 'native-binary';
 }
 
 function tomlKey(key) {

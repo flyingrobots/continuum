@@ -355,6 +355,11 @@ type ContinuumRuntimeBoundaryFamilyInvariants
     expr: "forall o in ImportOutcome: exists b in CausalSuffixBundle: o.bundleDigest == b.bundleDigest",
     severity: "error"
   )
+  @wes_invariant(
+    name: "import_outcome_embeds_matching_bundle",
+    expr: "forall o in ImportOutcome: o.bundle.bundleDigest == o.bundleDigest",
+    severity: "error"
+  )
 {
   _placeholder: Boolean
 }
