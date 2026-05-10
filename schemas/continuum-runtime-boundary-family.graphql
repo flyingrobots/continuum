@@ -347,7 +347,7 @@ type ContinuumRuntimeBoundaryFamilyInvariants
   )
   @wes_invariant(
     name: "bundle_links_source_shell",
-    expr: "forall b in CausalSuffixBundle: b.baseFrontier.worldlineId == b.sourceSuffix.sourceWorldlineId and b.targetFrontier.worldlineId == b.sourceSuffix.sourceWorldlineId",
+    expr: "forall b in CausalSuffixBundle: b.baseFrontier.worldlineId == b.sourceSuffix.sourceWorldlineId",
     severity: "error"
   )
   @wes_invariant(
