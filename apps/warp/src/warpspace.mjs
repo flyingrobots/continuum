@@ -77,7 +77,11 @@ export async function verifyWarpspace({
   const issues = [];
 
   for (const repo of lock.repos) {
-    const checkoutPath = path.resolve(resolvedRoot, repo.path ?? repo.name);
+    const checkoutPath = resolveCheckoutPath({
+      resolvedRoot,
+      repo,
+      lockPath: resolvedLockPath
+    });
     const repoReport = {
       name: repo.name,
       path: checkoutPath,
@@ -166,8 +170,13 @@ export async function syncWarpspace({
 
   const repos = [];
   for (const repo of lock.repos) {
-    const checkoutPath = path.resolve(resolvedRoot, repo.path ?? repo.name);
+    const checkoutPath = resolveCheckoutPath({
+      resolvedRoot,
+      repo,
+      lockPath: resolvedLockPath
+    });
     const existed = await pathExists(checkoutPath);
+    await mkdir(path.dirname(checkoutPath), { recursive: true });
 
     if (existed && !await pathExists(path.join(checkoutPath, '.git'))) {
       throw new Error(`Cannot sync ${repo.name}: ${checkoutPath} exists but is not a git checkout.`);
@@ -185,6 +194,25 @@ export async function syncWarpspace({
         checkoutPath,
         runCommand
       });
+
+      const origin = runGit(['remote', 'get-url', 'origin'], {
+        cwd: checkoutPath,
+        runCommand
+      });
+      if (origin.status !== 0) {
+        throw new Error(
+          `Cannot sync ${repo.name}: unable to read origin remote for ${checkoutPath}.\n` +
+          `${origin.stderr || origin.stdout}`.trim()
+        );
+      }
+      const currentOrigin = origin.stdout.trim();
+      if (currentOrigin !== repo.git) {
+        runGitChecked(['remote', 'set-url', 'origin', repo.git], {
+          cwd: checkoutPath,
+          runCommand,
+          label: `set origin for ${repo.name}`
+        });
+      }
     }
 
     runGitChecked(['fetch', 'origin', '--tags', '--prune'], {
@@ -467,6 +495,24 @@ async function readLock(lockPath) {
     throw new Error(`${lockPath} must declare repos.`);
   }
   return lock;
+}
+
+function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {
+  const rawPath = requiredText(repo.path ?? repo.name, `path for ${repo.name}`);
+  if (rawPath.split(/[\\/]/).includes('..')) {
+    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must not contain ".." segments.`);
+  }
+  if (path.isAbsolute(rawPath)) {
+    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must be relative to ${resolvedRoot}.`);
+  }
+  const checkoutPath = path.resolve(resolvedRoot, rawPath);
+  const relative = path.relative(resolvedRoot, checkoutPath);
+  if (relative !== '' && (relative.startsWith('..') || path.isAbsolute(relative))) {
+    throw new Error(
+      `${lockPath}: repo ${repo.name} path "${rawPath}" resolves outside ${resolvedRoot}.`
+    );
+  }
+  return checkoutPath;
 }
 
 function assertCleanWorktree({ repo, checkoutPath, runCommand }) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 
 import { main } from '../src/cli.mjs';
 import {
@@ -68,11 +68,11 @@ test('warpspace lock resolves repo refs, syncs checkouts, and verifies clean hea
 
     const syncResult = await syncWarpspace({ lockPath, root: syncRoot });
     assert.deepEqual(
-      syncResult.repos.map(repo => [repo.name, repo.cloned]),
-      [
-        ['echo', true],
-        ['jedit', true]
-      ]
+      Object.fromEntries(syncResult.repos.map(repo => [repo.name, repo.cloned])),
+      {
+        echo: true,
+        jedit: true
+      }
     );
 
     const verifyResult = await verifyWarpspace({ lockPath, root: syncRoot });
@@ -82,19 +82,153 @@ test('warpspace lock resolves repo refs, syncs checkouts, and verifies clean hea
     await writeFile(path.join(syncRoot, 'echo', 'echo.txt'), 'dirty\n', 'utf8');
     const dirtyResult = await verifyWarpspace({ lockPath, root: syncRoot });
     assert.equal(dirtyResult.ok, false);
-    assert.equal(dirtyResult.issues[0].code, 'dirty-worktree');
+    assert.ok(
+      dirtyResult.issues.some(issue => issue.repo === 'echo' && issue.code === 'dirty-worktree'),
+      `expected dirty-worktree on echo, got ${JSON.stringify(dirtyResult.issues)}`
+    );
 
     const cli = await runCli(['warpspace', 'verify', lockPath, '--root', syncRoot, '--json']);
     assert.equal(cli.code, 1);
-    assert.equal(JSON.parse(cli.stdout).ok, false);
+    const parsed = JSON.parse(cli.stdout);
+    assert.equal(parsed.ok, false);
+    assert.ok(
+      parsed.issues.some(issue => issue.repo === 'echo' && issue.code === 'dirty-worktree'),
+      `expected dirty-worktree in CLI output, got ${JSON.stringify(parsed.issues)}`
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
 });
 
+test('warpspace sync repairs origin and creates nested checkout directories', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const syncRoot = path.join(tempDir, 'sync');
+  const manifestPath = path.join(tempDir, 'nested.toml');
+  const lockPath = path.join(tempDir, 'nested.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "nested"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        `rev = ${JSON.stringify(echo.head)}`,
+        'path = "nested/repos/echo"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    await lockWarpspace({
+      manifestPath,
+      lockPath,
+      now: () => new Date('2026-05-09T19:00:00.000Z')
+    });
+
+    const firstSync = await syncWarpspace({ lockPath, root: syncRoot });
+    const checkoutPath = path.join(syncRoot, 'nested', 'repos', 'echo');
+    assert.equal(firstSync.repos[0].cloned, true);
+    assert.equal(await pathExists(path.join(checkoutPath, '.git')), true);
+
+    git(['remote', 'set-url', 'origin', 'https://example.invalid/wrong.git'], checkoutPath);
+
+    const secondSync = await syncWarpspace({ lockPath, root: syncRoot });
+    assert.equal(secondSync.repos[0].cloned, false);
+    assert.equal(git(['remote', 'get-url', 'origin'], checkoutPath).stdout.trim(), echo.repoPath);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace rejects checkout paths outside the root', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const syncRoot = path.join(tempDir, 'sync');
+  const manifestPath = path.join(tempDir, 'escape.toml');
+  const lockPath = path.join(tempDir, 'escape.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "escape"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        `rev = ${JSON.stringify(echo.head)}`,
+        'path = "echo"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const lockResult = await lockWarpspace({
+      manifestPath,
+      lockPath,
+      now: () => new Date('2026-05-09T19:00:00.000Z')
+    });
+    const escaped = {
+      ...lockResult.lock,
+      repos: [
+        {
+          ...lockResult.lock.repos[0],
+          path: '../escape'
+        }
+      ]
+    };
+    await writeFile(lockPath, JSON.stringify(escaped, null, 2) + '\n', 'utf8');
+
+    await assert.rejects(
+      () => verifyWarpspace({ lockPath, root: syncRoot }),
+      /must not contain "\.\." segments|resolves outside|must be relative/
+    );
+    await assert.rejects(
+      () => syncWarpspace({ lockPath, root: syncRoot }),
+      /must not contain "\.\." segments|resolves outside|must be relative/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace help and usage errors stay user-facing', async () => {
+  const help = await runCli(['warpspace', 'lock', '--help']);
+  assert.equal(help.code, 0);
+  assert.match(help.stdout, /Usage: warp warpspace lock <manifest\.toml>/);
+  assert.equal(help.stderr, '');
+
+  const usageError = await runCli(['init', 'demo-app', '--manifest']);
+  assert.equal(usageError.code, 1);
+  assert.match(usageError.stderr, /Missing value for --manifest/);
+  assert.match(usageError.stderr, /Usage: warp init <projectDir>/);
+  assert.doesNotMatch(usageError.stderr, /node:internal|at .*cli\.mjs/);
+});
+
 async function createGitRepo({ repoPath, fileName, content }) {
   await mkdir(repoPath, { recursive: true });
-  git(['init', '-b', 'main'], repoPath);
+  git(['init'], repoPath);
+  git(['symbolic-ref', 'HEAD', 'refs/heads/main'], repoPath);
   await writeFile(path.join(repoPath, fileName), content, 'utf8');
   git(['add', fileName], repoPath);
   git([
@@ -102,6 +236,8 @@ async function createGitRepo({ repoPath, fileName, content }) {
     'user.name=Warp Test',
     '-c',
     'user.email=warp-test@example.invalid',
+    '-c',
+    'commit.gpgsign=false',
     'commit',
     '-m',
     'init'
@@ -121,6 +257,18 @@ function git(args, cwd) {
     `git ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`
   );
   return result;
+}
+
+async function pathExists(targetPath) {
+  try {
+    await stat(targetPath);
+    return true;
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return false;
+    }
+    throw error;
+  }
 }
 
 async function runCli(argv) {
