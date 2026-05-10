@@ -360,6 +360,16 @@ type ContinuumRuntimeBoundaryFamilyInvariants
     expr: "forall o in ImportOutcome: o.bundle.bundleDigest == o.bundleDigest",
     severity: "error"
   )
+  @wes_invariant(
+    name: "import_outcome_target_matches_bundle_frontier",
+    expr: "forall o in ImportOutcome: o.targetWorldlineId == o.bundle.targetFrontier.worldlineId and o.targetBasis.worldlineId == o.bundle.targetFrontier.worldlineId",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "import_outcome_admission_matches_target_basis",
+    expr: "forall o in ImportOutcome: o.admission.targetBasis.worldlineId == o.targetBasis.worldlineId and o.admission.targetBasis.refId == o.targetBasis.refId",
+    severity: "error"
+  )
 {
   _placeholder: Boolean
 }

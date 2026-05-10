@@ -365,7 +365,7 @@ function parseTomlValue(value, manifestPath, lineNumber) {
   if (/^-?\d+$/.test(value)) {
     return Number(value);
   }
-  return value;
+  throw new Error(`${manifestPath}:${lineNumber}: unquoted bareword '${value}' is not allowed.`);
 }
 
 function splitTomlArray(value) {
@@ -442,6 +442,9 @@ async function resolveGitRef({ git, rev, runCommand }) {
     };
   }
 
+  // Prefer peeled tags first, then the tag object, then branches, then exact
+  // ref matches. That keeps annotated releases stable while still allowing
+  // branch names when no tag collision exists.
   const candidates = [
     rev,
     `refs/heads/${rev}`,

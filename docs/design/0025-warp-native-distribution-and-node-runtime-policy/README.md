@@ -111,6 +111,10 @@ Wesley has two command surfaces during the transition:
 
 The permanent direction is `native-rust`.
 
+The `native-rust` command surface only supports `typescript` and `rust`
+projections. Any other projection, including `zod`, `echo-ir`, or `warp-ttd`,
+must stay on `legacy-node` until a native Rust projection is defined for it.
+
 That means `warp` must record:
 
 - the Wesley runner, such as `node-entrypoint` or `native-binary`

@@ -23,10 +23,6 @@ materialized, but it is not the primary ontology.
 
 Continuum exists to keep that boundary honest across the WARP stack.
 
-WARNING: Continuum is under active research and development. Expect rapid
-iteration, breaking changes, and evolving boundaries while the shared stack
-hardens.
-
 > [!WARNING]
 > **Status: Nascent / Experimental**
 > Continuum is under active research and development. Expect rapid iteration,

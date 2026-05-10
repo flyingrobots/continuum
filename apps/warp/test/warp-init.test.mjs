@@ -655,6 +655,10 @@ test('initWarp can install and invoke native Rust Wesley from a package source',
     assert.equal(wesleyReceipt.package, 'wesley-cli');
     assert.equal(wesleyReceipt.runner, 'native-binary');
     assert.equal(wesleyReceipt.commandSet, 'native-rust');
+
+    const config = await readFile(path.join(projectDir, 'warpspace.toml'), 'utf8');
+    assert.match(config, /wesley_runner = "native-binary"/);
+    assert.match(config, /wesley_command_set = "native-rust"/);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

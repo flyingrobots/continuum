@@ -327,7 +327,7 @@ function parseWarpspaceArgs(argv, usage) {
 
 function requireValue(argv, index, flag, usage) {
   const value = argv[index];
-  if (value == null || value.startsWith('--')) {
+  if (value == null || value.startsWith('-')) {
     throw new UsageError(`Missing value for ${flag}`, usage);
   }
   return value;

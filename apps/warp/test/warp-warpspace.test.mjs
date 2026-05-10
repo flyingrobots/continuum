@@ -223,6 +223,50 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.match(usageError.stderr, /Missing value for --manifest/);
   assert.match(usageError.stderr, /Usage: warp init <projectDir>/);
   assert.doesNotMatch(usageError.stderr, /node:internal|at .*cli\.mjs/);
+
+  const shortFlagError = await runCli(['warpspace', 'sync', 'demo.lock.json', '--root', '-q']);
+  assert.equal(shortFlagError.code, 1);
+  assert.match(shortFlagError.stderr, /Missing value for --root/);
+  assert.match(shortFlagError.stderr, /Usage: warp warpspace sync <warpspace\.lock\.json>/);
+});
+
+test('warpspace lock rejects unquoted barewords in TOML', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const manifestPath = path.join(tempDir, 'bareword.toml');
+  const lockPath = path.join(tempDir, 'bareword.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = demo',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        'rev = "main"',
+        'path = "echo"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath, lockPath }),
+      /unquoted bareword/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 async function createGitRepo({ repoPath, fileName, content }) {
