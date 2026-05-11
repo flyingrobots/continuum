@@ -26,6 +26,11 @@ Current authored family:
 - `continuum-settlement-family.graphql`
 - `continuum-runtime-boundary-family.graphql`
 
+`continuum-runtime-boundary-family.graphql` additionally codifies a cross-worldline
+import boundary policy: bundle source and target frontier identities are asserted
+separately, with target-frontier identity governed by bundle target outcomes rather
+than source suffix identity.
+
 The cross-repo ownership, consumer, and witness posture for these families lives
 in [docs/contract-family-registry.md](../docs/contract-family-registry.md).
 

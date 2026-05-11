@@ -111,7 +111,8 @@ active sibling-runtime compatibility target:
 - `ObserverPlan`
 - `ObservationRequest`
 - `ReadingEnvelope`
-- `SuffixShell`
+- `WitnessedSuffixShell`
+- `CausalSuffixBundle`
 - `ImportOutcome`
 
 ## Smallest Honest Artifact

@@ -25,6 +25,10 @@ described in [0025 - Warp Native Distribution And Node Runtime Policy](../../doc
 Prototype commands available here today:
 
 - `warp init`
+- `warp warpspace lock`
+- `warp warpspace verify`
+- `warp warpspace sync`
+- `warp warpspace doctor`
 
 Current posture:
 
@@ -34,11 +38,18 @@ Current posture:
 - scaffolds the demo host template
 - materializes Continuum family sources into the host repo
 - stages the current-process Node runtime under `.warpspace/packages/node/`
-- stages the sibling Wesley entrypoint declared by the demo manifest under
+- stages the Wesley tool declared by the stack manifest under
   `.warpspace/packages/wesley/`
 - invokes Wesley through those staged paths using the real `warpspace.toml`
+- supports both the legacy Node Wesley entrypoint (`.mjs` via Node) and the
+  native Rust Wesley binary runner (direct binary execution); new Wesley work
+  should target the Rust runner
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
+- supports a narrow constellation flow for pinned Git repos:
+  `warp warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
+  local checkouts, `sync` clones/fetches/checks out the locked commits, and
+  `doctor` reports verification health
 
 ## Run It
 
@@ -46,4 +57,7 @@ From this repo:
 
 ```bash
 node apps/warp/bin/warp.mjs init my-app --profile demo
+node apps/warp/bin/warp.mjs warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
+node apps/warp/bin/warp.mjs warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+node apps/warp/bin/warp.mjs warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 ```

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `warp warpspace lock`, `verify`, `sync`, and `doctor` for the first
+  pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.
 - Fixed `drift-watch` single-file `--mirror-root` handling for mirror
   surface paths.
@@ -15,3 +17,7 @@
   JSON errors, generated Echo type references, and Bats JSON diagnostics.
 - Tightened runtime-boundary and settlement-family contract fixtures, docs
   governance policy, and generated-artifact review evidence.
+- Fixed warpspace lock resolution to validate 40-hex revisions against the
+  target repository before writing locks, surfaced command-execution errors from
+  `spawnSync` in `defaultRunCommand` diagnostics, and scoped `warpspace` CLI flag
+  parsing to subcommand-specific flags to reject unsupported options.

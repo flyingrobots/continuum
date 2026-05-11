@@ -11,7 +11,8 @@ Origin discussion:
   place to say which repo authored each shared family.
 - The first useful registry needed to name the active family spine:
   `IntentEnvelope`, `TickResult`, `ObserverPlan`, `ObservationRequest`,
-  `ReadingEnvelope`, `SuffixShell`, and `ImportOutcome`.
+  `ReadingEnvelope`, `WitnessedSuffixShell`, `CausalSuffixBundle`, and
+  `ImportOutcome`.
 - The registry needed to distinguish authored home, compiler/module owner,
   runtime emitter, downstream consumer, and non-authoritative mirrors.
 - The registry also needed to make unproved compatibility claims visible as

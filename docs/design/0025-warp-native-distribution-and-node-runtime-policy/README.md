@@ -22,14 +22,15 @@ Lock down:
 
 - what the shipped `warp` artifact actually is
 - what counts as a convenience installer versus the real product
-- how `warp` satisfies the Node prerequisite needed for Wesley and TypeScript
-  generation
+- how `warp` distinguishes the native Rust Wesley runner from any Node runtime
+  needed by legacy or consumer-side projections
 - what gets recorded in `warpspace.lock.json`
 
 This packet answers the practical question:
 
 **If we ship `warp` correctly, what does the user install, and how do we make
-sure the WARPspace has a compatible Node runtime before Wesley is invoked?**
+sure the WARPspace has the compatible internal toolchain before Wesley and any
+consumer-side generators are invoked?**
 
 Package-source resolution across multiple source sites is refined in
 [0026 - Warp Package Sources And Local Packages Site](../0026-warp-package-sources-and-local-packages-site/README.md).
@@ -55,9 +56,10 @@ if the final product is already clear:
 - `warp` should be one user-facing binary
 - the rest of the stack should remain internal
 
-At the same time, Wesley and the TypeScript generation path still require a
-compatible Node runtime.
-That prerequisite must become explicit policy.
+At the same time, the repo-local proof harness and some legacy projections may
+still require a compatible Node runtime.
+That prerequisite must be explicit policy, but it should not be confused with
+Wesley's permanent runtime shape. Wesley is moving to a native Rust CLI.
 
 ## Decision
 
@@ -100,20 +102,28 @@ That means:
 The repo-local JS CLI is allowed to continue as an implementation proof while
 the native bootstrapper is designed or built.
 
-### 3. `warp` must ensure a compatible Node runtime exists before Wesley handoff
+### 3. `warp` must record how Wesley is invoked
 
-Wesley and the TypeScript/Zod/TTD generation path require a compatible Node
-runtime.
+Wesley has two command surfaces during the transition:
 
-That means `warp` must own a first-class **Node runtime policy**.
+- `legacy-node`: a Node entrypoint used by the old projection harness
+- `native-rust`: the Rust `wesley` binary
 
-The rule is:
+The permanent direction is `native-rust`.
 
-- `warp` may not invoke Wesley until it has established a compatible Node
-  runtime for the current WARPspace
+The `native-rust` command surface only supports `typescript` and `rust`
+projections. Any other projection, including `zod`, `echo-ir`, or `warp-ttd`,
+must stay on `legacy-node` until a native Rust projection is defined for it.
 
-This is not optional environment folklore.
-It is part of successful bootstrap and build.
+That means `warp` must record:
+
+- the Wesley runner, such as `node-entrypoint` or `native-binary`
+- the Wesley command set, such as `legacy-node` or `native-rust`
+- the staged command path under `.warpspace/packages/wesley/`
+
+If a selected profile still uses legacy Node-hosted projections, `warp` must
+establish the Node runtime before invoking them. Native Rust Wesley invocations
+must run the staged Wesley binary directly, not through `node`.
 
 ### 4. Released profiles should default to a managed Node runtime
 
@@ -124,7 +134,7 @@ For released profiles, the default policy is:
 Meaning:
 
 - `warp` installs a pinned Node runtime into `.warpspace/packages/`
-- `warp` invokes Wesley through that managed runtime
+- `warp` invokes legacy Node-hosted projections through that managed runtime
 - the selected Node version and install receipt are recorded in
   `warpspace.lock.json`
 
@@ -161,10 +171,12 @@ If system Node is used, `warp` must still:
 - record the resolved version and path in `warpspace.lock.json`
 - fail clearly when the system runtime is missing or out of envelope
 
-### 6. Node runtime source belongs in the stack manifest and lockfile
+### 6. Node runtime source and Wesley runner belong in the stack manifest and lockfile
 
 The Continuum stack manifest should declare the Node runtime envelope needed by
-the selected Wesley/toolchain tuple.
+the selected toolchain tuple when any selected projection requires Node.
+
+The same manifest should also declare the Wesley runner and command set.
 
 At minimum:
 
@@ -178,6 +190,8 @@ At minimum:
 - exact Node version
 - install receipt or resolved executable path
 - whether the runtime is managed or system-provided
+- Wesley runner and command set
+- staged Wesley executable or entrypoint path
 
 ### 7. `.warpspace/packages/` should hold managed Node alongside Wesley
 
@@ -213,10 +227,11 @@ Continuum now needs to own:
 
 Wesley remains a managed internal toolchain component.
 
-It does not need to become the thing users install globally.
+It does not need to become the thing users install globally, and it should not
+return to an npm package as its primary entrypoint.
 
-It should assume that `warp` has already established a compatible runtime
-environment before invoking it.
+It should assume that `warp` has staged the selected Wesley artifact. In the
+permanent path that artifact is the native Rust `wesley` binary.
 
 ### App Authors
 
@@ -224,7 +239,8 @@ The desired end state is:
 
 1. Install `warp`
 2. Run `warp init my-app`
-3. Let `warp` ensure the compatible internal toolchain, including Node
+3. Let `warp` ensure the compatible internal toolchain, including Wesley and
+   any selected Node runtime
 4. Never think about Wesley installation details directly
 
 ## Strong Recommendation
@@ -247,7 +263,8 @@ It should not be the default release posture.
 
 - [ ] Does this packet cut the JS-first ship path clearly enough?
 - [ ] Is the native binary now the unambiguous permanent `warp` artifact?
+- [ ] Is the Wesley runner now distinct from the Node runtime policy?
 - [ ] Is the Node prerequisite now elevated from ambient assumption to explicit
-      stack policy?
+      stack policy only where it is actually needed?
 - [ ] Is the managed-vs-system Node split clear enough to guide manifest and
       lockfile design?

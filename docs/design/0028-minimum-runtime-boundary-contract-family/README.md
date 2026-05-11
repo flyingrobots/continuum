@@ -56,7 +56,7 @@ That is exactly the kind of shadow contract drift Continuum exists to stop.
 
 ## Decision
 
-Continuum should freeze one minimum shared runtime-boundary family with seven
+Continuum should freeze one minimum shared runtime-boundary family with eight
 top-level contract nouns:
 
 1. `IntentEnvelope`
@@ -64,8 +64,9 @@ top-level contract nouns:
 3. `ObserverPlan`
 4. `ObservationRequest`
 5. `ReadingEnvelope`
-6. `SuffixShell`
-7. `ImportOutcome`
+6. `WitnessedSuffixShell`
+7. `CausalSuffixBundle`
+8. `ImportOutcome`
 
 This is the first stack-wide cut. It is intentionally smaller than the full
 receipt ladder, smaller than full reintegration detail, and smaller than a full
@@ -158,42 +159,63 @@ conforming to this family.
 
 It is not the substrate itself and it is not the same thing as `TickResult`.
 
-### 6. `SuffixShell`
+### 6. `WitnessedSuffixShell`
 
-`SuffixShell` is the GraphQL-authored family for the shared distributed suffix
-exchange shell.
+`WitnessedSuffixShell` is the GraphQL-authored family for the compact source
+suffix evidence Echo already exposes at its runtime boundary.
 
 It names:
 
-- history and lane identity
-- source runtime and writer identity
-- claimed base frontier
-- claimed target frontier
-- transition count and witness-bearing shell identity
+- source worldline identity
+- source suffix start and end ticks
+- ordered source provenance entries
+- optional boundary witness
+- witness digest
+- optional settlement/basis evidence
 
-It is a witnessed import/export shell, not a bare patch list.
-It is not a materialized state snapshot and it does not imply that one runtime
-is the durable half of another.
+It is a witnessed suffix shell, not a bare patch list or materialized state
+snapshot.
 
-### 7. `ImportOutcome`
+### 7. `CausalSuffixBundle`
+
+`CausalSuffixBundle` is the GraphQL-authored family for the distributed
+transport/import question.
+
+It names:
+
+- base frontier
+- target frontier
+- the `WitnessedSuffixShell`
+- deterministic bundle digest
+
+The bundle is the unit used for shell equivalence and loop prevention. It is not
+a reading cache, snapshot, or local receipt.
+
+### 8. `ImportOutcome`
 
 `ImportOutcome` is the GraphQL-authored family for the distributed admission
 result.
 
 It names:
 
-- the imported shell
-- the target runtime/lane
-- the lawful outcome kind
-- the resulting frontier identity
-- the relevant receipt/witness reference
+- the imported bundle digest and bundle
+- the target runtime/worldline and basis
+- the import novelty posture
+- the nested `WitnessedSuffixAdmissionResponse`
+- the relevant local receipt/witness reference
 
-The lawful outcome kind remains shared with the existing admission family:
+The suffix admission response preserves Echo's typed suffix outcome family:
 
-- `Derived`
+- `Admitted`
+- `Staged`
 - `Plural`
 - `Conflict`
-- `Obstruction`
+- `Obstructed`
+
+The older `SuffixShell` name was a placeholder. Echo is the first runtime
+consumer for this boundary, so Continuum now promotes Echo's
+`WitnessedSuffixShell` and `CausalSuffixBundle` vocabulary instead of requiring
+Echo to adapt to the thinner placeholder.
 
 ## Contract Families Versus Artifacts Versus Values
 

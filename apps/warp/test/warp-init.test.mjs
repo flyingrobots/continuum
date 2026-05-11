@@ -48,6 +48,7 @@ function buildBaseManifest({
   projections = ['typescript', 'zod'],
   packageSources = undefined,
   nodeToolchain,
+  wesleyToolchain = {},
   wesleyInstall
 }) {
   const manifest = {
@@ -69,6 +70,7 @@ function buildBaseManifest({
       wesley: {
         package: '@wesley/host-node',
         version: '0.1.0',
+        ...wesleyToolchain,
         install: wesleyInstall
       }
     },
@@ -329,6 +331,101 @@ test('initWarp can hand off generation through staged node and Wesley toolchain 
   }
 });
 
+test('initWarp can stage and invoke a native Rust Wesley binary', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
+  const authorityRoot = path.join(tempDir, 'continuum');
+  const wesleyRoot = path.join(tempDir, 'wesley');
+  const projectDir = path.join(tempDir, 'app');
+  const schemaPath = path.join(authorityRoot, 'schemas', 'continuum-neighborhood-core-family.graphql');
+  const manifestPath = path.join(authorityRoot, 'docs', 'releases', 'demo', 'continuum-stack-release.json');
+  const templatePath = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'template.json');
+  const templateFiles = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'files');
+  const wesleyBinary = path.join(wesleyRoot, 'target', 'debug', 'wesley');
+  const invocations = [];
+  const schemaContent = 'type Query { ok: Boolean! }\n';
+
+  try {
+    await mkdir(path.join(authorityRoot, '.git'), { recursive: true });
+    await mkdir(path.dirname(schemaPath), { recursive: true });
+    await mkdir(path.dirname(manifestPath), { recursive: true });
+    await mkdir(path.dirname(wesleyBinary), { recursive: true });
+
+    await writeFile(schemaPath, schemaContent, 'utf8');
+    await writeFile(wesleyBinary, '#!/bin/sh\nexit 0\n', 'utf8');
+    await chmod(wesleyBinary, 0o755);
+    await writeTemplateFixture({ templatePath, templateFiles });
+    await writeFile(
+      manifestPath,
+      JSON.stringify(buildBaseManifest({
+        schemaContent,
+        projections: ['typescript'],
+        nodeToolchain: {
+          runtime: 'node',
+          source: 'system',
+          versionRange: '>=22.0.0',
+          managedPath: '.warpspace/packages/node/current/bin/node'
+        },
+        wesleyToolchain: {
+          package: 'wesley-cli',
+          commandSet: 'native-rust'
+        },
+        wesleyInstall: {
+          source: 'local-sibling-binary',
+          path: '../wesley/target/debug/wesley',
+          managedPath: '.warpspace/packages/wesley/current/bin/wesley'
+        }
+      }), null, 2) + '\n',
+      'utf8'
+    );
+
+    const result = await initWarp({
+      projectDir,
+      manifestPath,
+      runCommand: async ({ command, args, cwd, env }) => {
+        invocations.push({ command, args, cwd, env });
+        return {
+          status: 0,
+          stdout: '',
+          stderr: ''
+        };
+      }
+    });
+
+    assert.equal(result.generated, 'completed');
+    assert.equal(result.toolchain.node, null);
+    assert.equal(result.toolchain.wesley.source, 'local-sibling-binary');
+    assert.equal(result.toolchain.wesley.runner, 'native-binary');
+    assert.equal(result.toolchain.wesley.commandSet, 'native-rust');
+    assert.equal(invocations.length, 1);
+    assert.equal(
+      invocations[0].command,
+      path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley')
+    );
+    assert.deepEqual(invocations[0].args, [
+      'emit',
+      'typescript',
+      '--schema',
+      'contracts/continuum/continuum-neighborhood-core-family.graphql',
+      '--out',
+      'packages/demo-web/src/generated/continuum/neighborhood-core/types.generated.ts'
+    ]);
+    assert.equal(invocations[0].env, undefined);
+    assert.equal(invocations[0].cwd, projectDir);
+
+    const config = await readFile(path.join(projectDir, 'warpspace.toml'), 'utf8');
+    assert.match(config, /wesley_runner = "native-binary"/);
+    assert.match(config, /wesley_command_set = "native-rust"/);
+
+    const stagedWesleyReceipt = JSON.parse(
+      await readFile(path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'install-receipt.json'), 'utf8')
+    );
+    assert.equal(stagedWesleyReceipt.runner, 'native-binary');
+    assert.equal(stagedWesleyReceipt.commandSet, 'native-rust');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('initWarp can install node and Wesley from a local-packages source site', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
   const authorityRoot = path.join(tempDir, 'continuum');
@@ -444,6 +541,129 @@ test('initWarp can install node and Wesley from a local-packages source site', a
   }
 });
 
+test('initWarp can install and invoke native Rust Wesley from a package source', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
+  const authorityRoot = path.join(tempDir, 'continuum');
+  const projectDir = path.join(tempDir, 'app');
+  const localPackagesRoot = path.join(authorityRoot, 'test-fixtures', 'local-packages');
+  const schemaPath = path.join(authorityRoot, 'schemas', 'continuum-neighborhood-core-family.graphql');
+  const manifestPath = path.join(authorityRoot, 'docs', 'releases', 'demo', 'continuum-stack-release.json');
+  const templatePath = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'template.json');
+  const templateFiles = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'files');
+  const invocations = [];
+  const schemaContent = 'type Query { ok: Boolean! }\n';
+
+  try {
+    await mkdir(path.join(authorityRoot, '.git'), { recursive: true });
+    await mkdir(path.dirname(schemaPath), { recursive: true });
+    await mkdir(path.dirname(manifestPath), { recursive: true });
+
+    await writeFile(schemaPath, schemaContent, 'utf8');
+    await writeTemplateFixture({ templatePath, templateFiles });
+    await writeLocalPackageSource({
+      localPackagesRoot,
+      packageName: 'node',
+      version: '25.9.0',
+      variant: 'host',
+      entrypoint: 'bin/node',
+      files: {
+        'bin/node': '#!/bin/sh\nexit 0\n'
+      }
+    });
+    await writeLocalPackageSource({
+      localPackagesRoot,
+      packageName: 'wesley-cli',
+      version: '0.1.0',
+      variant: 'host',
+      entrypoint: 'bin/wesley',
+      files: {
+        'bin/wesley': '#!/bin/sh\nexit 0\n'
+      }
+    });
+    await writeFile(
+      manifestPath,
+      JSON.stringify(buildBaseManifest({
+        schemaContent,
+        projections: ['typescript'],
+        packageSources: {
+          testLocalPackages: {
+            kind: 'local-packages',
+            rootPath: 'test-fixtures/local-packages'
+          }
+        },
+        nodeToolchain: {
+          runtime: 'node',
+          source: 'package-source',
+          versionRange: '>=22.0.0',
+          package: 'node',
+          version: '25.9.0',
+          variant: 'host',
+          sourceSite: 'testLocalPackages',
+          managedPath: '.warpspace/packages/node/current'
+        },
+        wesleyToolchain: {
+          package: 'wesley-cli',
+          commandSet: 'native-rust'
+        },
+        wesleyInstall: {
+          source: 'package-source',
+          runner: 'native-binary',
+          sourceSite: 'testLocalPackages',
+          package: 'wesley-cli',
+          version: '0.1.0',
+          variant: 'host',
+          managedPath: '.warpspace/packages/wesley/current'
+        }
+      }), null, 2) + '\n',
+      'utf8'
+    );
+
+    const result = await initWarp({
+      projectDir,
+      manifestPath,
+      runCommand: async ({ command, args, cwd, env }) => {
+        invocations.push({ command, args, cwd, env });
+        return {
+          status: 0,
+          stdout: '',
+          stderr: ''
+        };
+      }
+    });
+
+    assert.equal(result.toolchain.wesley.source, 'package-source');
+    assert.equal(result.toolchain.node, null);
+    assert.equal(result.toolchain.wesley.runner, 'native-binary');
+    assert.equal(result.toolchain.wesley.commandSet, 'native-rust');
+    assert.equal(invocations.length, 1);
+    assert.equal(
+      invocations[0].command,
+      path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley')
+    );
+    assert.deepEqual(invocations[0].args, [
+      'emit',
+      'typescript',
+      '--schema',
+      'contracts/continuum/continuum-neighborhood-core-family.graphql',
+      '--out',
+      'packages/demo-web/src/generated/continuum/neighborhood-core/types.generated.ts'
+    ]);
+
+    const wesleyReceipt = JSON.parse(
+      await readFile(path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'install-receipt.json'), 'utf8')
+    );
+    assert.equal(wesleyReceipt.package, 'wesley-cli');
+    assert.equal(wesleyReceipt.runner, 'native-binary');
+    assert.equal(wesleyReceipt.commandSet, 'native-rust');
+
+    const config = await readFile(path.join(projectDir, 'warpspace.toml'), 'utf8');
+    assert.match(config, /wesley_runner = "native-binary"/);
+    assert.match(config, /wesley_command_set = "native-rust"/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 async function writeLocalPackageSource({
   localPackagesRoot,
   packageName,
@@ -460,7 +680,7 @@ async function writeLocalPackageSource({
     const targetPath = path.join(payloadRoot, relativePath);
     await mkdir(path.dirname(targetPath), { recursive: true });
     await writeFile(targetPath, content, 'utf8');
-    if (relativePath.endsWith('/node') || relativePath.endsWith('.sh')) {
+    if (relativePath.endsWith('/node') || relativePath.endsWith('/wesley') || relativePath.endsWith('.sh')) {
       await chmod(targetPath, 0o755);
     }
   }
