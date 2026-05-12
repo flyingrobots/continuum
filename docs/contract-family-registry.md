@@ -80,7 +80,8 @@ the next compatibility target.
 | Echo | Sibling runtime implementation that may emit and consume conforming values. | A subordinate runtime below `git-warp`. |
 | `git-warp` | Sibling runtime implementation that may emit and consume conforming values. | The durable half of Echo. |
 | `warp-ttd` | Debugger, operator surface, and generated-artifact consumer. | A hand-normalized substitute for shared contracts. |
-| App/tool repos | Domain-family authors and generated-artifact consumers. | Shadow homes for Continuum-owned families. |
+| Graft | Planned structural observer and review engine; expected consumer of runtime-boundary observer nouns such as `ObserverPlan`, `ObservationRequest`, and `ReadingEnvelope`; producer of app-local code-aware structural reading payloads until promotion is warranted. Graft is not a Family Matrix primary consumer until compatible generated-artifact or witness evidence exists. | A runtime implementation, debugger product, shadow Continuum semantic owner, or permanent host-normalization layer. |
+| Other app/tool repos | Domain-family authors and generated-artifact consumers. | Shadow homes for Continuum-owned families. |
 
 ## Compatibility Claims
 
@@ -99,7 +100,8 @@ Update this file when any of these change:
 - a Continuum-authored family is added, renamed, or removed
 - a family version changes
 - Wesley gains or loses a compile, bundle, witness, or drift-watch profile
-- Echo, `git-warp`, `warp-ttd`, or an app repo publishes compatibility metadata
+- Echo, `git-warp`, `warp-ttd`, Graft, or an app repo publishes compatibility
+  metadata
 - a witness turns a compatibility gap into evidence
 
 Do not update this registry to make a claim aspirationally true. Add the row as
