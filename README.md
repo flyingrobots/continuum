@@ -158,6 +158,8 @@ Continuum does not own:
 
 ## Key Artifacts
 
+- [docs/NORTHSTAR.md](docs/NORTHSTAR.md): the Think-on-Echo north star and
+  first proof boundary.
 - [schemas](schemas/README.md): authored Continuum contract families.
 - [wesley](wesley/README.md): Continuum-owned Wesley module surfaces.
 - [apps/warp](apps/warp/README.md): `warp init` and WARPspace templates.
