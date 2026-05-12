@@ -136,7 +136,7 @@ witness for what was preserved, lost, blocked, or left plural.
 - **`git-warp`**: sibling Continuum runtime implementation.
 - **`warp-ttd`**: debugger and operator surfaces over generated contracts.
 - **Graft**: structural observer and review engine over witnessed causal
-  history; consumes shared boundary families and owns code-aware structural
+  history; targets shared boundary families and owns code-aware structural
   readings until a payload needs shared Continuum semantics.
 - **`warp`**: user-facing CLI for bootstrapping and managing WARPspaces.
 
