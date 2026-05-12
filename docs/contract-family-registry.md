@@ -50,10 +50,10 @@ Registry keys are repo-local labels. They are not yet stable wire ids.
 
 | Registry key | Version | Authored home | Shared nouns | Wesley status | Runtime status | Primary consumers | Evidence today | Open cut |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `receipt-family` | `0.1.0` | [`schemas/continuum-receipt-family.graphql`](../schemas/continuum-receipt-family.graphql) | `Receipt`, `DeliveryObservation`, `Capability`, `Witness` | `profiled`, `fixture-witnessed` | `runtime-open` | Echo, `git-warp`, `warp-ttd`, app/tool repos through generated artifacts | `wesley/test/witness-continuum.bats`, `wesley/test/contract.bats`, receipt fixtures | Replace fixture/mock vectors with live sibling-runtime receipt publication. |
-| `settlement-family` | `0.1.0` | [`schemas/continuum-settlement-family.graphql`](../schemas/continuum-settlement-family.graphql) | `SettlementRequest`, `SettlementDelta`, `ImportCandidate`, `ConflictArtifact`, `SettlementDecision`, `SettlementPlan`, `SettlementResult` | `profiled`, `fixture-witnessed` | `runtime-open` | Echo, `git-warp`, `warp-ttd`, app/tool repos through generated artifacts | `wesley/test/witness-continuum.bats`, settlement fixtures | Prove live settlement values from sibling runtime suffix/import flows. |
-| `neighborhood-core-family` | `0.1.0` | [`schemas/continuum-neighborhood-core-family.graphql`](../schemas/continuum-neighborhood-core-family.graphql) | `NeighborhoodCore`, `NeighborhoodParticipant`, `AdmissionOutcomeKind` | `authored` | `runtime-open` | `warp-ttd`, Echo, `git-warp`, app/tool observers | Authored schema and design packet `0022` | Add Wesley profile and fixture witness before claiming runtime support. |
-| `runtime-boundary-family` | `0.1.0` | [`schemas/continuum-runtime-boundary-family.graphql`](../schemas/continuum-runtime-boundary-family.graphql) | `IntentEnvelope`, `TickResult`, `ObserverPlan`, `ObservationRequest`, `ReadingEnvelope`, `WitnessedSuffixShell`, `CausalSuffixBundle`, `ImportOutcome` | `authored` | `runtime-open`, `interop-open` | Echo, `git-warp`, Wesley, `warp-ttd`, app/tool hosts | Authored schema and design packets `0027`/`0028` | Add Wesley profile, then prove witnessed suffix exchange/admission between sibling runtimes. |
+| `receipt-family` | `0.1.0` | [`schemas/continuum-receipt-family.graphql`](../schemas/continuum-receipt-family.graphql) | `Receipt`, `DeliveryObservation`, `Capability`, `Witness` | `profiled`, `fixture-witnessed` | `runtime-open` | Echo, `git-warp`, `warp-ttd`, Graft, app/tool repos through generated artifacts | `wesley/test/witness-continuum.bats`, `wesley/test/contract.bats`, receipt fixtures | Replace fixture/mock vectors with live sibling-runtime receipt publication. |
+| `settlement-family` | `0.1.0` | [`schemas/continuum-settlement-family.graphql`](../schemas/continuum-settlement-family.graphql) | `SettlementRequest`, `SettlementDelta`, `ImportCandidate`, `ConflictArtifact`, `SettlementDecision`, `SettlementPlan`, `SettlementResult` | `profiled`, `fixture-witnessed` | `runtime-open` | Echo, `git-warp`, `warp-ttd`, Graft, app/tool repos through generated artifacts | `wesley/test/witness-continuum.bats`, settlement fixtures | Prove live settlement values from sibling runtime suffix/import flows. |
+| `neighborhood-core-family` | `0.1.0` | [`schemas/continuum-neighborhood-core-family.graphql`](../schemas/continuum-neighborhood-core-family.graphql) | `NeighborhoodCore`, `NeighborhoodParticipant`, `AdmissionOutcomeKind` | `authored` | `runtime-open` | `warp-ttd`, Graft, Echo, `git-warp`, app/tool observers | Authored schema and design packet `0022` | Add Wesley profile and fixture witness before claiming runtime support. |
+| `runtime-boundary-family` | `0.1.0` | [`schemas/continuum-runtime-boundary-family.graphql`](../schemas/continuum-runtime-boundary-family.graphql) | `IntentEnvelope`, `TickResult`, `ObserverPlan`, `ObservationRequest`, `ReadingEnvelope`, `WitnessedSuffixShell`, `CausalSuffixBundle`, `ImportOutcome` | `authored` | `runtime-open`, `interop-open` | Echo, `git-warp`, Wesley, `warp-ttd`, Graft, app/tool hosts | Authored schema and design packets `0027`/`0028` | Add Wesley profile, then prove witnessed suffix exchange/admission between sibling runtimes. |
 
 ## Runtime-Boundary Noun Matrix
 
@@ -64,9 +64,9 @@ the next compatibility target.
 | --- | --- | --- | --- | --- |
 | `IntentEnvelope` | Set-side intent carrier. | App hosts, Echo, `git-warp`, or another sibling runtime. | Sibling runtimes and Wesley witness tooling. | Generated profile plus one runtime emission fixture. |
 | `TickResult` | Immediate admission result. | Echo, `git-warp`, or another sibling runtime. | App hosts, `warp-ttd`, Wesley witness tooling. | Live admission value mapped to authored outcome kind. |
-| `ObserverPlan` | Get-side observer plan. | App hosts, `warp-ttd`, runtime adapters. | Sibling runtimes and observer tooling. | Profile fixture that preserves plan identity and source metadata. |
-| `ObservationRequest` | Request for one observer-relative reading. | App hosts, `warp-ttd`, runtime adapters. | Sibling runtimes and witness tooling. | Query/read path proof linking request to plan. |
-| `ReadingEnvelope` | Observer-relative reading result. | Echo, `git-warp`, or another sibling runtime. | App hosts, `warp-ttd`, sibling runtimes. | Witness that reading links request, plan, lane, and backing shell. |
+| `ObserverPlan` | Get-side observer plan. | App hosts, Graft, `warp-ttd`, runtime adapters. | Sibling runtimes and observer tooling. | Profile fixture that preserves plan identity and source metadata. |
+| `ObservationRequest` | Request for one observer-relative reading. | App hosts, Graft, `warp-ttd`, runtime adapters. | Sibling runtimes and witness tooling. | Query/read path proof linking request to plan. |
+| `ReadingEnvelope` | Observer-relative reading result. | Echo, `git-warp`, or another sibling runtime. | App hosts, Graft, `warp-ttd`, sibling runtimes. | Witness that reading links request, plan, lane, and backing shell. |
 | `WitnessedSuffixShell` | Compact source suffix evidence: source worldline, tick bounds, ordered provenance entries, boundary witness, digest, and optional basis report. | Echo, `git-warp`, or another sibling runtime. | Sibling runtimes and Wesley witness tooling. | Export fixture matching Echo's witnessed suffix shell shape. |
 | `CausalSuffixBundle` | Transport/import question: base frontier, target frontier, source shell, and bundle digest. | Echo, `git-warp`, or another sibling runtime. | Sibling runtimes and Wesley witness tooling. | Bundle fixture proving shell-equivalence identity. |
 | `ImportOutcome` | Distributed suffix admission result wrapping novelty posture and `WitnessedSuffixAdmissionResponse`. | Target sibling runtime. | Source sibling runtime, `warp-ttd`, app hosts. | Admission witness linking outcome to `CausalSuffixBundle`. |
@@ -80,7 +80,8 @@ the next compatibility target.
 | Echo | Sibling runtime implementation that may emit and consume conforming values. | A subordinate runtime below `git-warp`. |
 | `git-warp` | Sibling runtime implementation that may emit and consume conforming values. | The durable half of Echo. |
 | `warp-ttd` | Debugger, operator surface, and generated-artifact consumer. | A hand-normalized substitute for shared contracts. |
-| App/tool repos | Domain-family authors and generated-artifact consumers. | Shadow homes for Continuum-owned families. |
+| Graft | Structural observer and review engine; consumes runtime-boundary, receipt, settlement, neighborhood, and observer families; produces code-aware structural reading payloads when those payloads are still app-local. | A runtime implementation, debugger product, shadow Continuum semantic owner, or permanent host-normalization layer. |
+| Other app/tool repos | Domain-family authors and generated-artifact consumers. | Shadow homes for Continuum-owned families. |
 
 ## Compatibility Claims
 
@@ -99,7 +100,8 @@ Update this file when any of these change:
 - a Continuum-authored family is added, renamed, or removed
 - a family version changes
 - Wesley gains or loses a compile, bundle, witness, or drift-watch profile
-- Echo, `git-warp`, `warp-ttd`, or an app repo publishes compatibility metadata
+- Echo, `git-warp`, `warp-ttd`, Graft, or an app repo publishes compatibility
+  metadata
 - a witness turns a compatibility gap into evidence
 
 Do not update this registry to make a claim aspirationally true. Add the row as

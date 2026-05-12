@@ -49,12 +49,19 @@ Echo, `git-warp`, and any later conforming implementation remain free to choose
 their own storage, scheduler, indexes, caches, checkpoints, retained readings,
 and local materializations.
 
-- **Continuum** — Shared semantics, contract families, invariants, and coordination truth (this repo)
-- [**Wesley**](https://github.com/flyingrobots/wesley) — Contract compiler, manifest generation, witness tooling, and TTD (Typed Transition Discipline) code generator
-- [**Echo**](https://github.com/flyingrobots/echo) — Primary runtime implementation
-- [**git-warp**](https://github.com/git-stunts/git-warp) — Complementary runtime implementation (Git-backed)
+- **Continuum** — Shared semantics, contract families, invariants, and
+  coordination truth (this repo)
+- [**Wesley**](https://github.com/flyingrobots/wesley) — Contract compiler,
+  manifest generation, witness tooling, and TTD code generator
+- [**Echo**](https://github.com/flyingrobots/echo) — Primary runtime
+  implementation
+- [**git-warp**](https://github.com/git-stunts/git-warp) — Complementary
+  runtime implementation (Git-backed)
 - **warp** — User-facing CLI for bootstrapping and managing WARPspaces
-- [**warp-ttd**](https://github.com/flyingrobots/warp-ttd) — Shared debugger and operator surfaces
+- [**warp-ttd**](https://github.com/flyingrobots/warp-ttd) — Shared debugger
+  and operator surfaces
+- [**Graft**](https://github.com/flyingrobots/graft) — Structural observer
+  and review engine
 
 The shared boundary is not "the graph." The shared boundary is the witnessed
 causal history and the contract-shaped artifacts that make it admissible,
@@ -128,6 +135,9 @@ witness for what was preserved, lost, blocked, or left plural.
 - **Echo**: sibling Continuum runtime implementation.
 - **`git-warp`**: sibling Continuum runtime implementation.
 - **`warp-ttd`**: debugger and operator surfaces over generated contracts.
+- **Graft**: structural observer and review engine over witnessed causal
+  history; consumes shared boundary families and owns code-aware structural
+  readings until a payload needs shared Continuum semantics.
 - **`warp`**: user-facing CLI for bootstrapping and managing WARPspaces.
 
 A Continuum runtime is any implementation that can publish, admit, observe,
@@ -152,6 +162,7 @@ Continuum does not own:
 - Echo-local engine internals
 - `git-warp`-local engine internals
 - `warp-ttd` product/session internals
+- Graft-local structural reading payloads before they need shared semantics
 - generic Wesley base-platform implementation truth
 - app-local domain schemas
 - one canonical materialized graph
@@ -201,6 +212,8 @@ Related repositories:
 - [Echo](https://github.com/flyingrobots/echo): sibling runtime implementation.
 - [git-warp](https://github.com/git-stunts/git-warp): sibling runtime
   implementation.
+- [Graft](https://github.com/flyingrobots/graft): structural observer and
+  review engine.
 - [AIΩN](https://github.com/flyingrobots/aion): deeper theory repo.
 
 ## Rule To Remember
