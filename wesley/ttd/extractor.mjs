@@ -17,7 +17,8 @@ import {
   createEmission,
   createFootprint,
   createRegistryEntry,
-  createCodecSpec
+  createCodecSpec,
+  createUnion
 } from './ast.mjs';
 import {
   extractTtdDirectives
@@ -82,6 +83,7 @@ export function extractTtdSchema(sdl, deps = {}) {
     registry: [],
     codecs: [],
     types: [],
+    unions: [],
     enums: [],
     metadata: {
       extractedAt: clock.now(),
@@ -100,6 +102,13 @@ export function extractTtdSchema(sdl, deps = {}) {
         name: def.name.value,
         values: def.values?.map(v => v.name.value) ?? []
       });
+    }
+
+    if (def.kind === Kind.UNION_TYPE_DEFINITION) {
+      schema.unions.push(createUnion({
+        name: def.name.value,
+        variants: def.types?.map(t => t.name.value) ?? []
+      }));
     }
 
     if (def.kind === Kind.OBJECT_TYPE_DEFINITION) {

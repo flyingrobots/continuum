@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed the runtime-boundary `readingEnvelopes` footprint to include native and
+  translated evidence branches.
+- Added Wesley union extraction and generated TypeScript/Zod support so
+  `ContinuumEvidenceStatus` survives runtime-boundary artifact generation.
 - Added `warp warpspace lock`, `verify`, `sync`, and `doctor` for the first
   pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.

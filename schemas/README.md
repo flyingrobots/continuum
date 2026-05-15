@@ -31,6 +31,11 @@ import boundary policy: bundle source and target frontier identities are asserte
 separately, with target-frontier identity governed by bundle target outcomes rather
 than source suffix identity.
 
+It also codifies evidence status. A value may be Continuum-shaped without being
+Continuum-native: native evidence carries a Continuum witness, while translated
+substrate evidence carries compatibility facts and must not claim native witness
+status.
+
 The cross-repo ownership, consumer, and witness posture for these families lives
 in [docs/contract-family-registry.md](../docs/contract-family-registry.md).
 

@@ -27,6 +27,7 @@ Freeze one minimum authored family containing:
 - `ObserverPlan`
 - `ObservationRequest`
 - `ReadingEnvelope`
+- `ContinuumEvidenceStatus`
 - `WitnessedSuffixShell`
 - `CausalSuffixBundle`
 - `ImportOutcome`
@@ -60,3 +61,5 @@ Current audit posture:
 - the schema is narrow enough that Echo, Wesley, `warp-ttd`, and apps can all
   point at it as the next shared seam
 - the packet explicitly says what this family does **not** yet own
+- the schema distinguishes Continuum-native witness evidence from translated
+  substrate evidence so compatibility payloads cannot masquerade as witnesses

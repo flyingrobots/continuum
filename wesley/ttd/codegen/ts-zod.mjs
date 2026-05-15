@@ -16,7 +16,7 @@ function mapTypeToZod(gqlType) {
     Boolean: 'z.boolean()'
   };
 
-  return typeMap[gqlType] || `${gqlType}Schema`;
+  return typeMap[gqlType] || `z.lazy(() => ${gqlType}Schema)`;
 }
 
 function escapeSingleQuotedJsString(value) {
@@ -132,6 +132,23 @@ export function generateTsZod(schema) {
 
     lines.push('});');
     lines.push(`export type ${typeDef.name} = z.infer<typeof ${typeDef.name}Schema>;`);
+    lines.push('');
+  }
+
+  // Generate union schemas after object schemas. Member references stay lazy so
+  // object schemas may also refer back to the union without initialization
+  // order becoming part of the contract.
+  for (const unionDef of schema.unions || []) {
+    const variants = unionDef.variants.map((variant) => `z.lazy(() => ${variant}Schema)`);
+    const unionExpression = variants.length === 1
+      ? variants[0]
+      : `z.union([${variants.join(', ')}])`;
+
+    lines.push('/**');
+    lines.push(` * Zod schema for ${unionDef.name}`);
+    lines.push(' */');
+    lines.push(`export const ${unionDef.name}Schema = ${unionExpression};`);
+    lines.push(`export type ${unionDef.name} = z.infer<typeof ${unionDef.name}Schema>;`);
     lines.push('');
   }
 

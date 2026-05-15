@@ -269,6 +269,33 @@ export function validateFootprint(fp, knownTypes = []) {
   return errors;
 }
 
+export function validateUnion(unionDef, objectTypeNames = []) {
+  const errors = [];
+
+  if (!unionDef.name || unionDef.name.trim() === '') {
+    errors.push(error('UNION_NAME_EMPTY', 'Union name cannot be empty'));
+  }
+
+  if (!Array.isArray(unionDef.variants) || unionDef.variants.length === 0) {
+    errors.push(error('UNION_NO_VARIANTS', `Union ${unionDef.name || '<unnamed>'} must declare at least one variant`));
+    return errors;
+  }
+
+  const seen = new Set();
+  for (const variant of unionDef.variants) {
+    if (seen.has(variant)) {
+      errors.push(error('UNION_DUPLICATE_VARIANT', `Union ${unionDef.name} declares duplicate variant ${variant}`));
+    }
+    seen.add(variant);
+
+    if (objectTypeNames.length > 0 && !objectTypeNames.includes(variant)) {
+      errors.push(error('UNION_UNKNOWN_VARIANT', `Union ${unionDef.name} references unknown object type ${variant}`, { variant }));
+    }
+  }
+
+  return errors;
+}
+
 /**
  * Validate registry entries
  */
@@ -380,7 +407,14 @@ export function validateTtdSchema(schema) {
   }
 
   // Collect known types
-  const knownTypes = (schema.types || []).map(t => t.name);
+  const objectTypeNames = (schema.types || []).map(t => t.name);
+  const unionTypeNames = (schema.unions || []).map(t => t.name);
+  const knownTypes = [...objectTypeNames, ...unionTypeNames];
+
+  // Validate unions
+  for (const unionDef of schema.unions || []) {
+    allErrors.push(...validateUnion(unionDef, objectTypeNames));
+  }
 
   // Validate footprints
   for (const fp of schema.footprints || []) {

@@ -107,6 +107,13 @@
         "$ref": "#/$defs/TypeDef"
       }
     },
+    "unions": {
+      "type": "array",
+      "description": "Union type definitions",
+      "items": {
+        "$ref": "#/$defs/UnionDef"
+      }
+    },
     "enums": {
       "type": "array",
       "description": "Enum type definitions",
@@ -436,6 +443,18 @@
       "properties": {
         "name": { "type": "string" },
         "values": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "UnionDef": {
+      "type": "object",
+      "required": ["kind", "name", "variants"],
+      "properties": {
+        "kind": { "const": "UNION" },
+        "name": { "type": "string" },
+        "variants": {
           "type": "array",
           "items": { "type": "string" }
         }
