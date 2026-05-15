@@ -52,6 +52,16 @@ export function generateTsTypes(schema) {
     lines.push('');
   }
 
+  // Generate unions before interfaces; TypeScript type aliases can reference
+  // interfaces declared later in the same module.
+  for (const unionDef of schema.unions || []) {
+    lines.push('/**');
+    lines.push(` * ${unionDef.name} union`);
+    lines.push(' */');
+    lines.push(`export type ${unionDef.name} = ${unionDef.variants.join(' | ')};`);
+    lines.push('');
+  }
+
   // Generate interfaces for types
   for (const typeDef of schema.types || []) {
     lines.push('/**');

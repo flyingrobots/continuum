@@ -45,6 +45,7 @@ export function generateSchemaJson(schema, deps = {}) {
     rules: schema.rules.map(r => canonicalizeObject(r)),
     invariants: schema.invariants.map(i => canonicalizeObject(i)),
     types: schema.types.map(t => canonicalizeObject(t)),
+    unions: (schema.unions ?? []).map(u => canonicalizeObject(u)),
     enums: schema.enums.map(e => canonicalizeObject(e))
   };
 

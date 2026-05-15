@@ -18,6 +18,7 @@ export const TtdAstKind = {
   FOOTPRINT: 'FOOTPRINT',
   REGISTRY_ENTRY: 'REGISTRY_ENTRY',
   CODEC: 'CODEC',
+  UNION: 'UNION',
   STATE_FIELD: 'STATE_FIELD',
   CONSTRAINT: 'CONSTRAINT'
 };
@@ -201,5 +202,16 @@ export function createCodecSpec({
     typeName,
     format,
     canonical: canonical ?? (format === 'cbor')
+  };
+}
+
+export function createUnion({
+  name,
+  variants = []
+}) {
+  return {
+    kind: TtdAstKind.UNION,
+    name,
+    variants
   };
 }
