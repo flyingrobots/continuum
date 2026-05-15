@@ -348,7 +348,7 @@ type Query {
 
   readingEnvelopes(planId: ID, laneId: String!, frameIndex: Int): [ReadingEnvelope!]!
     @wes_op(name: "readingEnvelopes", readonly: true)
-    @wes_footprint(reads: ["ReadingEnvelope"])
+    @wes_footprint(reads: ["ReadingEnvelope", "ContinuumNativeEvidence", "TranslatedSubstrateEvidence"])
 
   witnessedSuffixShells(sourceWorldlineId: String!): [WitnessedSuffixShell!]!
     @wes_op(name: "witnessedSuffixShells", readonly: true)

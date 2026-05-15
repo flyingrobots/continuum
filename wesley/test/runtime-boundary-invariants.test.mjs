@@ -74,6 +74,29 @@ test('reading envelopes must distinguish native and translated evidence status',
   );
 });
 
+test('readingEnvelopes footprint must include evidence status branches', async () => {
+  const schemaContent = await readFile('schemas/continuum-runtime-boundary-family.graphql', 'utf8');
+  const match = schemaContent.match(
+    /readingEnvelopes\([^)]*\):\s*\[ReadingEnvelope!\]![\s\S]*?@wes_footprint\(reads:\s*\[([^\]]+)\]\)/u
+  );
+
+  assert.ok(match, 'readingEnvelopes footprint must be present');
+
+  const reads = match[1]
+    .split(',')
+    .map((entry) => entry.trim().replace(/^"|"$/g, ''));
+
+  assert.deepEqual(
+    reads,
+    [
+      'ReadingEnvelope',
+      'ContinuumNativeEvidence',
+      'TranslatedSubstrateEvidence'
+    ],
+    'readingEnvelopes must declare the evidence branches returned through evidenceStatus'
+  );
+});
+
 function fieldTypeName(objectDefinition, fieldName) {
   const field = objectDefinition.fields.find((candidate) => candidate.name.value === fieldName);
 
