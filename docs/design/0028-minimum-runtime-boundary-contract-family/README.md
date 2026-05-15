@@ -57,7 +57,7 @@ That is exactly the kind of shadow contract drift Continuum exists to stop.
 ## Decision
 
 Continuum should freeze one minimum shared runtime-boundary family with eight
-top-level contract nouns:
+top-level contract nouns plus one explicit evidence-status distinction:
 
 1. `IntentEnvelope`
 2. `TickResult`
@@ -68,6 +68,12 @@ top-level contract nouns:
 7. `CausalSuffixBundle`
 8. `ImportOutcome`
 
+Evidence status:
+
+- `ContinuumEvidenceStatus`
+- `ContinuumNativeEvidence`
+- `TranslatedSubstrateEvidence`
+
 This is the first stack-wide cut. It is intentionally smaller than the full
 receipt ladder, smaller than full reintegration detail, and smaller than a full
 session/control protocol.
@@ -76,6 +82,9 @@ Every noun in this packet is a **GraphQL-authored contract family**.
 
 Wesley compiles artifacts for these families. Echo, `git-warp`, and other
 sibling Continuum runtimes later produce actual values conforming to them.
+Conforming values are not automatically native Continuum witnesses. A runtime
+or adapter may use Continuum boundary vocabulary while still publishing only
+translated compatibility evidence.
 
 ## Shared family meanings
 
@@ -152,12 +161,38 @@ It names:
 - which plan produced the reading
 - which lane/coordinate it applies to
 - the reading payload identity/digest
-- the witness or shell reference backing that reading
+- the evidence status backing that reading
+- the witness or shell reference backing that reading when one exists
 
 Continuum sibling runtimes may later emit actual `ReadingEnvelope` values
-conforming to this family.
+conforming to this family. The envelope must still say whether its backing
+evidence is native Continuum evidence or translated substrate evidence.
 
 It is not the substrate itself and it is not the same thing as `TickResult`.
+It is also not proof of native witnesshood by itself.
+
+### Evidence status
+
+`ContinuumEvidenceStatus` is the GraphQL-authored union that prevents
+"Continuum-shaped" from silently becoming "Continuum-native".
+
+It has two branches:
+
+- `ContinuumNativeEvidence`: a runtime-produced native Continuum witness,
+  currently represented by a `WitnessedSuffixShell`.
+- `TranslatedSubstrateEvidence`: compatibility evidence translated from a
+  substrate that is not publishing native Continuum boundary artifacts yet.
+
+`TranslatedSubstrateEvidence.nativeContinuumWitness` is intentionally explicit
+and must be false. This makes compatibility useful without allowing a Git range,
+commit set, product-local snapshot, or hand-normalized adapter payload to pass
+as a Continuum witness.
+
+The doctrinal rule is:
+
+**A project may use Continuum boundary vocabulary without being a native
+Continuum publisher. Only Continuum-producing runtimes may claim
+Continuum-native witnesshood.**
 
 ### 6. `WitnessedSuffixShell`
 
@@ -237,7 +272,9 @@ So, for example:
 This minimum family exists to shape the next real repo cuts:
 
 - Echo should publish and consume these families generically.
-- `git-warp` should publish and consume these families generically.
+- `git-warp` should publish and consume these families generically when it has
+  native support; until then, consumers should model its committed-history facts
+  as translated substrate evidence.
 - Wesley should compile these families into generated artifacts rather than
   inferring them from repo-local folklore.
 - `warp-ttd` should consume them instead of turning snapshot-first product

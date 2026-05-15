@@ -16,6 +16,7 @@
 # - `TickResult` names the immediate admission-result family, not the later reading
 # - `ObserverPlan` names the plan family, not the observer instance
 # - `ReadingEnvelope` names the observer-relative reading family, not the substrate itself
+# - Continuum-shaped compatibility evidence is not Continuum-native witness evidence
 # - `WitnessedSuffixShell` is compact suffix evidence, not a patch list
 # - `CausalSuffixBundle` is the transport/import question, not a materialized
 #   state snapshot
@@ -157,6 +158,7 @@ type ReadingEnvelope
   laneId: String! @wes_stateField
   frameIndex: Int! @wes_stateField @wes_constraint(min: 0)
   readingDigest: Hash! @wes_stateField
+  evidenceStatus: ContinuumEvidenceStatus! @wes_stateField
   witnessRef: String @wes_stateField
   hologramRef: String @wes_stateField
   summary: String! @wes_stateField
@@ -239,6 +241,33 @@ type WitnessedSuffixShell
   boundaryWitness: ProvenanceRef @wes_stateField
   witnessDigest: Hash! @wes_stateField
   basisReport: SettlementBasisReport @wes_stateField
+}
+
+union ContinuumEvidenceStatus =
+  ContinuumNativeEvidence
+  | TranslatedSubstrateEvidence
+
+type ContinuumNativeEvidence
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 144)
+  @wes_version(major: 0, minor: 1)
+{
+  evidenceId: ID! @wes_stateField(key: true)
+  witness: WitnessedSuffixShell! @wes_stateField
+  summary: String! @wes_stateField
+}
+
+type TranslatedSubstrateEvidence
+  @wes_codec(format: "cbor", canonical: true)
+  @wes_registry(id: 145)
+  @wes_version(major: 0, minor: 1)
+{
+  evidenceId: ID! @wes_stateField(key: true)
+  substrate: String! @wes_stateField
+  evidenceKind: String! @wes_stateField
+  evidenceDigest: Hash! @wes_stateField
+  nativeContinuumWitness: Boolean! @wes_stateField
+  summary: String! @wes_stateField
 }
 
 type CausalSuffixBundle
@@ -343,6 +372,11 @@ type ContinuumRuntimeBoundaryFamilyInvariants
   @wes_invariant(
     name: "reading_envelope_links_request_and_plan",
     expr: "forall e in ReadingEnvelope: exists q in ObservationRequest: exists p in ObserverPlan: q.requestId == e.requestId and p.planId == e.planId and q.planId == p.planId",
+    severity: "error"
+  )
+  @wes_invariant(
+    name: "translated_evidence_cannot_claim_native_witness",
+    expr: "forall e in TranslatedSubstrateEvidence: e.nativeContinuumWitness == false",
     severity: "error"
   )
   @wes_invariant(
