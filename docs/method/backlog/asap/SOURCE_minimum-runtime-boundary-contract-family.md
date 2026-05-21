@@ -34,6 +34,13 @@ Freeze one minimum authored family containing:
 
 and make that family the next concrete compiler/runtime target.
 
+## Wesley carry-forward
+
+The matching Wesley backlog note was removed from generic Wesley because this is
+Continuum coordination truth. Wesley should supply generic module capability
+contracts, target dispatch, compiler plumbing, artifact bookkeeping, and
+assurance extension points; Continuum owns the runtime-boundary family.
+
 ## Dead-code / cruft posture
 
 This slice should also reduce Continuum cruft rather than add to it.

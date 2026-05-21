@@ -19,3 +19,19 @@ Right now that means:
 - not a replacement for Echo
 - not a replacement for `git-warp`
 - not a shadow contract compiler next to Wesley
+
+## Optic Admission Coordination
+
+Continuum owns the role map for optic admission, not a premature shared
+protocol family. Current split:
+
+- Wesley compiles artifacts and registration descriptors.
+- Echo registers artifacts, returns runtime-local handles, admits or obstructs
+  invocations, instruments access, and emits witnesses/readings.
+- Authority layers issue grants and capability presentations.
+- Applications hide artifact handles, basis references, and runtime coordinates
+  behind product-facing adapters.
+
+Do not freeze shared protocol contracts for this lane until the compiled
+artifact, registration, invocation, and witness path is proven in the owning
+repos.
