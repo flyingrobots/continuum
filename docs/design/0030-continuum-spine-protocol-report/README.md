@@ -8,8 +8,13 @@ status: proposed
 **Cycle:** 0030-continuum-spine-protocol-report
 **Legend:** SOURCE
 **Type:** coordination report
-**Sponsor human:** James
-**Sponsor agent:** Codex
+**Sponsored human:** A Continuum maintainer or runtime/tool author wants a
+shared protocol definition so they can judge compatibility claims without
+requiring every participant to share one runtime, database, or app framework.
+**Sponsored agent:** An implementation or review agent needs stable protocol
+roles, profile names, and proof expectations so it can plan schemas, fixtures,
+tests, and follow-on issues without inferring semantics from app-specific
+behavior.
 
 ## Hill
 

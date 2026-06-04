@@ -8,8 +8,13 @@ status: proposed
 **Cycle:** 0031-continuum-compendium-v1
 **Legend:** SOURCE
 **Type:** protocol doctrine packet
-**Sponsor human:** James
-**Sponsor agent:** Codex
+**Sponsored human:** A Continuum maintainer or runtime/tool author wants a
+durable protocol doctrine so they can decide which profiles, envelopes, and
+evidence surfaces to implement without making Continuum a runtime or app
+ontology.
+**Sponsored agent:** An implementation or review agent needs inspectable
+participant roles, conformance tiers, and proof surfaces so it can generate
+schemas, fixtures, tests, and issues without scraping prose or UI behavior.
 
 Refines:
 

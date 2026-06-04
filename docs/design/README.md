@@ -9,7 +9,8 @@ Design cycles live here as `NNNN-slug/` packets.
 
 Each packet should define:
 
-- the sponsor-human and sponsor-agent
+- the sponsored human and sponsored agent roles, written like user-story roles
+  rather than personal names
 - the hill
 - explicit playback questions
 - links to impacted repos
