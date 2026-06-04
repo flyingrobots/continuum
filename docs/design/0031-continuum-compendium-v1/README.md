@@ -49,6 +49,11 @@ The first durable implementation target should be
 WARP DRIVE, Graft, Wesley, jedit, agents, fixtures, and adapters should be able
 to speak Continuum without pretending to be runtimes.
 
+Continuum does not make systems agree by sharing a database. It makes systems
+agree by publishing what they claim, where they claim it, from which basis,
+under which law, with which witness, under which evidence posture, and with
+which residuals preserved. Everything else is implementation.
+
 ## One-Page Doctrine
 
 1. Continuum is a protocol suite, not a central service API.
@@ -158,9 +163,15 @@ fixture runtime
 conformance harness
 ```
 
-A **Continuum runtime** is a participant that can publish, admit, observe,
-export, or import witnessed causal history according to one or more Continuum
-profiles and admission laws.
+A **Continuum runtime** is a participant that owns admission for at least one
+causal lane or history domain and can publish runtime-owned outcomes according
+to Continuum profiles.
+
+A **full Continuum runtime** can publish, admit, observe, export, and import
+witnessed causal history for its advertised profile set.
+
+Participants that only observe, adapt, debug, mount, compile, or test are
+Continuum participants, not runtimes.
 
 Discovery should be participant-shaped, not runtime-shaped. WARP TTD, WARP
 DRIVE, Graft, Wesley, jedit, fixtures, agents, and adapters should not have to
@@ -192,6 +203,13 @@ This enables:
 
 Continuum apps should work together when they share profiles, not because they
 share internals.
+
+Continuum follows the best protocol precedent: define the facts that must cross
+implementation boundaries, then let implementations remain free inside their
+own kernels. The web did this for documents, Git did this for portable history,
+Debug Adapter Protocol did this for debugger/tool boundaries, Trace Context did
+this for trace propagation, and CloudEvents did this for event envelopes.
+Continuum applies the same move to witnessed causal history.
 
 ## Research Anchors
 
@@ -319,12 +337,12 @@ These layers may reference each other. They must not collapse into one blob. A
 receipt shell is not automatically native witness evidence. A translated
 compatibility artifact is not Continuum-native proof.
 
-## Causal Verbs And Protocol Operations
+## Semantic Verbs And Profile Operations
 
-Continuum should define a small set of causal verbs at the doctrine level and a
-separate set of protocol operations at the profile level.
+Continuum should define a small set of semantic verbs at the doctrine level and
+a separate set of profile operations at the profile level.
 
-### Causal Verbs
+### Semantic Verbs
 
 ```text
 ADMIT       judge and incorporate a causal claim under law
@@ -341,7 +359,7 @@ EXPORT      package a witnessed suffix
 IMPORT      ask a runtime to admit, stage, conflict, or obstruct a suffix
 ```
 
-### Protocol Operations
+### Profile Operations
 
 ```text
 hello()
@@ -357,7 +375,7 @@ mountReadingProfile(request)
 proposeAction(request)
 ```
 
-The causal verbs explain meaning. The protocol operations expose behavior.
+The semantic verbs explain meaning. The profile operations expose behavior.
 
 ## Shared Vocabulary
 
@@ -370,8 +388,12 @@ Anything that speaks at least one Continuum profile.
 
 ### Runtime
 
-A participant that can publish, admit, observe, export, or import witnessed
-causal history according to Continuum profiles and laws.
+A participant that owns admission for at least one causal lane or history domain
+and can publish runtime-owned outcomes according to Continuum profiles.
+
+A full runtime can publish, admit, observe, export, and import witnessed causal
+history for its advertised profile set. A participant that only observes,
+adapts, debugs, mounts, compiles, or tests is not a runtime.
 
 ### App
 
@@ -391,6 +413,12 @@ capabilities, obstruction behavior, bindings, and witnesses.
 
 A profile is not a contract family. A profile may use several families. A
 family may appear in several profiles.
+
+Example: `continuum.observation.v1` is a profile. It may require
+runtime-boundary family nouns such as `ObserverPlan`, `ObservationRequest`, and
+`ReadingEnvelope`. The runtime-boundary family is not itself the observation
+profile. A runtime may compile the family but still fail the profile if it
+cannot preserve rights, residuals, obstruction behavior, and evidence posture.
 
 ### Generated Artifact
 
@@ -536,6 +564,12 @@ The right shape:
 5. **Witness layer:** fixture witnesses, runtime witnesses, interop witnesses,
    evidence ledgers, conformance reports.
 
+GraphQL SDL is Continuum's current authoring substrate for shared contract
+families. It is not automatically the wire protocol. Bindings may serialize
+payloads through JSON, JSONL, CBOR, file bundles, Git-carried bundles, stdio,
+HTTP, MCP, WASM components, or in-process calls as long as they preserve the
+profile semantics and witnesses.
+
 No binding is the protocol. A runtime may expose local stdio while another
 exposes HTTP. They are compatible only if they speak the same profile semantics
 and produce comparable witnesses.
@@ -672,6 +706,8 @@ Purpose:
 - discover any Continuum participant.
 
 This replaces the narrower `continuum.runtime.hello.v1` framing.
+Any prior `runtime.hello` framing is superseded by
+`continuum.participant.hello.v1` for normative Continuum discovery.
 
 Answers:
 
@@ -946,6 +982,9 @@ convenience projections, not causal ontology.
 Do not make `continuum.breakpoint.v1` a required early profile. Breakpoints are
 debug predicates until proven otherwise.
 
+Breakpoints remain part of `continuum.debug.v1` until at least two independent
+debugger/runtime implementations require a standalone breakpoint profile.
+
 Causal breakpoint classes:
 
 - admission breakpoint;
@@ -959,6 +998,22 @@ Causal breakpoint classes:
 
 Traditional breakpoints bind to code locations. Continuum breakpoints bind to
 causal facts.
+
+## Existing Family Alignment
+
+V1 should refine the existing family spine, not create greenfield parallel
+nouns.
+
+| Profile | Likely existing or related families | Notes |
+| --- | --- | --- |
+| `continuum.participant.hello.v1` | new discovery family or runtime-boundary extension | Must use `ParticipantDescriptor`, not `RuntimeDescriptor` only. |
+| `continuum.contract.index.v1` | contract-family registry metadata | Should expose family/profile rows and open cuts. |
+| `continuum.observation.v1` | runtime-boundary family | Reuse `ObserverPlan`, `ObservationRequest`, and `ReadingEnvelope`. |
+| `continuum.history.exchange.v1` | runtime-boundary, settlement, and receipt families | Reuse `WitnessedSuffixShell`, `CausalSuffixBundle`, and `ImportOutcome`. |
+| `continuum.debug.v1` | WARP TTD protocol, observation, receipt, and settlement families | Debug composes profiles; it must not normalize by hand. |
+| `continuum.counterfactual.v1` | runtime-boundary, debug, and settlement families | Branch posture needs explicit basis and promotion semantics. |
+| `continuum.law.optic.v1` | Wesley directives/artifacts plus new admission profile | Design only until the authority model is real. |
+| `continuum.warp-drive.v1` | observation, intent/tick, and evidence posture | POSIX paths are projections. |
 
 ## Conformance Tiers
 
@@ -1247,6 +1302,69 @@ warp prove     # run profile conformance/witness checks
 
 `warp doctor` should say exactly which profile, family, credential, codec,
 witness, or interop cut is missing.
+
+Example output:
+
+```text
+$ warp doctor --target echo://local/dev
+Target
+  participant: echo://local/dev
+  kind: runtime
+  continuum: 0.1.0
+Profiles
+  [pass] continuum.participant.hello.v1 descriptor witnessed
+  [pass] continuum.contract.index.v1    fixture witnessed
+  [pass] continuum.observation.v1       runtime witnessed
+  [warn] continuum.history.exchange.v1  export fixture only; no live import
+  [fail] continuum.debug.v1             not advertised
+  [fail] continuum.counterfactual.v1    not advertised
+  [fail] continuum.law.optic.v1         design-only
+Evidence
+  native witness:      available for observation
+  translated evidence: none
+  redacted fields:     payload bodies
+  credential required: payload.read, suffix.export
+Open cuts
+  - no live Echo to git-warp import witness
+  - no replay evidence for debug profile
+```
+
+### Conformance Report Shape
+
+A conformance report should be structured enough for humans, agents, CI, and
+review tools to consume without parsing prose.
+
+```json
+{
+  "participant": "echo://local/dev",
+  "kind": "runtime",
+  "continuumVersion": "0.1.0",
+  "profiles": [
+    {
+      "profile": "continuum.participant.hello.v1",
+      "status": "witnessed",
+      "evidence": "descriptor"
+    },
+    {
+      "profile": "continuum.observation.v1",
+      "status": "witnessed",
+      "evidence": "runtime"
+    },
+    {
+      "profile": "continuum.history.exchange.v1",
+      "status": "partial",
+      "evidence": "export-fixture",
+      "openCuts": ["no-live-import-witness"]
+    }
+  ],
+  "credentialRequirements": ["payload.read", "suffix.export"],
+  "redactions": ["payload bodies"],
+  "openCuts": [
+    "no live Echo to git-warp import witness",
+    "no replay evidence for debug profile"
+  ]
+}
+```
 
 ## Operating System Design Angle
 
@@ -1608,6 +1726,21 @@ Do not rely on open version ranges for causal protocol compatibility.
 
 Semver is useful only after witnesses define what the compatible tuple proves.
 
+## Open Questions For V1.1
+
+- Should local discovery use WARPspace, a `.well-known` file, a local socket,
+  or all of them as bindings?
+- Which capability presentation should land first: same-user local handles,
+  UCAN-like tokens, DID/VC-style presentation, or binding-specific adapters?
+- Should counterfactual bundles reuse the canonical suffix shell with branch
+  posture, or use a separate family?
+- Which profile owns streaming: observation, debug, history exchange, or a
+  transport binding?
+- What evidence is sufficient to upgrade `git-warp` from translated evidence
+  to Continuum-native witnesshood?
+- Which existing runtime-boundary nouns should be reused directly in
+  `participant.hello`, and which deserve a new family?
+
 ## Risks And Mitigations
 
 ### Over-Specification
@@ -1706,6 +1839,9 @@ history.
 
 Use `continuum.participant.hello.v1`, not `continuum.runtime.hello.v1`, as the
 first discovery profile.
+
+Historical `runtime.hello` wording is superseded by
+`continuum.participant.hello.v1` for normative Continuum discovery.
 
 ### Decision 3
 
@@ -1819,6 +1955,28 @@ witnesses.
 Continuum core stays small: vocabulary, envelopes, profiles, evidence posture,
 contract-family registry, conformance witnesses, and admission semantics.
 Everything else remains runtime-local, app-local, or profile-specific.
+
+## Local Evidence Appendix
+
+This V1 doctrine was shaped by current local project roles. These rows are
+coordination evidence, not automatic compatibility claims.
+
+| Project | Current role | Evidence posture |
+| --- | --- | --- |
+| Continuum | semantic owner and protocol suite | repo-local doctrine, schemas, registry, invariants, and design packets |
+| Echo | sibling runtime | repo-local README and runtime doctrine; runtime witnesses still profile-specific |
+| `git-warp` | expected sibling runtime | expected/open unless direct checkout and native witnesses are verified |
+| Wesley | compiler and generated artifact owner | repo-local README and compiler posture; Continuum shared family semantics remain Continuum-owned |
+| WARP TTD | debugger/operator surface | repo-local README and protocol posture; debug compatibility is profile-specific |
+| WARP DRIVE | POSIX-shaped membrane over readings/intents | repo-local README; design-stage app/profile posture |
+| Graft | structural observer | repo-local README and observer posture; structural readings are not native Continuum witnesses unless relaying native evidence |
+| jedit | product-pressure app | repo-local README and Echo-hosted editing posture |
+| continuum-wizard-demo | WARPspace bootstrap proof | repo-local generated-family/bootstrap evidence |
+| AION | theory background | conceptual source, not implementation evidence |
+
+Each claim should be upgraded from expected or postured to witnessed only when
+repo-local evidence, fixture evidence, runtime evidence, or interop evidence
+exists.
 
 ## References
 
