@@ -13,11 +13,15 @@ Continuum does not make systems agree by sharing a database. It makes systems
 agree by publishing causal claims and evidence at the boundaries between
 independent implementations.
 
-> [!WARNING]
-> **Status: nascent / experimental**
-> Continuum is under active research and development. The vocabulary, schemas,
-> profiles, and proof requirements are still being hardened. Treat claims as
-> experimental unless a fixture, runtime, or interop witness proves them.
+**Current work:** Continuum is just getting started across the active stack:
+[Echo](https://github.com/flyingrobots/echo),
+[jedit](https://github.com/flyingrobots/jedit),
+[git-warp](https://github.com/git-stunts/git-warp),
+[Graft](https://github.com/flyingrobots/graft),
+[WARP TTD](https://github.com/flyingrobots/warp-ttd), and
+[WARP DRIVE](https://github.com/flyingrobots/warp-drive). The shared protocol
+surface is being shaped by those projects as they prove runtime admission,
+readings, debugging, structural observation, and cross-runtime exchange.
 
 ## The Short Version
 
