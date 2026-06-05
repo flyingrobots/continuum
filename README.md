@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./continuum-animated.svg" />
 
-<p><i>A protocol suite for apps and tools that need to agree about what happened, why it happened, and what evidence proves it. </i></p>
+<p><i>Most tools share state. Continuum shares history with proof.</i></p>
 </div>
 
 ---
