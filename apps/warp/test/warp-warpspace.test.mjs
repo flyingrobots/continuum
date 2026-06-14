@@ -216,24 +216,24 @@ test('warpspace rejects checkout paths outside the root', async () => {
 test('warpspace help and usage errors stay user-facing', async () => {
   const help = await runCli(['warpspace', 'lock', '--help']);
   assert.equal(help.code, 0);
-  assert.match(help.stdout, /Usage: warp warpspace lock <manifest\.toml>/);
+  assert.match(help.stdout, /Usage: qw warpspace lock <manifest\.toml>/);
   assert.equal(help.stderr, '');
 
   const usageError = await runCli(['init', 'demo-app', '--manifest']);
   assert.equal(usageError.code, 1);
   assert.match(usageError.stderr, /Missing value for --manifest/);
-  assert.match(usageError.stderr, /Usage: warp init <projectDir>/);
+  assert.match(usageError.stderr, /Usage: qw init <projectDir>/);
   assert.doesNotMatch(usageError.stderr, /node:internal|at .*cli\.mjs/);
 
   const shortFlagError = await runCli(['warpspace', 'sync', 'demo.lock.json', '--root', '-q']);
   assert.equal(shortFlagError.code, 1);
   assert.match(shortFlagError.stderr, /Missing value for --root/);
-  assert.match(shortFlagError.stderr, /Usage: warp warpspace sync <warpspace\.lock\.json>/);
+  assert.match(shortFlagError.stderr, /Usage: qw warpspace sync <warpspace\.lock\.json>/);
 
   const disallowedFlag = await runCli(['warpspace', 'lock', 'demo.toml', '--root', os.tmpdir()]);
   assert.equal(disallowedFlag.code, 1);
   assert.match(disallowedFlag.stderr, /Unknown option: --root/);
-  assert.match(disallowedFlag.stderr, /Usage: warp warpspace lock <manifest\.toml>/);
+  assert.match(disallowedFlag.stderr, /Usage: qw warpspace lock <manifest\.toml>/);
 });
 
 test('warpspace lock rejects unquoted barewords in TOML', async () => {

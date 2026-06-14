@@ -343,10 +343,10 @@ other saw `/warpspaces/...`, runtime projection leaked into truth.
 
 ## Follow-On Artifact
 
-The next implementation artifact should be a `warp` resolver surface:
+The next implementation artifact should be a `qw` resolver surface:
 
 ```text
-warp warpspace locate --root /warpspaces/jim --cwd /warpspaces/jim/jedit ../echo/src/lib.rs
+qw warpspace locate --root /warpspaces/jim --cwd /warpspaces/jim/jedit ../echo/src/lib.rs
 ```
 
 That command should print typed JSON by default under `--json`, and should use

@@ -18,7 +18,7 @@ to create a plausible starter app.
 ## Goal
 
 Define one explicit WARPspace template layer that is separate from the stack
-release manifest and consumed by the Continuum-owned `warp` CLI.
+release manifest and consumed by the Continuum-owned `qw` CLI.
 
 That template should own:
 
@@ -35,6 +35,6 @@ demo repo layout by path.
 - Continuum has one packet or note that separates stack manifest truth from
   host template truth
 - the demo stack manifest points at a template id or template artifact
-- `warp init` can scaffold the template before materializing the shared family
+- `qw init` can scaffold the template before materializing the shared family
   and running generation
 - a fresh host repo contains more than generated outputs and WARPspace config

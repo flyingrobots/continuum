@@ -354,11 +354,11 @@ function requireValue(argv, index, flag, usage) {
 
 function renderUsage() {
   return [
-    'warp - Bootstrap and manage a Continuum WARPspace',
+    'qw - Bootstrap and manage a Continuum WARPspace',
     '',
     'Usage:',
-    '  warp init <projectDir> [--profile demo] [--manifest <path>]',
-    '  warp warpspace <lock|verify|sync|doctor> ...',
+    '  qw init <projectDir> [--profile demo] [--manifest <path>]',
+    '  qw warpspace <lock|verify|sync|doctor> ...',
     '',
     'Options:',
     '  --profile <id>         Use a built-in Continuum release profile such as demo',
@@ -375,38 +375,38 @@ function renderUsage() {
 
 function renderInitUsage() {
   return [
-    'Usage: warp init <projectDir> [--profile demo] [--manifest <path>]',
+    'Usage: qw init <projectDir> [--profile demo] [--manifest <path>]',
     ''
   ].join('\n');
 }
 
 function renderWarpspaceUsage() {
   return [
-    'warp warpspace - Manage pinned repo constellations',
+    'qw warpspace - Manage pinned repo constellations',
     '',
     'Usage:',
-    '  warp warpspace lock <manifest.toml> [--lock <path>] [--json]',
-    '  warp warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
-    '  warp warpspace sync <warpspace.lock.json> --root <dir> [--json]',
-    '  warp warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
+    '  qw warpspace lock <manifest.toml> [--lock <path>] [--json]',
+    '  qw warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
+    '  qw warpspace sync <warpspace.lock.json> --root <dir> [--json]',
+    '  qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
     ''
   ].join('\n');
 }
 
 function renderWarpspaceLockUsage() {
-  return 'Usage: warp warpspace lock <manifest.toml> [--lock <path>] [--json]\n';
+  return 'Usage: qw warpspace lock <manifest.toml> [--lock <path>] [--json]\n';
 }
 
 function renderWarpspaceVerifyUsage() {
-  return 'Usage: warp warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
+  return 'Usage: qw warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
 }
 
 function renderWarpspaceSyncUsage() {
-  return 'Usage: warp warpspace sync <warpspace.lock.json> --root <dir> [--json]\n';
+  return 'Usage: qw warpspace sync <warpspace.lock.json> --root <dir> [--json]\n';
 }
 
 function renderWarpspaceDoctorUsage() {
-  return 'Usage: warp warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
+  return 'Usage: qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
 }
 
 function renderWarpspaceIssues(result) {

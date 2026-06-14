@@ -5,8 +5,8 @@ This is the first landing path if you are new to the Continuum stack.
 If you only remember one thing, remember this:
 
 - **Continuum** defines shared contract and compatibility truth.
-- **`warp`** is the user-facing WARPspace CLI.
-- **Wesley** compiles shared families into usable host artifacts behind `warp`.
+- **`qw`** is the user-facing WARPspace CLI.
+- **Wesley** compiles shared families into usable host artifacts behind `qw`.
 - **Echo** and **`git-warp`** are the runtimes.
 - **`warp-ttd`** is the shared observer/debugger surface.
 - **WARPspace** is your app's local workspace.
@@ -19,7 +19,7 @@ five repos and guessing how they fit together.
 The intended user entry point is a single bootstrap tool:
 
 ```bash
-warp init my-app --profile demo
+qw init my-app --profile demo
 ```
 
 That command should:
@@ -53,7 +53,7 @@ Use this order:
 2. [docs/GETTING_STARTED.md](GETTING_STARTED.md)
    The user entry point and startup flow.
 3. [apps/warp/VISION.md](../apps/warp/VISION.md)
-   The product boundary for `warp`, what it already proves, and what is not
+   The product boundary for `qw`, what it already proves, and what is not
    finished yet.
 4. [apps/warp/README.md](../apps/warp/README.md)
    The current Continuum-owned prototype for the user-facing CLI.
@@ -69,12 +69,12 @@ Only go deeper after that:
 
 ## What A New User Should Do
 
-If the `warp` bootstrap flow exists, the getting-started path should be:
+If the `qw` bootstrap flow exists, the getting-started path should be:
 
-1. Install `warp`.
-2. Run `warp init my-app --profile demo`.
+1. Install `qw`.
+2. Run `qw init my-app --profile demo`.
 3. Enter the new repo.
-4. Run `warp build` or `warp doctor`.
+4. Run `qw build` or `qw doctor`.
 5. Start writing app-local contracts and app code on top of the generated
    shared family.
 
@@ -90,7 +90,7 @@ That is the first honest "build a Continuum app" story.
 
 ## What Exists Today
 
-Today, the intended `warp init` product flow is defined, but not yet fully
+Today, the intended `qw init` product flow is defined, but not yet fully
 packaged as a one-command user experience.
 
 The first concrete stack artifact for that flow now exists here:

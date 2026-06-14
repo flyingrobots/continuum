@@ -7,7 +7,8 @@ status: proposed
 
 > Historical note: this packet captures the first bootstrap cut. The permanent
 > CLI home and config boundary are now refined in
-> [0024 - Warp CLI And WARPspace TOML](../0024-warp-cli-and-warpspace-toml/README.md).
+> [0024 - Warp CLI And WARPspace TOML](../0024-warp-cli-and-warpspace-toml/README.md);
+> the current user-facing binary name is `qw`.
 
 **Cycle:** 0023-warpspace-bootstrap-and-stack-release-manifest  
 **Legend:** SOURCE  

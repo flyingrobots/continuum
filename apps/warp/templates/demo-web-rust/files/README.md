@@ -1,6 +1,6 @@
 # __PROJECT_NAME__
 
-This repo was bootstrapped by `warp` from the `__PROFILE__` Continuum profile.
+This repo was bootstrapped by `qw` from the `__PROFILE__` Continuum profile.
 
 Checked-in workspace truth:
 

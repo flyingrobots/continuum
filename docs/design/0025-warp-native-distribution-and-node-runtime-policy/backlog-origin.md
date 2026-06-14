@@ -5,7 +5,7 @@ status: active
 
 # Backlog Origin
 
-This packet grows out of the Continuum-owned `warp` prototype and the explicit
+This packet grows out of the Continuum-owned `qw` prototype and the explicit
 decision to skip an intermediate JS-first ship plan.
 
 Related prior work:

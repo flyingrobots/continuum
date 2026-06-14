@@ -1,12 +1,12 @@
 # Warp Vision
 
-`warp` is the product that turns the Continuum stack into one developer-facing
-thing.
+Warp is the product that turns the Continuum stack into one developer-facing
+thing. The user-facing binary is `qw`.
 
 The goal is simple:
 
-- a developer installs `warp`
-- a developer runs `warp init`
+- a developer installs `qw`
+- a developer runs `qw init`
 - a WARPspace appears
 - the rest of the stack stays behind that boundary
 
@@ -15,8 +15,7 @@ If a developer has to ask whether they should start with Wesley, Echo,
 
 ## The Product
 
-`warp` is the user-facing CLI for creating, entering, and operating a
-WARPspace.
+`qw` is the user-facing CLI for creating, entering, and operating a WARPspace.
 
 A WARPspace is the local app workspace that:
 
@@ -29,10 +28,10 @@ A WARPspace is the local app workspace that:
 The intended user story is:
 
 ```bash
-warp init my-app --profile demo
+qw init my-app --profile demo
 cd my-app
-warp build
-warp doctor
+qw build
+qw doctor
 ```
 
 The user should not need to install or invoke Wesley, Echo, `git-warp`, or
@@ -40,24 +39,24 @@ The user should not need to install or invoke Wesley, Echo, `git-warp`, or
 
 ## The Split
 
-`warp` only makes sense if the stack split stays sharp.
+`qw` only makes sense if the stack split stays sharp.
 
 - **Continuum** owns stack manifests, templates, compatibility truth, and the
   overall question "how does someone start a Continuum app?"
-- **`warp`** owns bootstrap, workspace orchestration, lockfiles, managed
+- **`qw`** owns bootstrap, workspace orchestration, lockfiles, managed
   installs, and the day-to-day app-facing command surface
 - **Wesley** owns compilation and generation
 - **Echo**, **`git-warp`**, and **`warp-ttd`** remain internal stack components
   from the app author's point of view
 
-That means `warp` does not absorb compiler logic, and Wesley does not pretend
+That means `qw` does not absorb compiler logic, and Wesley does not pretend
 to be the installer above itself.
 
 ## The Promise
 
 The durable product promise is:
 
-1. One user-facing binary: `warp`
+1. One user-facing binary: `qw`
 2. One checked-in workspace contract: `warpspace.toml`
 3. One checked-in resolved lock: `warpspace.lock.json`
 4. One ignored managed install root: `.warpspace/`
@@ -68,7 +67,7 @@ From that promise, several things follow:
 - the user should not manage the internal toolchain by hand
 - the app repo should carry authored truth and visible generated outputs, not
   ad hoc machine-specific setup
-- `warp` should install or stage the internal toolchain, then invoke Wesley
+- `qw` should install or stage the internal toolchain, then invoke Wesley
   internally
 - compatibility decisions should come from Continuum manifests, not ambient
   workstation folklore
@@ -79,7 +78,7 @@ The current Continuum repo already proves the product boundary in a real way.
 
 Today, `apps/warp` provides a working local-first prototype with:
 
-- a repo-local `warp init` command
+- a repo-local `qw init` command
 - a concrete demo stack manifest at
   [docs/releases/demo/continuum-stack-release.json](../../docs/releases/demo/continuum-stack-release.json)
 - a WARPspace template under
@@ -106,13 +105,13 @@ The prototype is real, but it is not the final product form.
 
 What is not done yet:
 
-- `warp` is not yet shipped as the final standalone native binary
+- `qw` is not yet shipped as the final standalone native binary
 - released profiles do not yet install real downloadable Node and Wesley
   artifacts
 - the demo profile still uses local development posture for managed toolchain
   staging
-- the broader day-to-day command set such as `warp build`, `warp doctor`, and
-  `warp update` is not yet implemented
+- the broader day-to-day command set such as `qw build`, `qw doctor`, and
+  `qw update` is not yet implemented
 - the install story still relies on proof package sources rather than a real
   downloadable release source
 
@@ -128,11 +127,11 @@ product proof, not mistaken for the final packaging layer.
 
 The mental model we want developers to have is:
 
-1. `warp` is the thing I install and run
+1. `qw` is the thing I install and run
 2. a WARPspace is the app workspace I work inside
 3. Continuum chooses compatible stack truth
-4. `warp` acquires and manages the internal toolchain
-5. Wesley compiles the shared families under `warp`
+4. `qw` acquires and manages the internal toolchain
+5. Wesley compiles the shared families under `qw`
 
 The wrong mental model is:
 
@@ -141,7 +140,7 @@ The wrong mental model is:
 3. install several tools separately
 4. wire output paths by hand
 
-If the second model is still required, `warp` has not finished its job.
+If the second model is still required, `qw` has not finished its job.
 
 ## What Matters Next
 
@@ -155,12 +154,12 @@ The next work is making the managed install story match the product promise:
 - keep Wesley internal to the user experience
 - then replace proof-oriented package sources with a real downloadable source
 
-After that, shipping the native `warp` binary becomes a distribution problem,
+After that, shipping the native `qw` binary becomes a distribution problem,
 not a product-definition problem.
 
 ## Reading Order
 
-If you want the shortest path through the `warp` story, use this order:
+If you want the shortest path through the `qw` story, use this order:
 
 1. [apps/warp/README.md](./README.md)
 2. [docs/GETTING_STARTED.md](../../docs/GETTING_STARTED.md)
@@ -172,11 +171,11 @@ If you want the shortest path through the `warp` story, use this order:
 
 If you are picking this work up next, assume the following is already true:
 
-- `warp` lives in Continuum under [apps/warp](./)
+- `qw` lives in Continuum under [apps/warp](./)
 - the authored workspace config is `warpspace.toml`
 - the resolved lock is `warpspace.lock.json`
 - Wesley now consumes `warpspace.toml` directly
-- `warp init` already writes the real workspace files, stages internal toolchain
+- `qw init` already writes the real workspace files, stages internal toolchain
   paths under `.warpspace/`, materializes the first shared family, and invokes
   Wesley without any bridge file
 

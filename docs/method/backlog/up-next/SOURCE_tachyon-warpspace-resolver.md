@@ -6,7 +6,7 @@ source: docs/design/0032-tachyon-warpspace-resolution/README.md
 
 # TACHYON Warpspace Resolver
 
-Build the first `warp` implementation surface for TACHYON:
+Build the first `qw` implementation surface for TACHYON:
 
 ```text
 Typed Addressing for Causal History, Yielding Observer-basis Normalization
@@ -15,7 +15,7 @@ Typed Addressing for Causal History, Yielding Observer-basis Normalization
 ## Problem
 
 Warpspace paths currently resolve only as ordinary filesystem paths during
-`warp warpspace` sync/verify flows. Jim/Jedit now needs a stronger boundary:
+`qw warpspace` sync/verify flows. Jim/Jedit now needs a stronger boundary:
 runtime paths from host shells, devcontainers, CI, and WARP DRIVE projections
 must normalize into typed Warpspace locators before they can enter durable
 causal evidence.
@@ -45,7 +45,7 @@ typed warp locator + basis relationship + local runtime projection metadata
 2. Add a JSON CLI surface, probably:
 
    ```sh
-   warp warpspace locate \
+   qw warpspace locate \
      --root /warpspaces/jim \
      --cwd /warpspaces/jim/jedit \
      ../echo/src/lib.rs \
@@ -69,7 +69,7 @@ typed warp locator + basis relationship + local runtime projection metadata
 
 ## Acceptance
 
-- `warp warpspace locate` emits a typed `warp.locator.v1` object.
+- `qw warpspace locate` emits a typed `warp.locator.v1` object.
 - The rendered display form uses `warp://`.
 - Basis-qualified display uses `warp@<basis-ref>://` when a basis is supplied.
 - Runtime absolute paths are present only in a local projection object marked

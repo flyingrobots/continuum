@@ -14,21 +14,21 @@ status: proposed
 
 ## Hill
 
-Freeze the permanent ship model for `warp` so the stack does not waste time on
+Freeze the permanent ship model for `qw` so the stack does not waste time on
 an intermediate JS-first product path and does not leave the Node prerequisite
 as ambient folklore.
 
 Lock down:
 
-- what the shipped `warp` artifact actually is
+- what the shipped `qw` artifact actually is
 - what counts as a convenience installer versus the real product
-- how `warp` distinguishes the native Rust Wesley runner from any Node runtime
+- how `qw` distinguishes the native Rust Wesley runner from any Node runtime
   needed by legacy or consumer-side projections
 - what gets recorded in `warpspace.lock.json`
 
 This packet answers the practical question:
 
-**If we ship `warp` correctly, what does the user install, and how do we make
+**If we ship `qw` correctly, what does the user install, and how do we make
 sure the WARPspace has the compatible internal toolchain before Wesley and any
 consumer-side generators are invoked?**
 
@@ -53,7 +53,7 @@ It is **not** the desired shipped form.
 There is no reason to ship an intermediate "install the JS CLI first" product
 if the final product is already clear:
 
-- `warp` should be one user-facing binary
+- `qw` should be one user-facing binary
 - the rest of the stack should remain internal
 
 At the same time, the repo-local proof harness and some legacy projections may
@@ -63,18 +63,18 @@ Wesley's permanent runtime shape. Wesley is moving to a native Rust CLI.
 
 ## Decision
 
-### 1. The permanent shipped product is a standalone `warp` binary
+### 1. The permanent shipped product is a standalone `qw` binary
 
 The canonical shipped artifact is:
 
-- a platform-native `warp` binary
+- a platform-native `qw` binary
 
 Examples:
 
-- `warp-darwin-arm64`
-- `warp-darwin-x64`
-- `warp-linux-x64`
-- `warp-linux-arm64`
+- `qw-darwin-arm64`
+- `qw-darwin-x64`
+- `qw-linux-x64`
+- `qw-linux-arm64`
 
 Possible wrappers may still exist:
 
@@ -85,7 +85,7 @@ Possible wrappers may still exist:
 But those are only convenience distribution paths.
 They are **not** the product.
 
-The product is the `warp` binary itself.
+The product is the `qw` binary itself.
 
 ### 2. Do not ship the JS prototype as the permanent user path
 
@@ -102,7 +102,7 @@ That means:
 The repo-local JS CLI is allowed to continue as an implementation proof while
 the native bootstrapper is designed or built.
 
-### 3. `warp` must record how Wesley is invoked
+### 3. `qw` must record how Wesley is invoked
 
 Wesley has two command surfaces during the transition:
 
@@ -115,13 +115,13 @@ The `native-rust` command surface only supports `typescript` and `rust`
 projections. Any other projection, including `zod`, `echo-ir`, or `warp-ttd`,
 must stay on `legacy-node` until a native Rust projection is defined for it.
 
-That means `warp` must record:
+That means `qw` must record:
 
 - the Wesley runner, such as `node-entrypoint` or `native-binary`
 - the Wesley command set, such as `legacy-node` or `native-rust`
 - the staged command path under `.warpspace/packages/wesley/`
 
-If a selected profile still uses legacy Node-hosted projections, `warp` must
+If a selected profile still uses legacy Node-hosted projections, `qw` must
 establish the Node runtime before invoking them. Native Rust Wesley invocations
 must run the staged Wesley binary directly, not through `node`.
 
@@ -133,8 +133,8 @@ For released profiles, the default policy is:
 
 Meaning:
 
-- `warp` installs a pinned Node runtime into `.warpspace/packages/`
-- `warp` invokes legacy Node-hosted projections through that managed runtime
+- `qw` installs a pinned Node runtime into `.warpspace/packages/`
+- `qw` invokes legacy Node-hosted projections through that managed runtime
 - the selected Node version and install receipt are recorded in
   `warpspace.lock.json`
 
@@ -152,7 +152,7 @@ There are still legitimate cases for using a host-installed Node:
 - CI environments with curated base images
 - power-user overrides
 
-So `warp` may support a system Node mode, but it must be explicit and
+So `qw` may support a system Node mode, but it must be explicit and
 recordable.
 
 Allowed runtime sources:
@@ -165,7 +165,7 @@ Recommended profile defaults:
 - released profiles: `managed`
 - local-dev profiles: `system` or `prefer-system` may be allowed
 
-If system Node is used, `warp` must still:
+If system Node is used, `qw` must still:
 
 - validate version compatibility
 - record the resolved version and path in `warpspace.lock.json`
@@ -210,7 +210,7 @@ Managed Node belongs alongside the other internal stack components:
 
 That keeps the user-facing model clean:
 
-- one global binary: `warp`
+- one global binary: `qw`
 - one local managed toolchain: `.warpspace/`
 
 ## Consequences
@@ -219,7 +219,7 @@ That keeps the user-facing model clean:
 
 Continuum now needs to own:
 
-- native `warp` distribution planning
+- native `qw` distribution planning
 - Node runtime policy in the stack manifest
 - install receipts and runtime provenance in the lockfile contract
 
@@ -230,16 +230,16 @@ Wesley remains a managed internal toolchain component.
 It does not need to become the thing users install globally, and it should not
 return to an npm package as its primary entrypoint.
 
-It should assume that `warp` has staged the selected Wesley artifact. In the
+It should assume that `qw` has staged the selected Wesley artifact. In the
 permanent path that artifact is the native Rust `wesley` binary.
 
 ### App Authors
 
 The desired end state is:
 
-1. Install `warp`
-2. Run `warp init my-app`
-3. Let `warp` ensure the compatible internal toolchain, including Wesley and
+1. Install `qw`
+2. Run `qw init my-app`
+3. Let `qw` ensure the compatible internal toolchain, including Wesley and
    any selected Node runtime
 4. Never think about Wesley installation details directly
 
@@ -250,7 +250,7 @@ WARPspaces.
 
 The stronger product rule is:
 
-- `warp` ensures Node
+- `qw` ensures Node
 
 not:
 
@@ -262,7 +262,7 @@ It should not be the default release posture.
 ## Playback Questions
 
 - [ ] Does this packet cut the JS-first ship path clearly enough?
-- [ ] Is the native binary now the unambiguous permanent `warp` artifact?
+- [ ] Is the native binary now the unambiguous permanent `qw` artifact?
 - [ ] Is the Wesley runner now distinct from the Node runtime policy?
 - [ ] Is the Node prerequisite now elevated from ambient assumption to explicit
       stack policy only where it is actually needed?
