@@ -7,6 +7,7 @@ The goal is simple:
 
 - a developer installs `qw`
 - a developer runs `qw init`
+- a developer runs `qw install`
 - a WARPspace appears
 - the rest of the stack stays behind that boundary
 
@@ -30,6 +31,7 @@ The intended user story is:
 ```bash
 qw init my-app --profile demo
 cd my-app
+qw install
 qw build
 qw doctor
 ```
@@ -79,12 +81,15 @@ The current Continuum repo already proves the product boundary in a real way.
 Today, `apps/warp` provides a working local-first prototype with:
 
 - a repo-local `qw init` command
+- a first `qw install` command for source constellations and runtime
+  projection
 - a concrete demo stack manifest at
   [docs/releases/demo/continuum-stack-release.json](../../docs/releases/demo/continuum-stack-release.json)
 - a WARPspace template under
   [apps/warp/templates/demo-web-rust](./templates/demo-web-rust)
 - authored workspace output in `warpspace.toml`
 - resolved install state in `warpspace.lock.json`
+- devcontainer runtime projection generation from `[runtime.default]`
 - internal install layout under `.warpspace/packages`, `.warpspace/cache`, and
   `.warpspace/downloads`
 - materialization of the first shared family into `contracts/continuum/`
@@ -96,6 +101,8 @@ That means the prototype already proves:
 
 - Continuum can own the entry point
 - the authored workspace boundary can be TOML rather than executable JS
+- a WARPspace can declare a runtime projection without making that projection
+  canonical identity
 - Wesley can stay downstream as an internal compiler
 - a new host repo can be scaffolded and populated from a stack manifest
 
@@ -112,8 +119,8 @@ What is not done yet:
   staging
 - the broader day-to-day command set such as `qw build`, `qw doctor`, and
   `qw update` is not yet implemented
-- the install story still relies on proof package sources rather than a real
-  downloadable release source
+- the managed toolchain install story still relies on proof package sources
+  rather than a real downloadable release source
 
 So the current state is:
 
@@ -166,6 +173,7 @@ If you want the shortest path through the `qw` story, use this order:
 3. [0024 - Warp CLI And WARPspace TOML](../../docs/design/0024-warp-cli-and-warpspace-toml/README.md)
 4. [0025 - Warp Native Distribution And Node Runtime Policy](../../docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md)
 5. [0026 - Warp Package Sources And Local Packages Site](../../docs/design/0026-warp-package-sources-and-local-packages-site/README.md)
+6. [0033 - WARPspace Runtime Projection And QW Install](../../docs/design/0033-warpspace-runtime-projection-and-qw-install/README.md)
 
 ## Handoff Note
 
@@ -178,6 +186,8 @@ If you are picking this work up next, assume the following is already true:
 - `qw init` already writes the real workspace files, stages internal toolchain
   paths under `.warpspace/`, materializes the first shared family, and invokes
   Wesley without any bridge file
+- `qw install` already locks and syncs constellation-style WARPspaces, writes
+  devcontainer projection files, and verifies the result
 
 The next implementation priority is not another doctrine pass.
 

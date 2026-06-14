@@ -93,6 +93,12 @@ That is the first honest "build a Continuum app" story.
 Today, the intended `qw init` product flow is defined, but not yet fully
 packaged as a one-command user experience.
 
+The first constellation-style `qw install` cut exists. It reads
+`warpspace.toml`, refreshes `warpspace.lock.json`, syncs declared sibling repo
+checkouts, writes a devcontainer runtime projection when `[runtime.default]`
+declares one, and verifies the result. Full managed toolchain installation
+under `.warpspace/` is still incomplete for that install path.
+
 The first concrete stack artifact for that flow now exists here:
 
 - [demo stack release manifest](releases/demo/continuum-stack-release.json)

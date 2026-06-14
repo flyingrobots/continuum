@@ -26,7 +26,8 @@ described in [0025 - Warp Native Distribution And Node Runtime Policy](../../doc
 Prototype commands available here today:
 
 - `qw init`
-- lower-level pieces for the future `qw install` flow:
+- `qw install`
+- lower-level pieces behind the install flow:
   - `qw warpspace lock`
   - `qw warpspace verify`
   - `qw warpspace sync`
@@ -52,14 +53,20 @@ Current posture:
   `qw warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
   local checkouts, `sync` clones/fetches/checks out the locked commits, and
   `doctor` reports verification health
+- supports a first `qw install` cut for constellation-style
+  `warpspace.toml` files: it refreshes `warpspace.lock.json`, syncs declared
+  repo checkouts, writes `.devcontainer/devcontainer.json` for a
+  `[runtime.default]` devcontainer profile, and verifies the result
 
 Product target:
 
 - `warpspace.toml` should be the package-manifest-shaped file for `qw`
 - `warpspace.lock.json` should be the lock output
-- `qw install` should become the user-facing command that reads
-  `warpspace.toml`, refreshes the lock, materializes source checkouts and
-  managed toolchain state, then verifies the WARPspace
+- `qw install` is the user-facing command that reads `warpspace.toml`,
+  refreshes the lock, materializes source checkouts and runtime projection
+  state, then verifies the WARPspace
+- managed toolchain installation under `.warpspace/` is still incomplete for
+  constellation-style installs
 - the current `qw warpspace lock/sync/verify/doctor` commands remain the
   lower-level primitives behind that flow
 
@@ -69,6 +76,7 @@ When the package is linked or installed:
 
 ```bash
 qw init my-app --profile demo
+qw install
 qw warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
 qw warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 qw warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev

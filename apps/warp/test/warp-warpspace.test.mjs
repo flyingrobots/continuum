@@ -153,6 +153,78 @@ test('warpspace sync repairs origin and creates nested checkout directories', as
   }
 });
 
+test('install locks, syncs, verifies, and writes a devcontainer runtime projection', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await mkdir(root, { recursive: true });
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "jim"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        `rev = ${JSON.stringify(echo.head)}`,
+        'path = "echo"',
+        '',
+        '[runtime.default]',
+        'kind = "devcontainer"',
+        'mount = "/warpspaces/jim"',
+        '',
+        '[runtime.default.image]',
+        'ref = "ghcr.io/flyingrobots/jim-runtime:test"',
+        '',
+        '[runtime.default.env]',
+        'JIM_WARPSPACE_ROOT = "/warpspaces/jim"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const cli = await runCli(['install', manifestPath, '--json']);
+    assert.equal(cli.code, 0);
+    const parsed = JSON.parse(cli.stdout);
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.locked.repoCount, 1);
+    assert.equal(parsed.runtime.status, 'written');
+    assert.equal(parsed.runtime.mount, '/warpspaces/jim');
+
+    const lock = JSON.parse(await readFile(path.join(root, 'warpspace.lock.json'), 'utf8'));
+    assert.equal(lock.repos[0].resolved, echo.head);
+    assert.equal(lock.runtime.default.kind, 'devcontainer');
+
+    const devcontainer = JSON.parse(
+      await readFile(path.join(root, '.devcontainer', 'devcontainer.json'), 'utf8')
+    );
+    assert.equal(devcontainer.name, 'jim runtime');
+    assert.equal(devcontainer.image, 'ghcr.io/flyingrobots/jim-runtime:test');
+    assert.equal(devcontainer.workspaceFolder, '/warpspaces/jim');
+    assert.equal(
+      devcontainer.workspaceMount,
+      'source=${localWorkspaceFolder},target=/warpspaces/jim,type=bind,consistency=cached'
+    );
+    assert.deepEqual(devcontainer.remoteEnv, {
+      JIM_WARPSPACE_ROOT: '/warpspaces/jim'
+    });
+    assert.equal(await pathExists(path.join(root, 'echo', '.git')), true);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace rejects checkout paths outside the root', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -214,6 +286,11 @@ test('warpspace rejects checkout paths outside the root', async () => {
 });
 
 test('warpspace help and usage errors stay user-facing', async () => {
+  const installHelp = await runCli(['install', '--help']);
+  assert.equal(installHelp.code, 0);
+  assert.match(installHelp.stdout, /Usage: qw install \[warpspace\.toml]/);
+  assert.equal(installHelp.stderr, '');
+
   const help = await runCli(['warpspace', 'lock', '--help']);
   assert.equal(help.code, 0);
   assert.match(help.stdout, /Usage: qw warpspace lock <manifest\.toml>/);
@@ -275,11 +352,11 @@ test('warpspace lock rejects unquoted barewords in TOML', async () => {
   }
 });
 
-test('warpspace lock rejects unknown literal SHA revisions', async () => {
+test('warpspace lock accepts literal SHA revisions as resolved identities', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
-  const manifestPath = path.join(tempDir, 'unknown-sha.toml');
-  const lockPath = path.join(tempDir, 'unknown-sha.lock.json');
+  const manifestPath = path.join(tempDir, 'literal-sha.toml');
+  const lockPath = path.join(tempDir, 'literal-sha.lock.json');
 
   try {
     const echo = await createGitRepo({
@@ -298,17 +375,16 @@ test('warpspace lock rejects unknown literal SHA revisions', async () => {
         '',
         '[repos.echo]',
         `git = ${JSON.stringify(echo.repoPath)}`,
-        'rev = "0000000000000000000000000000000000000000aa"',
+        'rev = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
         'path = "echo"',
         ''
       ].join('\n'),
       'utf8'
     );
 
-    await assert.rejects(
-      () => lockWarpspace({ manifestPath, lockPath }),
-      /Cannot resolve literal sha|not found|No resolvable git ref found/
-    );
+    const result = await lockWarpspace({ manifestPath, lockPath });
+    assert.equal(result.lock.repos[0].resolved, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    assert.equal(result.lock.repos[0].resolution, 'literal-sha');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

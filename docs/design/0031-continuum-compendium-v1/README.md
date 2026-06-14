@@ -1290,6 +1290,7 @@ For maintainers:
 
 ```bash
 qw init      # bootstrap a WARPspace from a tested stack tuple
+qw install   # materialize source constellation, lock, and runtime projection
 qw build     # compile families through Wesley
 qw doctor    # check families, profiles, codecs, credentials, evidence
 qw observe   # request a reading

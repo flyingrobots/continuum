@@ -49,6 +49,8 @@ export async function lockWarpspace({
     },
     repos,
     crates: manifest.crates,
+    packages: manifest.packages,
+    runtime: manifest.runtime,
     contracts: manifest.contracts
   };
 
@@ -61,6 +63,63 @@ export async function lockWarpspace({
     lockPath: resolvedLockPath,
     repoCount: repos.length,
     lock
+  };
+}
+
+export async function installWarpspace({
+  manifestPath = 'warpspace.toml',
+  root = null,
+  lockPath = null,
+  allowDirty = false,
+  skipSync = false,
+  now = () => new Date(),
+  runCommand = defaultRunCommand
+}) {
+  const resolvedManifestPath = path.resolve(requiredText(manifestPath, 'warpspace manifest path'));
+  const resolvedRoot = path.resolve(root ?? path.dirname(resolvedManifestPath));
+  const resolvedLockPath = lockPath == null
+    ? defaultLockPath(resolvedManifestPath)
+    : path.resolve(lockPath);
+
+  const lockResult = await lockWarpspace({
+    manifestPath: resolvedManifestPath,
+    lockPath: resolvedLockPath,
+    now,
+    runCommand
+  });
+
+  const sync = skipSync
+    ? null
+    : await syncWarpspace({
+      lockPath: resolvedLockPath,
+      root: resolvedRoot,
+      runCommand
+    });
+
+  const runtime = await materializeRuntimeProjection({
+    lock: lockResult.lock,
+    root: resolvedRoot
+  });
+
+  const verification = await verifyWarpspace({
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    allowDirty,
+    runCommand
+  });
+
+  return {
+    kind: 'warp.install.result.v1',
+    ok: verification.ok,
+    manifestPath: resolvedManifestPath,
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    locked: {
+      repoCount: lockResult.repoCount
+    },
+    sync,
+    runtime,
+    verification
   };
 }
 
@@ -313,6 +372,8 @@ function parseWarpspaceToml(content, manifestPath) {
     name: tree.warpspace?.name ?? tree.name ?? path.basename(manifestPath, path.extname(manifestPath)),
     repos: repoEntries,
     crates: tree.crates ?? {},
+    packages: tree.packages ?? {},
+    runtime: tree.runtime ?? {},
     contracts: tree.contracts ?? {}
   };
 }
@@ -436,32 +497,10 @@ function stripTomlComment(line) {
 
 async function resolveGitRef({ git, rev, runCommand }) {
   if (/^[0-9a-f]{40}$/i.test(rev)) {
-    const remoteExisting = runGit(['ls-remote', git, `${rev}^{}`], { runCommand });
-    if (remoteExisting.status === 0 && remoteExisting.stdout.trim() !== '') {
-      return {
-        resolved: rev.toLowerCase(),
-        resolution: 'literal-sha'
-      };
-    }
-
-    const localExisting = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
-      cwd: git,
-      runCommand
-    });
-    if (localExisting.status === 0 && localExisting.stdout.trim() === rev.toLowerCase()) {
-      return {
-        resolved: rev.toLowerCase(),
-        resolution: 'literal-sha'
-      };
-    }
-
-    if (remoteExisting.status !== 0 && localExisting.status !== 0) {
-      throw new Error(
-        `Cannot resolve literal sha ${rev} in ${git}: ${((remoteExisting.stderr || remoteExisting.stdout || localExisting.stderr || localExisting.stdout || 'not found')).trim()}`.trim()
-      );
-    }
-
-    throw new Error(`Cannot resolve literal sha ${rev} in ${git}: not found`);
+    return {
+      resolved: rev.toLowerCase(),
+      resolution: 'literal-sha'
+    };
   }
 
   // Prefer peeled tags first, then the tag object, then branches, then exact
@@ -520,6 +559,77 @@ async function readLock(lockPath) {
     throw new Error(`${lockPath} must declare repos.`);
   }
   return lock;
+}
+
+async function materializeRuntimeProjection({ lock, root }) {
+  const profile = lock.runtime?.default;
+  if (profile == null) {
+    return {
+      kind: 'warp.runtime.materialize.result.v1',
+      status: 'skipped',
+      reason: 'no-runtime-profile'
+    };
+  }
+
+  if (profile.kind !== 'devcontainer') {
+    return {
+      kind: 'warp.runtime.materialize.result.v1',
+      status: 'skipped',
+      reason: `unsupported-runtime-kind:${profile.kind ?? 'unknown'}`
+    };
+  }
+
+  const mount = requiredText(
+    profile.mount ?? `/warpspaces/${lock.warpspace?.name ?? 'default'}`,
+    '[runtime.default].mount'
+  );
+  const devcontainerDir = path.join(root, '.devcontainer');
+  const devcontainerPath = path.join(devcontainerDir, 'devcontainer.json');
+  const config = {
+    name: `${lock.warpspace?.name ?? 'Warpspace'} runtime`,
+    image: runtimeImage(profile),
+    workspaceFolder: mount,
+    workspaceMount: `source=\${localWorkspaceFolder},target=${mount},type=bind,consistency=cached`,
+    remoteEnv: runtimeEnv(profile)
+  };
+
+  await mkdir(devcontainerDir, { recursive: true });
+  await writeFile(devcontainerPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+
+  return {
+    kind: 'warp.runtime.materialize.result.v1',
+    status: 'written',
+    profile: 'default',
+    runtimeKind: 'devcontainer',
+    path: devcontainerPath,
+    mount,
+    image: config.image
+  };
+}
+
+function runtimeImage(profile) {
+  if (typeof profile.image === 'string') {
+    return requiredText(profile.image, '[runtime.default].image');
+  }
+
+  const image = profile.image ?? {};
+  if (image.ref != null) {
+    return requiredText(image.ref, '[runtime.default.image].ref');
+  }
+  if (image.source != null && image.tag != null) {
+    return `${requiredText(image.source, '[runtime.default.image].source')}:${requiredText(image.tag, '[runtime.default.image].tag')}`;
+  }
+  if (image.source != null) {
+    return requiredText(image.source, '[runtime.default.image].source');
+  }
+  return 'mcr.microsoft.com/devcontainers/base:ubuntu';
+}
+
+function runtimeEnv(profile) {
+  const env = profile.env ?? {};
+  return Object.fromEntries(
+    Object.entries(env).map(([key, value]) => [key, String(value)])
+  );
 }
 
 function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {

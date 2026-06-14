@@ -34,6 +34,8 @@ land in my app repo, and what internal tools should remain hidden under
 
 Distribution shape and Node runtime policy are refined in
 [0025 - Warp Native Distribution And Node Runtime Policy](../0025-warp-native-distribution-and-node-runtime-policy/README.md).
+Runtime projection and the devcontainer boundary are refined in
+[0033 - WARPspace Runtime Projection And QW Install](../0033-warpspace-runtime-projection-and-qw-install/README.md).
 
 ## Why This Exists
 
@@ -108,6 +110,11 @@ and leave the WARPspace ready for `qw doctor`, `qw build`, or app-specific
 commands. The current `qw warpspace lock` and `qw warpspace sync` commands
 are useful lower-level proof surfaces, but they should not be the final
 package-manager-shaped user experience.
+
+The first `qw install` implementation covers constellation-style WARPspaces:
+it refreshes the lock, syncs declared repos, writes a devcontainer runtime
+projection from `[runtime.default]`, and verifies the result. Managed
+toolchain installation remains a follow-up for that path.
 
 ### 3. The resolved lockfile remains JSON
 

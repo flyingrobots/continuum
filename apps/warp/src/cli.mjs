@@ -1,6 +1,7 @@
 import { initWarp } from './init.mjs';
 import {
   doctorWarpspace,
+  installWarpspace,
   lockWarpspace,
   syncWarpspace,
   verifyWarpspace
@@ -19,6 +20,10 @@ export async function main(argv, io = {}) {
 
   if (command === 'init') {
     return runInit(rest, { stdout, stderr });
+  }
+
+  if (command === 'install') {
+    return runInstall(rest, { stdout, stderr });
   }
 
   if (command === 'warpspace') {
@@ -87,6 +92,56 @@ async function runInit(argv, { stdout, stderr }) {
     }
 
     return 0;
+  } catch (error) {
+    return writeCommandError(stderr, error);
+  }
+}
+
+async function runInstall(argv, { stdout, stderr }) {
+  const usage = renderInstallUsage();
+  if (hasHelpFlag(argv)) {
+    stdout(usage);
+    return 0;
+  }
+
+  try {
+    const { options, positionals } = parseInstallArgs(argv, usage);
+    if (positionals.length > 1) {
+      throw new UsageError('Expected at most one manifest path.', usage);
+    }
+
+    const result = await installWarpspace({
+      manifestPath: positionals[0] ?? options.manifest ?? 'warpspace.toml',
+      root: options.root ?? null,
+      lockPath: options.lock ?? null,
+      allowDirty: Boolean(options.allowDirty),
+      skipSync: Boolean(options.skipSync)
+    });
+
+    if (options.json) {
+      stdout(JSON.stringify(result, null, 2) + '\n');
+      return result.ok ? 0 : 1;
+    }
+
+    if (!options.quiet) {
+      stdout(`Installed WARPspace: ${result.root}\n`);
+      stdout(`Lock: ${result.lockPath}\n`);
+      stdout(`Repos: ${result.locked.repoCount}\n`);
+      if (result.sync != null) {
+        stdout(`Synced repos: ${result.sync.repos.length}\n`);
+      }
+      if (result.runtime.status === 'written') {
+        stdout(`Runtime: ${result.runtime.path}\n`);
+      } else {
+        stdout(`Runtime: ${result.runtime.status} (${result.runtime.reason})\n`);
+      }
+    }
+
+    if (!result.ok) {
+      stderr(renderWarpspaceIssues(result.verification));
+    }
+
+    return result.ok ? 0 : 1;
   } catch (error) {
     return writeCommandError(stderr, error);
   }
@@ -306,6 +361,49 @@ function parseInitArgs(argv, usage) {
   return { options, positionals };
 }
 
+function parseInstallArgs(argv, usage) {
+  const options = {};
+  const positionals = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+
+    if (!token.startsWith('--')) {
+      positionals.push(token);
+      continue;
+    }
+
+    switch (token) {
+      case '--manifest':
+        options.manifest = requireValue(argv, ++index, token, usage);
+        break;
+      case '--root':
+        options.root = requireValue(argv, ++index, token, usage);
+        break;
+      case '--lock':
+        options.lock = requireValue(argv, ++index, token, usage);
+        break;
+      case '--allow-dirty':
+        options.allowDirty = true;
+        break;
+      case '--skip-sync':
+        options.skipSync = true;
+        break;
+      case '--json':
+        options.json = true;
+        break;
+      case '--quiet':
+      case '-q':
+        options.quiet = true;
+        break;
+      default:
+        throw new UsageError(`Unknown option: ${token}`, usage);
+    }
+  }
+
+  return { options, positionals };
+}
+
 function parseWarpspaceArgs(argv, usage, allowedFlags = new Set()) {
   const options = {};
   const positionals = [];
@@ -358,6 +456,7 @@ function renderUsage() {
     '',
     'Usage:',
     '  qw init <projectDir> [--profile demo] [--manifest <path>]',
+    '  qw install [warpspace.toml] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     '  qw warpspace <lock|verify|sync|doctor> ...',
     '',
     'Options:',
@@ -376,6 +475,13 @@ function renderUsage() {
 function renderInitUsage() {
   return [
     'Usage: qw init <projectDir> [--profile demo] [--manifest <path>]',
+    ''
+  ].join('\n');
+}
+
+function renderInstallUsage() {
+  return [
+    'Usage: qw install [warpspace.toml] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     ''
   ].join('\n');
 }
