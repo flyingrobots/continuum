@@ -96,6 +96,19 @@ GraphQL remains the authored semantic surface for shared families that Wesley
 compiles.
 `warpspace.toml` is just workspace configuration.
 
+For the user model, `warpspace.toml` should play the same role that
+`package.json` plays for Node projects: it is the checked-in declaration that
+the install tool knows how to realize. The corresponding operation should be:
+
+- `warp install`
+
+`warp install` should read `warpspace.toml`, resolve or refresh
+`warpspace.lock.json`, materialize declared source checkouts and managed tools,
+and leave the WARPspace ready for `warp doctor`, `warp build`, or app-specific
+commands. The current `warp warpspace lock` and `warp warpspace sync` commands
+are useful lower-level proof surfaces, but they should not be the final
+package-manager-shaped user experience.
+
 ### 3. The resolved lockfile remains JSON
 
 The resolved workspace lock is:

@@ -25,10 +25,11 @@ described in [0025 - Warp Native Distribution And Node Runtime Policy](../../doc
 Prototype commands available here today:
 
 - `warp init`
-- `warp warpspace lock`
-- `warp warpspace verify`
-- `warp warpspace sync`
-- `warp warpspace doctor`
+- lower-level pieces for the future `warp install` flow:
+  - `warp warpspace lock`
+  - `warp warpspace verify`
+  - `warp warpspace sync`
+  - `warp warpspace doctor`
 
 Current posture:
 
@@ -50,6 +51,16 @@ Current posture:
   `warp warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
   local checkouts, `sync` clones/fetches/checks out the locked commits, and
   `doctor` reports verification health
+
+Product target:
+
+- `warpspace.toml` should be the package-manifest-shaped file for `warp`
+- `warpspace.lock.json` should be the lock output
+- `warp install` should become the user-facing command that reads
+  `warpspace.toml`, refreshes the lock, materializes source checkouts and
+  managed toolchain state, then verifies the WARPspace
+- the current `warp warpspace lock/sync/verify/doctor` commands remain the
+  lower-level primitives behind that flow
 
 ## Run It
 

@@ -1,0 +1,76 @@
+---
+title: Warp Install From Warpspace TOML
+status: proposed
+source: docs/design/0024-warp-cli-and-warpspace-toml/README.md
+---
+
+# Warp Install From Warpspace TOML
+
+## Problem
+
+`warp` has the right manifest and lockfile names, but the user-facing install
+verb is still missing.
+
+The intended mental model should be as boring as Node:
+
+```text
+package.json       -> npm install       -> package-lock.json + node_modules/
+warpspace.toml     -> warp install      -> warpspace.lock.json + .warpspace/
+```
+
+For source constellations such as Jim/Jedit, `warp install` must also
+materialize declared sibling checkouts:
+
+```text
+warpspace.toml     -> warp install      -> jedit/ echo/ wesley/ ... + lock
+```
+
+Today that flow is split across lower-level proof commands:
+
+```text
+warp warpspace lock
+warp warpspace sync
+warp warpspace verify
+```
+
+Those are useful primitives, but they are not the final user experience.
+
+## Hill
+
+Add a `warp install` command that reads the current directory's
+`warpspace.toml`, resolves a lock, materializes declared source and managed
+toolchain state, and leaves the WARPspace ready to run.
+
+## Intended Semantics
+
+`warp install` should:
+
+1. Discover `warpspace.toml` from the current directory or an explicit path.
+2. Resolve declared repos, packages, tools, templates, and local policy.
+3. Write or refresh `warpspace.lock.json`.
+4. Materialize declared sibling repos at the locked revisions.
+5. Install or stage managed toolchain artifacts under `.warpspace/`.
+6. Preserve dirty checkout safety.
+7. Verify the resulting WARPspace.
+8. Emit machine-readable JSON with installed components, local projections, and
+   unresolved issues.
+
+## Non-Goals
+
+- Do not replace `warp init`.
+- Do not remove lower-level `warp warpspace lock/sync/verify/doctor` commands.
+- Do not treat raw host/container paths as canonical identity.
+- Do not make `warpspace.toml` executable.
+- Do not hide compatibility or observer-basis facts inside ad hoc install
+  scripts.
+
+## Acceptance
+
+- Running `warp install` in a directory with `warpspace.toml` is enough to
+  recreate the declared WARPspace on a fresh machine or in a devcontainer.
+- `warpspace.lock.json` is the single machine-written lock output.
+- Existing lower-level commands remain available for debugging and CI.
+- The Jim/Jedit Warpspace can be described as "run `warp install` here" rather
+  than "manually clone these sibling repos and check out these SHAs."
+- TACHYON remains the sanctioned path/locator boundary for any runtime paths
+  discovered during install.
