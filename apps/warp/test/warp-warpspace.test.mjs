@@ -733,6 +733,7 @@ test('warpspace locate rejects undeclared siblings and symlink escapes', async (
     await mkdir(outside, { recursive: true });
     await writeFile(path.join(outside, 'secret.txt'), 'nope\n', 'utf8');
     await symlink(outside, path.join(root, 'echo', 'outside'));
+    await symlink(path.join(outside, 'missing'), path.join(root, 'echo', 'dangling'));
 
     const undeclared = await runCli([
       'warpspace',
@@ -781,6 +782,22 @@ test('warpspace locate rejects undeclared siblings and symlink escapes', async (
     assert.equal(escapedNewLeaf.code, 1);
     const escapedNewLeafError = JSON.parse(escapedNewLeaf.stdout);
     assert.equal(escapedNewLeafError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const danglingEscape = await runCli([
+      'warpspace',
+      'locate',
+      'dangling/new.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(danglingEscape.code, 1);
+    const danglingEscapeError = JSON.parse(danglingEscape.stdout);
+    assert.equal(danglingEscapeError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

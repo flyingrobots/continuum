@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { lstat, readFile, realpath, stat } from 'node:fs/promises';
 
 const LOCATOR_KIND = 'warp.locator.v1';
 
@@ -132,8 +132,9 @@ async function assertNoSymlinkEscape({ runtimePath, runtimeRoot }) {
   if (!await pathExists(runtimeRoot)) {
     return;
   }
+  const ancestorPath = await deepestExistingAncestor(runtimePath);
   const [physicalPath, physicalRoot] = await Promise.all([
-    realpath(await deepestExistingAncestor(runtimePath)),
+    realpathExistingAncestor({ ancestorPath, runtimePath }),
     realpath(runtimeRoot)
   ]);
   assertUnderRoot({
@@ -145,7 +146,7 @@ async function assertNoSymlinkEscape({ runtimePath, runtimeRoot }) {
 
 async function deepestExistingAncestor(targetPath) {
   let candidate = targetPath;
-  while (!await pathExists(candidate)) {
+  while (!await pathExists(candidate, { followSymlinks: false })) {
     const parent = path.dirname(candidate);
     if (parent === candidate) {
       return candidate;
@@ -153,6 +154,20 @@ async function deepestExistingAncestor(targetPath) {
     candidate = parent;
   }
   return candidate;
+}
+
+async function realpathExistingAncestor({ ancestorPath, runtimePath }) {
+  try {
+    return await realpath(ancestorPath);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw userFacingError(
+        `input path realpath cannot be resolved inside WARPspace root: ${runtimePath}`,
+        'EWARP_LOCATE_OUTSIDE_ROOT'
+      );
+    }
+    throw error;
+  }
 }
 
 function renderWarpLocator({ warpspace, basis = null, segments }) {
@@ -189,9 +204,13 @@ function userFacingError(message, code) {
   return error;
 }
 
-async function pathExists(targetPath) {
+async function pathExists(targetPath, { followSymlinks = true } = {}) {
   try {
-    await stat(targetPath);
+    if (followSymlinks) {
+      await stat(targetPath);
+    } else {
+      await lstat(targetPath);
+    }
     return true;
   } catch (error) {
     if (error?.code === 'ENOENT') {
