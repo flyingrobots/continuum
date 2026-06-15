@@ -620,6 +620,47 @@ test('warpspace lock rejects unquoted barewords in TOML', async () => {
   }
 });
 
+test('warpspace lock rejects repo paths outside the manifest root', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const escapeManifestPath = path.join(tempDir, 'escape.toml');
+  const escapeLockPath = path.join(tempDir, 'escape.lock.json');
+  const absoluteManifestPath = path.join(tempDir, 'absolute.toml');
+  const absoluteLockPath = path.join(tempDir, 'absolute.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeWarpspaceManifest({
+      manifestPath: escapeManifestPath,
+      repoPath: echo.repoPath,
+      checkoutPath: '../escape'
+    });
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath: escapeManifestPath, lockPath: escapeLockPath }),
+      /\[repos\.echo]\.path.*must not contain "\.\." segments/
+    );
+    assert.equal(await pathExists(escapeLockPath), false);
+
+    await writeWarpspaceManifest({
+      manifestPath: absoluteManifestPath,
+      repoPath: echo.repoPath,
+      checkoutPath: path.join(tempDir, 'absolute')
+    });
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath: absoluteManifestPath, lockPath: absoluteLockPath }),
+      /\[repos\.echo]\.path.*must be relative/
+    );
+    assert.equal(await pathExists(absoluteLockPath), false);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace lock rejects literal SHA revisions absent from local evidence', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -689,6 +730,30 @@ async function createGitRepo({ repoPath, fileName, content }) {
   ], repoPath);
   const head = git(['rev-parse', 'HEAD'], repoPath).stdout.trim();
   return { repoPath, head };
+}
+
+async function writeWarpspaceManifest({
+  manifestPath,
+  repoPath,
+  checkoutPath,
+  rev = 'main'
+}) {
+  await writeFile(
+    manifestPath,
+    [
+      'version = 1',
+      '',
+      '[warpspace]',
+      'name = "jim"',
+      '',
+      '[repos.echo]',
+      `git = ${JSON.stringify(repoPath)}`,
+      `rev = ${JSON.stringify(rev)}`,
+      `path = ${JSON.stringify(checkoutPath)}`,
+      ''
+    ].join('\n'),
+    'utf8'
+  );
 }
 
 function git(args, cwd) {

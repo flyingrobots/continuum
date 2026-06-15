@@ -363,7 +363,7 @@ function parseWarpspaceToml(content, manifestPath) {
       name,
       git: requiredText(spec.git, `[repos.${name}].git`),
       rev: requiredText(spec.rev, `[repos.${name}].rev`),
-      path: spec.path == null ? name : requiredText(spec.path, `[repos.${name}].path`)
+      path: manifestRepoPath({ spec, name, manifestPath })
     };
   });
 
@@ -717,6 +717,16 @@ async function readLock(lockPath) {
   return lock;
 }
 
+function manifestRepoPath({ spec, name, manifestPath }) {
+  const repoPath = spec.path == null
+    ? name
+    : requiredText(spec.path, `[repos.${name}].path`);
+  return validateRelativeRepoPath({
+    rawPath: repoPath,
+    label: `${manifestPath}: [repos.${name}].path`
+  });
+}
+
 async function materializeRuntimeProjection({ lock, root }) {
   const profile = lock.runtime?.default;
   if (profile == null) {
@@ -801,13 +811,10 @@ function runtimeEnv(profile) {
 }
 
 function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {
-  const rawPath = requiredText(repo.path ?? repo.name, `path for ${repo.name}`);
-  if (rawPath.split(/[\\/]/).includes('..')) {
-    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must not contain ".." segments.`);
-  }
-  if (path.isAbsolute(rawPath)) {
-    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must be relative to ${resolvedRoot}.`);
-  }
+  const rawPath = validateRelativeRepoPath({
+    rawPath: requiredText(repo.path ?? repo.name, `path for ${repo.name}`),
+    label: `${lockPath}: repo ${repo.name} path`
+  });
   const checkoutPath = path.resolve(resolvedRoot, rawPath);
   const relative = path.relative(resolvedRoot, checkoutPath);
   if (relative !== '' && (relative.startsWith('..') || path.isAbsolute(relative))) {
@@ -816,6 +823,16 @@ function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {
     );
   }
   return checkoutPath;
+}
+
+function validateRelativeRepoPath({ rawPath, label }) {
+  if (rawPath.split(/[\\/]/).includes('..')) {
+    throw new Error(`${label} "${rawPath}" must not contain ".." segments.`);
+  }
+  if (path.isAbsolute(rawPath) || /^[A-Za-z]:[\\/]/.test(rawPath)) {
+    throw new Error(`${label} "${rawPath}" must be relative.`);
+  }
+  return rawPath;
 }
 
 function assertCleanWorktree({ repo, checkoutPath, runCommand }) {
