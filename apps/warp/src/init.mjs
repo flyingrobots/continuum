@@ -369,7 +369,7 @@ async function writeInternalReadme({ projectDir, installLayout, manifest }) {
   const content = [
     '# Managed WARPspace State',
     '',
-    'This directory is managed by `warp`.',
+    'This directory is managed by `qw`.',
     '',
     `Profile: ${manifest.profile}`,
     `Release: ${manifest.releaseId}`,

@@ -8,9 +8,9 @@ status: proposed
 ## Idea
 
 Run a bounded runtime spike on Bun and Deno as possible managed runtimes for
-`warp` to use internally when invoking Wesley and related JS/TS tooling.
+`qw` to use internally when invoking Wesley and related JS/TS tooling.
 
-The question is not whether `warp` itself should become a JS CLI.
+The question is not whether `qw` itself should become a JS CLI.
 The question is whether the managed runtime inside `.warpspace/packages/` could
 be lighter-weight than Node without introducing semantic drift.
 

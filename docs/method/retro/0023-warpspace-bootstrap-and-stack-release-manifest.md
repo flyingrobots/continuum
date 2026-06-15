@@ -7,7 +7,8 @@ status: complete
 
 > Historical note: this retro captures the stage-0 bootstrap proof. The
 > permanent CLI home and config boundary are refined in
-> [0024 - Warp CLI And WARPspace TOML](../../design/0024-warp-cli-and-warpspace-toml/README.md).
+> [0024 - Warp CLI And WARPspace TOML](../../design/0024-warp-cli-and-warpspace-toml/README.md);
+> the current user-facing binary name is `qw`.
 
 ## Hill
 

@@ -33,7 +33,7 @@ spine for lawful causal interoperability:
 - WARP DRIVE as a profile/app over readings and intents;
 - law/optic admission as protocol shape, not ambient authority;
 - counterfactual branches as scratch history until admitted promotion;
-- `warp doctor` and conformance fixtures as first-class proof surfaces.
+- `qw doctor` and conformance fixtures as first-class proof surfaces.
 
 ## Decision Summary
 
@@ -1289,24 +1289,25 @@ For maintainers:
 ### Developer Command Surface
 
 ```bash
-warp init      # bootstrap a WARPspace from a tested stack tuple
-warp build     # compile families through Wesley
-warp doctor    # check families, profiles, codecs, credentials, evidence
-warp observe   # request a reading
-warp export    # export a witnessed suffix
-warp import    # import a suffix bundle
-warp debug     # open WARP TTD against a compatible target
-warp mount     # mount a WARP DRIVE profile
-warp prove     # run profile conformance/witness checks
+qw init      # bootstrap a WARPspace from a tested stack tuple
+qw install   # materialize source constellation, lock, and runtime projection
+qw build     # compile families through Wesley
+qw doctor    # check families, profiles, codecs, credentials, evidence
+qw observe   # request a reading
+qw export    # export a witnessed suffix
+qw import    # import a suffix bundle
+qw debug     # open WARP TTD against a compatible target
+qw mount     # mount a WARP DRIVE profile
+qw prove     # run profile conformance/witness checks
 ```
 
-`warp doctor` should say exactly which profile, family, credential, codec,
+`qw doctor` should say exactly which profile, family, credential, codec,
 witness, or interop cut is missing.
 
 Example output:
 
 ```text
-$ warp doctor --target echo://local/dev
+$ qw doctor --target echo://local/dev
 Target
   participant: echo://local/dev
   kind: runtime
@@ -1877,7 +1878,7 @@ Make counterfactuals scratch by default.
 
 ### Decision 10
 
-Make `warp doctor` and conformance fixtures first-class product surfaces.
+Make `qw doctor` and conformance fixtures first-class product surfaces.
 
 ## Playback Questions
 
@@ -1920,7 +1921,7 @@ The smallest next proof is:
 3. One generated artifact witness through Wesley.
 4. One WARP TTD consumer fixture that proves generic discovery.
 5. One redacted/credential-required profile example.
-6. One warp doctor output that reports profile/evidence status honestly.
+6. One qw doctor output that reports profile/evidence status honestly.
 ```
 
 No counterfactuals yet. No law registry yet. No identity-system decision yet.

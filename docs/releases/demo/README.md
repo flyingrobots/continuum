@@ -40,9 +40,11 @@ That means:
 - the compatibility tuple is concrete
 - the selected repos and artifacts are explicit
 - the current demo can anchor itself to this manifest
-- a local-first `warp init` prototype in Continuum can already consume this manifest
-- the current demo auto-stages the current-process Node runtime and sibling Wesley entrypoint under `.warpspace/packages/`
-- the final released `warp init --profile demo` consumer flow is still a
+- a local-first `qw init` prototype in Continuum can already consume this
+  manifest
+- the current demo auto-stages the current-process Node runtime and sibling
+  Wesley entrypoint under `.warpspace/packages/`
+- the final released `qw init --profile demo` consumer flow is still a
   follow-on implementation
 
 ## Why It Matters

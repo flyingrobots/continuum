@@ -14,7 +14,7 @@ status: proposed
 
 ## Hill
 
-Freeze the package-source model for `warp` so managed toolchain installs do not
+Freeze the package-source model for `qw` so managed toolchain installs do not
 assume one registry or one publication path, and so local development can test
 that model without pretending npm or crates.io already exist.
 
@@ -23,17 +23,17 @@ Lock down:
 - how a Continuum stack manifest names multiple package source sites
 - how toolchain components refer to those sites
 - what a `local-packages` source means
-- how `warp` resolves and stages packages from that source
+- how `qw` resolves and stages packages from that source
 
 This packet answers the practical question:
 
-**How does `warp` install toolchain components from more than one source site,
+**How does `qw` install toolchain components from more than one source site,
 and what is the sanctioned local proof source before real published artifacts
 exist?**
 
 ## Why This Exists
 
-The previous toolchain work proved that `warp` can stage Node and Wesley into
+The previous toolchain work proved that `qw` can stage Node and Wesley into
 `.warpspace/packages/`, but the first proof still relied on:
 
 - the current process Node binary
@@ -47,7 +47,7 @@ So the managed install story must not assume a single registry-shaped future.
 
 ## Decision
 
-### 1. `warp` installs from named package source sites
+### 1. `qw` installs from named package source sites
 
 The Continuum stack manifest may declare:
 
@@ -60,7 +60,7 @@ Each source site gets a stable id such as:
 - `internalMirror`
 
 Toolchain install specs then refer to those sites explicitly rather than
-hard-coding one package host assumption into `warp`.
+hard-coding one package host assumption into `qw`.
 
 ### 2. Source-site selection is explicit in install specs
 
@@ -93,9 +93,9 @@ The first concrete source-site kind is:
 Meaning:
 
 - package contents live under a local directory tree
-- `warp` reads a package manifest from that tree
-- `warp` copies the selected payload variant into `.warpspace/packages/`
-- `warp` records the source site, package, version, variant, and receipt in
+- `qw` reads a package manifest from that tree
+- `qw` copies the selected payload variant into `.warpspace/packages/`
+- `qw` records the source site, package, version, variant, and receipt in
   `warpspace.lock.json`
 
 This source is for:
@@ -149,11 +149,11 @@ Continuum now owns:
 - package source-site doctrine
 - the `warp.package.v1` local package shape
 - the rule that publication host assumptions stay in manifests, not hard-coded
-  in `warp`
+  in `qw`
 
 ### Warp
 
-`warp` now needs two separable install layers:
+`qw` now needs two separable install layers:
 
 - source-site resolution
 - package staging
@@ -172,14 +172,14 @@ It is:
 
 The smallest honest artifact that proves this hill is:
 
-- `warp` support for `packageSources`
-- `warp` support for `source: "package-source"`
+- `qw` support for `packageSources`
+- `qw` support for `source: "package-source"`
 - one working `local-packages` source-site implementation
 - tests that install staged Node and Wesley packages from that source
 
 ## Playback Questions
 
-- [ ] Does this packet keep `warp` from assuming one publication host?
+- [ ] Does this packet keep `qw` from assuming one publication host?
 - [ ] Is `local-packages` now explicit as a proof source rather than ad hoc
       local copying?
 - [ ] Is the difference between source-site resolution and package staging

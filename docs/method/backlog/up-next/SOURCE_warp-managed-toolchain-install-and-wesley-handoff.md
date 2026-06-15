@@ -7,7 +7,7 @@ status: proposed
 
 ## Why
 
-`warp` now lives in Continuum, writes `warpspace.toml`, writes
+`qw` now lives in Continuum, writes `warpspace.toml`, writes
 `warpspace.lock.json`, applies a WARPspace template, materializes shared family
 sources, stages the current-process Node runtime, and can stage Wesley either
 as a legacy Node entrypoint or as a native Rust binary.
@@ -27,7 +27,7 @@ That means the user-facing story is not yet honest enough:
 
 ## Goal
 
-Teach `warp` to acquire downloadable toolchain artifacts into `.warpspace/`,
+Teach `qw` to acquire downloadable toolchain artifacts into `.warpspace/`,
 install a managed Node bundle for released profiles, and invoke the managed
 native Wesley binary without sibling-repo or npm-entrypoint assumptions.
 
@@ -49,13 +49,13 @@ equivalents are not implemented yet.
 
 ## Done When
 
-- released `warp init` installs Wesley from a downloadable managed artifact
+- released `qw init` installs Wesley from a downloadable managed artifact
   instead of a sibling-repo source path
-- released `warp init` invokes the native Rust Wesley binary directly, not
+- released `qw init` invokes the native Rust Wesley binary directly, not
   through Node
-- released `warp init` installs a managed Node runtime according to the profile
+- released `qw init` installs a managed Node runtime according to the profile
   policy only for selected projections or host steps that actually require Node
-- released `warp init` resolves those installs through a real package source
+- released `qw init` resolves those installs through a real package source
   site instead of the local proof-only `local-packages` source
 - `warpspace.lock.json` records artifact digests, install receipts, exact tool
   locations, Wesley runner/command-set provenance, and resolved Node runtime

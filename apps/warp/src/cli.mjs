@@ -1,6 +1,7 @@
 import { initWarp } from './init.mjs';
 import {
   doctorWarpspace,
+  installWarpspace,
   lockWarpspace,
   syncWarpspace,
   verifyWarpspace
@@ -19,6 +20,10 @@ export async function main(argv, io = {}) {
 
   if (command === 'init') {
     return runInit(rest, { stdout, stderr });
+  }
+
+  if (command === 'install') {
+    return runInstall(rest, { stdout, stderr });
   }
 
   if (command === 'warpspace') {
@@ -88,6 +93,67 @@ async function runInit(argv, { stdout, stderr }) {
 
     return 0;
   } catch (error) {
+    return writeCommandError(stderr, error);
+  }
+}
+
+async function runInstall(argv, { stdout, stderr }) {
+  const usage = renderInstallUsage();
+  if (hasHelpFlag(argv)) {
+    stdout(usage);
+    return 0;
+  }
+  const wantsJson = argv.includes('--json');
+
+  try {
+    const { options, positionals } = parseInstallArgs(argv, usage);
+    if (positionals.length > 1) {
+      throw new UsageError('Expected at most one manifest path.', usage);
+    }
+    if (positionals.length === 1 && options.manifest != null) {
+      throw new UsageError('Use either positional manifest path or --manifest, not both.', usage);
+    }
+
+    const result = await installWarpspace({
+      manifestPath: positionals[0] ?? options.manifest ?? 'warpspace.toml',
+      root: options.root ?? null,
+      lockPath: options.lock ?? null,
+      allowDirty: Boolean(options.allowDirty),
+      skipSync: Boolean(options.skipSync)
+    });
+
+    if (options.json) {
+      stdout(JSON.stringify(result, null, 2) + '\n');
+      return result.ok ? 0 : 1;
+    }
+
+    if (!result.ok) {
+      if (!options.quiet) {
+        stderr(`Install failed: ${result.root}\n`);
+      }
+      stderr(renderWarpspaceIssues(result.verification));
+      return 1;
+    }
+
+    if (!options.quiet) {
+      stdout(`Installed WARPspace: ${result.root}\n`);
+      stdout(`Lock: ${result.lockPath}\n`);
+      stdout(`Repos: ${result.locked.repoCount}\n`);
+      if (result.sync != null) {
+        stdout(`Synced repos: ${result.sync.repos.length}\n`);
+      }
+      if (result.runtime.status === 'written') {
+        stdout(`Runtime: ${result.runtime.path}\n`);
+      } else {
+        stdout(`Runtime: ${result.runtime.status} (${result.runtime.reason})\n`);
+      }
+    }
+
+    return 0;
+  } catch (error) {
+    if (wantsJson) {
+      return writeJsonCommandError(stdout, error, 'warp.install.error.v1');
+    }
     return writeCommandError(stderr, error);
   }
 }
@@ -255,12 +321,32 @@ function writeCommandError(stderr, error) {
     stderr(`${error.message}\n\n${error.usage}`);
     return 1;
   }
+  if (isUserFacingError(error)) {
+    stderr(`${error.message}\n`);
+    return 1;
+  }
   stderr(`${error?.stack || error?.message || String(error)}\n`);
+  return 1;
+}
+
+function writeJsonCommandError(stdout, error, kind) {
+  stdout(JSON.stringify({
+    kind,
+    ok: false,
+    error: {
+      code: error?.code ?? 'EINSTALL',
+      message: error?.message ?? String(error)
+    }
+  }, null, 2) + '\n');
   return 1;
 }
 
 function isUsageError(error) {
   return error?.code === 'EUSAGE';
+}
+
+function isUserFacingError(error) {
+  return error?.expose === true;
 }
 
 function parseInitArgs(argv, usage) {
@@ -297,6 +383,49 @@ function parseInitArgs(argv, usage) {
         break;
       case '--force':
         options.force = true;
+        break;
+      default:
+        throw new UsageError(`Unknown option: ${token}`, usage);
+    }
+  }
+
+  return { options, positionals };
+}
+
+function parseInstallArgs(argv, usage) {
+  const options = {};
+  const positionals = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+
+    if (!token.startsWith('-')) {
+      positionals.push(token);
+      continue;
+    }
+
+    switch (token) {
+      case '--manifest':
+        options.manifest = requireValue(argv, ++index, token, usage);
+        break;
+      case '--root':
+        options.root = requireValue(argv, ++index, token, usage);
+        break;
+      case '--lock':
+        options.lock = requireValue(argv, ++index, token, usage);
+        break;
+      case '--allow-dirty':
+        options.allowDirty = true;
+        break;
+      case '--skip-sync':
+        options.skipSync = true;
+        break;
+      case '--json':
+        options.json = true;
+        break;
+      case '--quiet':
+      case '-q':
+        options.quiet = true;
         break;
       default:
         throw new UsageError(`Unknown option: ${token}`, usage);
@@ -354,15 +483,16 @@ function requireValue(argv, index, flag, usage) {
 
 function renderUsage() {
   return [
-    'warp - Bootstrap and manage a Continuum WARPspace',
+    'qw - Bootstrap and manage a Continuum WARPspace',
     '',
     'Usage:',
-    '  warp init <projectDir> [--profile demo] [--manifest <path>]',
-    '  warp warpspace <lock|verify|sync|doctor> ...',
+    '  qw init <projectDir> [--profile demo] [--manifest <path>]',
+    '  qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
+    '  qw warpspace <lock|verify|sync|doctor> ...',
     '',
     'Options:',
     '  --profile <id>         Use a built-in Continuum release profile such as demo',
-    '  --manifest <path>      Use an explicit continuum-stack-release.json',
+    '  --manifest <path>      init: continuum-stack-release.json; install: warpspace.toml',
     '  --authority-root <p>   Override the Continuum authored-home root',
     '  --skip-generate        Do not invoke Wesley during bootstrap',
     '  --force                Initialize into a non-empty target directory',
@@ -375,38 +505,45 @@ function renderUsage() {
 
 function renderInitUsage() {
   return [
-    'Usage: warp init <projectDir> [--profile demo] [--manifest <path>]',
+    'Usage: qw init <projectDir> [--profile demo] [--manifest <path>]',
+    ''
+  ].join('\n');
+}
+
+function renderInstallUsage() {
+  return [
+    'Usage: qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     ''
   ].join('\n');
 }
 
 function renderWarpspaceUsage() {
   return [
-    'warp warpspace - Manage pinned repo constellations',
+    'qw warpspace - Manage pinned repo constellations',
     '',
     'Usage:',
-    '  warp warpspace lock <manifest.toml> [--lock <path>] [--json]',
-    '  warp warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
-    '  warp warpspace sync <warpspace.lock.json> --root <dir> [--json]',
-    '  warp warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
+    '  qw warpspace lock <manifest.toml> [--lock <path>] [--json]',
+    '  qw warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
+    '  qw warpspace sync <warpspace.lock.json> --root <dir> [--json]',
+    '  qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
     ''
   ].join('\n');
 }
 
 function renderWarpspaceLockUsage() {
-  return 'Usage: warp warpspace lock <manifest.toml> [--lock <path>] [--json]\n';
+  return 'Usage: qw warpspace lock <manifest.toml> [--lock <path>] [--json]\n';
 }
 
 function renderWarpspaceVerifyUsage() {
-  return 'Usage: warp warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
+  return 'Usage: qw warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
 }
 
 function renderWarpspaceSyncUsage() {
-  return 'Usage: warp warpspace sync <warpspace.lock.json> --root <dir> [--json]\n';
+  return 'Usage: qw warpspace sync <warpspace.lock.json> --root <dir> [--json]\n';
 }
 
 function renderWarpspaceDoctorUsage() {
-  return 'Usage: warp warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
+  return 'Usage: qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
 }
 
 function renderWarpspaceIssues(result) {

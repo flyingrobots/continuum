@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "warp": "bin/warp.mjs"
+    "qw": "bin/warp.mjs"
   }
 }

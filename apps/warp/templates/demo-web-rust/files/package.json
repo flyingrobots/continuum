@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "echo \"warp build will own this in the managed flow\""
+    "build": "echo \"qw build will own this in the managed flow\""
   }
 }

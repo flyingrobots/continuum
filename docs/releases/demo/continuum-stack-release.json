@@ -82,8 +82,8 @@
     }
   },
   "bootstrap": {
-    "tool": "warp",
-    "command": "warp init my-app --profile demo",
+    "tool": "qw",
+    "command": "qw init my-app --profile demo",
     "template": {
       "id": "demo-web-rust-v1",
       "artifactPath": "apps/warp/templates/demo-web-rust/template.json"
@@ -132,7 +132,7 @@
     "rule": "Overrides that leave the declared compatibility envelope must be marked as local-dev or out-of-band in warpspace.lock.json."
   },
   "notes": [
-    "This manifest is the first concrete bridge between the bootstrap doctrine and an eventual warp init implementation.",
+    "This manifest is the first concrete bridge between the bootstrap doctrine and an eventual qw init implementation.",
     "git-warp is pinned as part of the compatible stack tuple even though the first neighborhood-core demo does not yet materialize a git-warp-facing output cut.",
     "The current demo flow stages the current-process Node runtime and a sibling legacy Wesley entrypoint into .warpspace/packages/ for local development proof.",
     "The demo profile remains on the legacy-node Wesley command set until Rust-native equivalents exist for the requested zod, echo-ir, and warp-ttd projections.",

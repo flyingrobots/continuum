@@ -86,8 +86,8 @@ function buildBaseManifest({
       }
     },
     bootstrap: {
-      tool: 'warp',
-      command: 'warp init my-app --profile demo',
+      tool: 'qw',
+      command: 'qw init my-app --profile demo',
       template: {
         id: 'demo-web-rust-v1',
         artifactPath: 'apps/warp/templates/demo-web-rust/template.json'
@@ -171,7 +171,7 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
 
     const lock = JSON.parse(await readFile(path.join(projectDir, 'warpspace.lock.json'), 'utf8'));
     assert.equal(lock.kind, 'warpspace.lock.v2');
-    assert.equal(lock.bootstrap.tool, 'warp');
+    assert.equal(lock.bootstrap.tool, 'qw');
     assert.equal(lock.toolchain.node.source, 'system');
     assert.equal(lock.toolchain.wesley.source, 'local-sibling-entrypoint');
 

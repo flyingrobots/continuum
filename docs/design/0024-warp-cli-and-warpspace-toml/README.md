@@ -23,7 +23,7 @@ Lock down:
 - the user-facing CLI name and repo home
 - the authored WARPspace config format
 - the resolved lockfile format and installed-state boundary
-- the split between `warp` orchestration and Wesley compilation
+- the split between `qw` orchestration and Wesley compilation
 - the role of WARPspace templates in bootstrap
 
 This packet answers the practical question:
@@ -34,6 +34,8 @@ land in my app repo, and what internal tools should remain hidden under
 
 Distribution shape and Node runtime policy are refined in
 [0025 - Warp Native Distribution And Node Runtime Policy](../0025-warp-native-distribution-and-node-runtime-policy/README.md).
+Runtime projection and the devcontainer boundary are refined in
+[0033 - WARPspace Runtime Projection And QW Install](../0033-warpspace-runtime-projection-and-qw-install/README.md).
 
 ## Why This Exists
 
@@ -51,12 +53,12 @@ be a boring declarative file, not executable JavaScript.
 
 ## Decision
 
-### 1. The user-facing CLI is `warp`, and it lives in Continuum
+### 1. The user-facing CLI is `qw`, and it lives in Continuum
 
 The product name remains **WARPspace**.
 The binary users run is:
 
-- `warp`
+- `qw`
 
 The repo home for that CLI is:
 
@@ -66,7 +68,7 @@ This matches ownership:
 
 - **Continuum** owns stack manifests, WARPspace templates, bootstrap doctrine,
   and the question "how does a developer start a Continuum app?"
-- **Wesley** remains the compiler/generator that `warp` invokes internally
+- **Wesley** remains the compiler/generator that `qw` invokes internally
   after toolchain resolution.
 
 The user should never need to know whether Wesley, Echo, or `git-warp` are
@@ -80,7 +82,7 @@ The checked-in WARPspace config file is:
 
 It is:
 
-- human-authored or scaffolded by `warp`
+- human-authored or scaffolded by `qw`
 - declarative
 - boring
 - suitable for local overrides that still remain within the declared
@@ -95,6 +97,24 @@ It is **not**:
 GraphQL remains the authored semantic surface for shared families that Wesley
 compiles.
 `warpspace.toml` is just workspace configuration.
+
+For the user model, `warpspace.toml` should play the same role that
+`package.json` plays for Node projects: it is the checked-in declaration that
+the install tool knows how to realize. The corresponding operation should be:
+
+- `qw install`
+
+`qw install` should read `warpspace.toml`, resolve or refresh
+`warpspace.lock.json`, materialize declared source checkouts and managed tools,
+and leave the WARPspace ready for `qw doctor`, `qw build`, or app-specific
+commands. The current `qw warpspace lock` and `qw warpspace sync` commands
+are useful lower-level proof surfaces, but they should not be the final
+package-manager-shaped user experience.
+
+The first `qw install` implementation covers constellation-style WARPspaces:
+it refreshes the lock, syncs declared repos, writes a devcontainer runtime
+projection from `[runtime.default]`, and verifies the result. Managed
+toolchain installation remains a follow-up for that path.
 
 ### 3. The resolved lockfile remains JSON
 
@@ -116,7 +136,7 @@ JSON is the right format for that role.
 
 ### 4. Installed toolchain state lives under `.warpspace/`
 
-`warp` owns a managed internal directory:
+`qw` owns a managed internal directory:
 
 - `.warpspace/`
 
@@ -145,7 +165,7 @@ Current prototype note:
 
 - Wesley now consumes `warpspace.toml` directly
 - no engine-local bridge file is required for normal bootstrap or build flows
-- `warp warpspace lock`, `verify`, `sync`, and `doctor` now cover the first
+- `qw warpspace lock`, `verify`, `sync`, and `doctor` now cover the first
   pinned-Git constellation flow for repos such as Wesley, Echo, `jedit`, and
   `warp-ttd`
 
@@ -174,11 +194,11 @@ The stack manifest owns:
 - default generated output roots
 - default install layout
 
-### 6. `warp` orchestrates; Wesley compiles
+### 6. `qw` orchestrates; Wesley compiles
 
 The boundary is:
 
-- `warp init`
+- `qw init`
   - resolves a stack release
   - applies a WARPspace template
   - writes `warpspace.toml`
@@ -191,7 +211,7 @@ The boundary is:
   - generates host artifacts
   - does not become the primary end-user product identity
 
-`warp` must not absorb Wesley codegen logic.
+`qw` must not absorb Wesley codegen logic.
 Wesley must not pretend to be the installer above itself.
 
 ## Smallest Honest Artifact
@@ -205,7 +225,7 @@ The smallest artifact that proves this hill is:
 - a bootstrap run that writes `warpspace.toml` and `warpspace.lock.json`
 - a constellation manifest such as
   [jedit-echo-dev.toml](../../warpspaces/jedit-echo-dev.toml) that can be
-  locked and synced by `warp warpspace`
+  locked and synced by `qw warpspace`
 
 ## Consequences
 
@@ -213,14 +233,14 @@ The smallest artifact that proves this hill is:
 
 Continuum now owns:
 
-- `warp`
+- `qw`
 - WARPspace templates
 - user-facing bootstrap and update doctrine
 - stack manifest to host-template mapping
 
 ### Wesley
 
-Wesley is now explicitly downstream of `warp` in the consumer experience.
+Wesley is now explicitly downstream of `qw` in the consumer experience.
 
 The Wesley-hosted `warpspace` prototype remains useful as a stage-0 proof of
 bootstrap mechanics, but it is not the permanent product home.
@@ -230,13 +250,13 @@ bootstrap mechanics, but it is not the permanent product home.
 The intended first-time experience becomes:
 
 ```bash
-warp init my-app
+qw init my-app
 ```
 
 or explicitly:
 
 ```bash
-warp init my-app --profile demo
+qw init my-app --profile demo
 ```
 
 And the checked-in workspace truth becomes:
@@ -248,7 +268,7 @@ not executable JavaScript.
 
 ## Playback Questions
 
-- [ ] Is `warp` now the unambiguous user-facing entry point?
+- [ ] Is `qw` now the unambiguous user-facing entry point?
 - [ ] Does this packet make the home/responsibility split between Continuum and
       Wesley explicit?
 - [ ] Is the difference between `warpspace.toml`, `warpspace.lock.json`, and

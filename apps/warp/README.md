@@ -1,6 +1,7 @@
 # Warp
 
-`warp` is the user-facing WARPspace CLI.
+`qw` is the user-facing WARPspace CLI binary. The product/domain name remains
+Warp/WARPspace, and the prototype still lives under `apps/warp`.
 
 It lives in Continuum because Continuum owns:
 
@@ -9,26 +10,28 @@ It lives in Continuum because Continuum owns:
 - bootstrap and update doctrine
 - the question "how does a developer start a Continuum app?"
 
-`warp` does **not** own compilation. It orchestrates bootstrap, lockfiles,
+`qw` does **not** own compilation. It orchestrates bootstrap, lockfiles,
 template materialization, and toolchain handoff. Wesley remains the compiler
-that `warp` invokes internally.
+that `qw` invokes internally.
 
 If you want the product-level statement of intent and the current truthful
 status, read [VISION.md](./VISION.md).
 
 The current JS implementation is a repo-local proof harness.
-The permanent shipped product target is a standalone `warp` binary, as
+The permanent shipped product target is a standalone `qw` binary, as
 described in [0025 - Warp Native Distribution And Node Runtime Policy](../../docs/design/0025-warp-native-distribution-and-node-runtime-policy/README.md).
 
 ## Current Commands
 
 Prototype commands available here today:
 
-- `warp init`
-- `warp warpspace lock`
-- `warp warpspace verify`
-- `warp warpspace sync`
-- `warp warpspace doctor`
+- `qw init`
+- `qw install`
+- lower-level pieces behind the install flow:
+  - `qw warpspace lock`
+  - `qw warpspace verify`
+  - `qw warpspace sync`
+  - `qw warpspace doctor`
 
 Current posture:
 
@@ -47,17 +50,40 @@ Current posture:
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
 - supports a narrow constellation flow for pinned Git repos:
-  `warp warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
+  `qw warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
   local checkouts, `sync` clones/fetches/checks out the locked commits, and
   `doctor` reports verification health
+- supports a first `qw install` cut for constellation-style
+  `warpspace.toml` files: it refreshes `warpspace.lock.json`, syncs declared
+  repo checkouts, writes `.devcontainer/devcontainer.json` for a
+  `[runtime.default]` devcontainer profile, and verifies the result
+
+Product target:
+
+- `warpspace.toml` should be the package-manifest-shaped file for `qw`
+- `warpspace.lock.json` should be the lock output
+- `qw install` is the user-facing command that reads `warpspace.toml`,
+  refreshes the lock, materializes source checkouts and runtime projection
+  state, then verifies the WARPspace
+- managed toolchain installation under `.warpspace/` is still incomplete for
+  constellation-style installs
+- the current `qw warpspace lock/sync/verify/doctor` commands remain the
+  lower-level primitives behind that flow
 
 ## Run It
 
-From this repo:
+When the package is linked or installed:
 
 ```bash
-node apps/warp/bin/warp.mjs init my-app --profile demo
-node apps/warp/bin/warp.mjs warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
-node apps/warp/bin/warp.mjs warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
-node apps/warp/bin/warp.mjs warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+qw init my-app --profile demo
+qw install
+qw warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
+qw warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+qw warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+```
+
+For repo-local development before packaging, the same CLI can be invoked with:
+
+```bash
+node apps/warp/bin/warp.mjs --help
 ```

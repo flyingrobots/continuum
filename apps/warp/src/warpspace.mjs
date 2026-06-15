@@ -1,7 +1,8 @@
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 const CONSTELLATION_LOCK_KIND = 'warpspace.constellation-lock.v1';
 
@@ -12,17 +13,20 @@ export async function lockWarpspace({
   runCommand = defaultRunCommand
 }) {
   const resolvedManifestPath = path.resolve(requiredText(manifestPath, 'warpspace manifest path'));
-  const manifestContent = await readFile(resolvedManifestPath, 'utf8');
+  const manifestContent = await readWarpspaceManifest(resolvedManifestPath);
   const manifest = parseWarpspaceToml(manifestContent, resolvedManifestPath);
   const resolvedLockPath = lockPath == null
     ? defaultLockPath(resolvedManifestPath)
     : path.resolve(lockPath);
 
   const repos = [];
+  const manifestDir = path.dirname(resolvedManifestPath);
   for (const repo of manifest.repos) {
     const resolved = await resolveGitRef({
       git: repo.git,
       rev: repo.rev,
+      manifestDir,
+      checkoutPath: path.resolve(manifestDir, repo.path),
       runCommand
     });
     repos.push({
@@ -49,9 +53,12 @@ export async function lockWarpspace({
     },
     repos,
     crates: manifest.crates,
+    packages: manifest.packages,
+    runtime: manifest.runtime,
     contracts: manifest.contracts
   };
 
+  await preserveExistingLockedAt({ lock, lockPath: resolvedLockPath });
   await mkdir(path.dirname(resolvedLockPath), { recursive: true });
   await writeFile(resolvedLockPath, JSON.stringify(lock, null, 2) + '\n', 'utf8');
 
@@ -61,6 +68,63 @@ export async function lockWarpspace({
     lockPath: resolvedLockPath,
     repoCount: repos.length,
     lock
+  };
+}
+
+export async function installWarpspace({
+  manifestPath = 'warpspace.toml',
+  root = null,
+  lockPath = null,
+  allowDirty = false,
+  skipSync = false,
+  now = () => new Date(),
+  runCommand = defaultRunCommand
+}) {
+  const resolvedManifestPath = path.resolve(requiredText(manifestPath, 'warpspace manifest path'));
+  const resolvedRoot = path.resolve(root ?? path.dirname(resolvedManifestPath));
+  const resolvedLockPath = lockPath == null
+    ? defaultLockPath(resolvedManifestPath)
+    : path.resolve(lockPath);
+
+  const lockResult = await lockWarpspace({
+    manifestPath: resolvedManifestPath,
+    lockPath: resolvedLockPath,
+    now,
+    runCommand
+  });
+
+  const sync = skipSync
+    ? null
+    : await syncWarpspace({
+      lockPath: resolvedLockPath,
+      root: resolvedRoot,
+      runCommand
+    });
+
+  const runtime = await materializeRuntimeProjection({
+    lock: lockResult.lock,
+    root: resolvedRoot
+  });
+
+  const verification = await verifyWarpspace({
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    allowDirty,
+    runCommand
+  });
+
+  return {
+    kind: 'warp.install.result.v1',
+    ok: verification.ok,
+    manifestPath: resolvedManifestPath,
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    locked: {
+      repoCount: lockResult.repoCount
+    },
+    sync,
+    runtime,
+    verification
   };
 }
 
@@ -300,7 +364,7 @@ function parseWarpspaceToml(content, manifestPath) {
       name,
       git: requiredText(spec.git, `[repos.${name}].git`),
       rev: requiredText(spec.rev, `[repos.${name}].rev`),
-      path: spec.path == null ? name : requiredText(spec.path, `[repos.${name}].path`)
+      path: manifestRepoPath({ spec, name, manifestPath })
     };
   });
 
@@ -313,6 +377,8 @@ function parseWarpspaceToml(content, manifestPath) {
     name: tree.warpspace?.name ?? tree.name ?? path.basename(manifestPath, path.extname(manifestPath)),
     repos: repoEntries,
     crates: tree.crates ?? {},
+    packages: tree.packages ?? {},
+    runtime: tree.runtime ?? {},
     contracts: tree.contracts ?? {}
   };
 }
@@ -434,34 +500,154 @@ function stripTomlComment(line) {
   return out;
 }
 
-async function resolveGitRef({ git, rev, runCommand }) {
-  if (/^[0-9a-f]{40}$/i.test(rev)) {
-    const remoteExisting = runGit(['ls-remote', git, `${rev}^{}`], { runCommand });
-    if (remoteExisting.status === 0 && remoteExisting.stdout.trim() !== '') {
-      return {
-        resolved: rev.toLowerCase(),
-        resolution: 'literal-sha'
-      };
+async function readWarpspaceManifest(manifestPath) {
+  try {
+    return await readFile(manifestPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw userFacingError(`Warpspace manifest not found: ${manifestPath}`, 'EWARPSPACE_MANIFEST_NOT_FOUND');
     }
+    throw error;
+  }
+}
 
-    const localExisting = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
-      cwd: git,
+function userFacingError(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  error.expose = true;
+  return error;
+}
+
+async function preserveExistingLockedAt({ lock, lockPath }) {
+  const existing = await readJsonIfExists(lockPath);
+  if (
+    typeof existing?.lockedAt === 'string' &&
+    equivalentLocksExceptLockedAt(existing, lock)
+  ) {
+    lock.lockedAt = existing.lockedAt;
+  }
+}
+
+async function readJsonIfExists(filePath) {
+  let content;
+  try {
+    content = await readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    return null;
+  }
+}
+
+function equivalentLocksExceptLockedAt(left, right) {
+  return JSON.stringify(lockComparableWithoutLockedAt(left)) ===
+    JSON.stringify(lockComparableWithoutLockedAt(right));
+}
+
+function lockComparableWithoutLockedAt(lock) {
+  const {
+    lockedAt: _lockedAt,
+    ...rest
+  } = lock;
+  return stableJsonValue(rest);
+}
+
+function stableJsonValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => stableJsonValue(item));
+  }
+  if (value != null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, stableJsonValue(item)])
+    );
+  }
+  return value;
+}
+
+async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }) {
+  if (/^[0-9a-f]{40}$/i.test(rev)) {
+    const normalizedRev = rev.toLowerCase();
+    const evidence = [];
+
+    const checkoutVerification = await verifyLiteralShaInDeclaredCheckout({
+      repoPath: checkoutPath,
+      git,
+      rev: normalizedRev,
       runCommand
     });
-    if (localExisting.status === 0 && localExisting.stdout.trim() === rev.toLowerCase()) {
+    if (checkoutVerification.ok) {
       return {
-        resolved: rev.toLowerCase(),
+        resolved: normalizedRev,
         resolution: 'literal-sha'
       };
     }
-
-    if (remoteExisting.status !== 0 && localExisting.status !== 0) {
-      throw new Error(
-        `Cannot resolve literal sha ${rev} in ${git}: ${((remoteExisting.stderr || remoteExisting.stdout || localExisting.stderr || localExisting.stdout || 'not found')).trim()}`.trim()
-      );
+    if (checkoutVerification.evidence != null) {
+      evidence.push(`checkout ${checkoutPath}: ${checkoutVerification.evidence}`);
     }
 
-    throw new Error(`Cannot resolve literal sha ${rev} in ${git}: not found`);
+    const localSourcePath = localGitSourcePath(git, manifestDir);
+    if (localSourcePath != null && localSourcePath !== checkoutPath) {
+      const sourceVerification = await verifyLiteralShaInLocalRepo({
+        repoPath: localSourcePath,
+        rev: normalizedRev,
+        runCommand
+      });
+      if (sourceVerification.ok) {
+        return {
+          resolved: normalizedRev,
+          resolution: 'literal-sha'
+        };
+      }
+      if (sourceVerification.evidence != null) {
+        evidence.push(`source ${localSourcePath}: ${sourceVerification.evidence}`);
+      }
+    }
+
+    const advertised = runGit(['ls-remote', git], { runCommand });
+    if (advertised.status === 0) {
+      const found = advertised.stdout
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .some(line => line.split(/\s+/, 1)[0]?.toLowerCase() === normalizedRev);
+      if (found) {
+        return {
+          resolved: normalizedRev,
+          resolution: 'literal-sha'
+        };
+      }
+      evidence.push('remote did not advertise the literal sha as a ref');
+    } else {
+      evidence.push(`remote lookup failed: ${(advertised.stderr || advertised.stdout || 'not found').trim()}`);
+    }
+
+    const fetchVerification = await verifyLiteralShaByRemoteFetch({
+      git,
+      rev: normalizedRev,
+      runCommand
+    });
+    if (fetchVerification.ok) {
+      return {
+        resolved: normalizedRev,
+        resolution: 'literal-sha'
+      };
+    }
+    if (fetchVerification.evidence != null) {
+      evidence.push(`remote fetch probe failed: ${fetchVerification.evidence}`);
+    }
+
+    throw new Error(
+      `Cannot verify literal sha ${rev} in ${git}: ${evidence.filter(Boolean).join('; ') || 'not found'}`
+    );
   }
 
   // Prefer peeled tags first, then the tag object, then branches, then exact
@@ -505,6 +691,98 @@ async function resolveGitRef({ git, rev, runCommand }) {
   };
 }
 
+async function verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand }) {
+  if (repoPath == null || !await pathExists(repoPath)) {
+    return { ok: false };
+  }
+
+  const result = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
+    cwd: repoPath,
+    runCommand
+  });
+  if (result.status === 0 && result.stdout.trim().toLowerCase() === rev) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    evidence: (result.stderr || result.stdout || 'not found').trim()
+  };
+}
+
+async function verifyLiteralShaInDeclaredCheckout({ repoPath, git, rev, runCommand }) {
+  if (repoPath == null || !await pathExists(repoPath)) {
+    return { ok: false };
+  }
+
+  const origin = runGit(['remote', 'get-url', 'origin'], {
+    cwd: repoPath,
+    runCommand
+  });
+  if (origin.status !== 0) {
+    return {
+      ok: false,
+      evidence: `cannot inspect origin: ${(origin.stderr || origin.stdout || 'not found').trim()}`
+    };
+  }
+
+  const actualOrigin = origin.stdout.trim();
+  if (actualOrigin !== git) {
+    return {
+      ok: false,
+      evidence: `origin mismatch: expected ${git}, found ${actualOrigin}`
+    };
+  }
+
+  return verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand });
+}
+
+async function verifyLiteralShaByRemoteFetch({ git, rev, runCommand }) {
+  const probePath = await mkdtemp(path.join(tmpdir(), 'qw-literal-sha-'));
+  try {
+    const init = runGit(['init'], { cwd: probePath, runCommand });
+    if (init.status !== 0) {
+      return {
+        ok: false,
+        evidence: `probe init failed: ${(init.stderr || init.stdout || 'not found').trim()}`
+      };
+    }
+
+    const fetch = runGit(['fetch', '--no-tags', '--depth=1', git, rev], {
+      cwd: probePath,
+      runCommand
+    });
+    if (fetch.status !== 0) {
+      return {
+        ok: false,
+        evidence: (fetch.stderr || fetch.stdout || 'not found').trim()
+      };
+    }
+
+    const result = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
+      cwd: probePath,
+      runCommand
+    });
+    if (result.status === 0 && result.stdout.trim().toLowerCase() === rev) {
+      return { ok: true };
+    }
+
+    return {
+      ok: false,
+      evidence: (result.stderr || result.stdout || 'not found').trim()
+    };
+  } finally {
+    await rm(probePath, { recursive: true, force: true });
+  }
+}
+
+function localGitSourcePath(git, manifestDir) {
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(git) || /^[^/\\]+@[^:]+:/.test(git)) {
+    return null;
+  }
+  return path.resolve(manifestDir, git);
+}
+
 async function readLock(lockPath) {
   const content = await readFile(lockPath, 'utf8');
   let lock;
@@ -522,14 +800,118 @@ async function readLock(lockPath) {
   return lock;
 }
 
+function manifestRepoPath({ spec, name, manifestPath }) {
+  const repoPath = spec.path == null
+    ? name
+    : requiredText(spec.path, `[repos.${name}].path`);
+  return validateRelativeRepoPath({
+    rawPath: repoPath,
+    label: `${manifestPath}: [repos.${name}].path`
+  });
+}
+
+async function materializeRuntimeProjection({ lock, root }) {
+  const profile = lock.runtime?.default;
+  if (profile == null) {
+    return {
+      kind: 'warp.runtime.materialize.result.v1',
+      status: 'skipped',
+      reason: 'no-runtime-profile'
+    };
+  }
+
+  if (profile.kind !== 'devcontainer') {
+    return {
+      kind: 'warp.runtime.materialize.result.v1',
+      status: 'skipped',
+      reason: `unsupported-runtime-kind:${profile.kind ?? 'unknown'}`
+    };
+  }
+
+  const mount = runtimeMount(profile);
+  const devcontainerDir = path.join(root, '.devcontainer');
+  const devcontainerPath = path.join(devcontainerDir, 'devcontainer.json');
+  const config = {
+    name: `${lock.warpspace?.name ?? 'Warpspace'} runtime`,
+    image: runtimeImage(profile),
+    workspaceFolder: mount,
+    workspaceMount: `source=\${localWorkspaceFolder},target=${mount},type=bind,consistency=cached`,
+    remoteEnv: runtimeEnv(profile)
+  };
+
+  await mkdir(devcontainerDir, { recursive: true });
+  await writeFile(devcontainerPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+
+  return {
+    kind: 'warp.runtime.materialize.result.v1',
+    status: 'written',
+    profile: 'default',
+    runtimeKind: 'devcontainer',
+    path: devcontainerPath,
+    mount,
+    image: config.image
+  };
+}
+
+function runtimeImage(profile) {
+  if (typeof profile.image === 'string') {
+    return requiredText(profile.image, '[runtime.default].image');
+  }
+
+  if (profile.image == null) {
+    throw new Error('[runtime.default.image] is required for devcontainer runtime profiles.');
+  }
+
+  const image = profile.image;
+  if (image.ref != null) {
+    return requiredText(image.ref, '[runtime.default.image].ref');
+  }
+  if (image.source != null && image.tag != null) {
+    return `${requiredText(image.source, '[runtime.default.image].source')}:${requiredText(image.tag, '[runtime.default.image].tag')}`;
+  }
+  if (image.source != null) {
+    return requiredText(image.source, '[runtime.default.image].source');
+  }
+  throw new Error('[runtime.default.image] must declare ref or source.');
+}
+
+function runtimeMount(profile) {
+  const mount = requiredText(profile.mount, '[runtime.default].mount');
+  if (!mount.startsWith('/')) {
+    throw new Error('[runtime.default].mount must be an absolute container path.');
+  }
+  if (mount.includes(',')) {
+    throw new Error('[runtime.default].mount must not contain commas.');
+  }
+  return mount;
+}
+
+function runtimeEnv(profile) {
+  const env = profile.env ?? {};
+  if (typeof env !== 'object' || Array.isArray(env)) {
+    throw new Error('[runtime.default.env] must be a table.');
+  }
+  return Object.fromEntries(
+    Object.entries(env).map(([key, value]) => [key, runtimeEnvValue(key, value)])
+  );
+}
+
+function runtimeEnvValue(key, value) {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return String(value);
+  }
+  throw new Error(`[runtime.default.env.${key}] must be a string, number, or boolean.`);
+}
+
 function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {
-  const rawPath = requiredText(repo.path ?? repo.name, `path for ${repo.name}`);
-  if (rawPath.split(/[\\/]/).includes('..')) {
-    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must not contain ".." segments.`);
-  }
-  if (path.isAbsolute(rawPath)) {
-    throw new Error(`${lockPath}: repo ${repo.name} path "${rawPath}" must be relative to ${resolvedRoot}.`);
-  }
+  const rawPath = validateRelativeRepoPath({
+    rawPath: requiredText(repo.path ?? repo.name, `path for ${repo.name}`),
+    label: `${lockPath}: repo ${repo.name} path`
+  });
   const checkoutPath = path.resolve(resolvedRoot, rawPath);
   const relative = path.relative(resolvedRoot, checkoutPath);
   if (relative !== '' && (relative.startsWith('..') || path.isAbsolute(relative))) {
@@ -538,6 +920,16 @@ function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {
     );
   }
   return checkoutPath;
+}
+
+function validateRelativeRepoPath({ rawPath, label }) {
+  if (rawPath.split(/[\\/]/).includes('..')) {
+    throw new Error(`${label} "${rawPath}" must not contain ".." segments.`);
+  }
+  if (path.isAbsolute(rawPath) || /^[A-Za-z]:[\\/]/.test(rawPath)) {
+    throw new Error(`${label} "${rawPath}" must be relative.`);
+  }
+  return rawPath;
 }
 
 function assertCleanWorktree({ repo, checkoutPath, runCommand }) {
