@@ -8,9 +8,9 @@
   `ContinuumEvidenceStatus` survives runtime-boundary artifact generation.
 - Added `warp warpspace lock`, `verify`, `sync`, and `doctor` for the first
   pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
-- Made devcontainer runtime projection require an explicit
-  `[runtime.default.image]` declaration instead of silently defaulting to a
-  generic base image.
+- Made devcontainer runtime projection require explicit
+  `[runtime.default].mount` and `[runtime.default.image]` declarations instead
+  of silently defaulting runtime topology.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.
 - Fixed `drift-watch` single-file `--mirror-root` handling for mirror
   surface paths.

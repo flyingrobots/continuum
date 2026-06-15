@@ -661,10 +661,7 @@ async function materializeRuntimeProjection({ lock, root }) {
     };
   }
 
-  const mount = requiredText(
-    profile.mount ?? `/warpspaces/${lock.warpspace?.name ?? 'default'}`,
-    '[runtime.default].mount'
-  );
+  const mount = requiredText(profile.mount, '[runtime.default].mount');
   const devcontainerDir = path.join(root, '.devcontainer');
   const devcontainerPath = path.join(devcontainerDir, 'devcontainer.json');
   const config = {

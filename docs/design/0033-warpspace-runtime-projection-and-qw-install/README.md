@@ -98,9 +98,10 @@ ref = "ghcr.io/flyingrobots/jim-runtime:2026-06-14"
 JIM_WARPSPACE_ROOT = "/warpspaces/jim"
 ```
 
-Devcontainer runtime profiles must declare `[runtime.default.image]`.
-`qw install` refuses to guess a generic base image because the runtime
-toolchain is part of the projection contract.
+Devcontainer runtime profiles must declare both `[runtime.default].mount` and
+`[runtime.default.image]`. `qw install` refuses to guess a mount or generic
+base image because the filesystem horizon and runtime toolchain are part of
+the projection contract.
 
 The generated devcontainer should use portable editor/container substitution
 variables, not host absolute paths.
