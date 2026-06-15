@@ -1326,7 +1326,7 @@ Evidence
   redacted fields:     payload bodies
   credential required: payload.read, suffix.export
 Open cuts
-  - no live Echo to git-qw import witness
+  - no live Echo to git-warp import witness
   - no replay evidence for debug profile
 ```
 
@@ -1361,7 +1361,7 @@ review tools to consume without parsing prose.
   "credentialRequirements": ["payload.read", "suffix.export"],
   "redactions": ["payload bodies"],
   "openCuts": [
-    "no live Echo to git-qw import witness",
+    "no live Echo to git-warp import witness",
     "no replay evidence for debug profile"
   ]
 }
