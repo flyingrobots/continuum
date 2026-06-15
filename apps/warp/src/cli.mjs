@@ -109,6 +109,9 @@ async function runInstall(argv, { stdout, stderr }) {
     if (positionals.length > 1) {
       throw new UsageError('Expected at most one manifest path.', usage);
     }
+    if (positionals.length === 1 && options.manifest != null) {
+      throw new UsageError('Use either positional manifest path or --manifest, not both.', usage);
+    }
 
     const result = await installWarpspace({
       manifestPath: positionals[0] ?? options.manifest ?? 'warpspace.toml',
@@ -456,7 +459,7 @@ function renderUsage() {
     '',
     'Usage:',
     '  qw init <projectDir> [--profile demo] [--manifest <path>]',
-    '  qw install [warpspace.toml] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
+    '  qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     '  qw warpspace <lock|verify|sync|doctor> ...',
     '',
     'Options:',
@@ -481,7 +484,7 @@ function renderInitUsage() {
 
 function renderInstallUsage() {
   return [
-    'Usage: qw install [warpspace.toml] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
+    'Usage: qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     ''
   ].join('\n');
 }

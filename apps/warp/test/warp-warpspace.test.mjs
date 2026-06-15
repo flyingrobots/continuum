@@ -379,6 +379,7 @@ test('warpspace help and usage errors stay user-facing', async () => {
   const installHelp = await runCli(['install', '--help']);
   assert.equal(installHelp.code, 0);
   assert.match(installHelp.stdout, /Usage: qw install \[warpspace\.toml]/);
+  assert.match(installHelp.stdout, /--manifest <path>/);
   assert.equal(installHelp.stderr, '');
 
   const help = await runCli(['warpspace', 'lock', '--help']);
@@ -401,6 +402,17 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.equal(disallowedFlag.code, 1);
   assert.match(disallowedFlag.stderr, /Unknown option: --root/);
   assert.match(disallowedFlag.stderr, /Usage: qw warpspace lock <manifest\.toml>/);
+
+  const conflictingInstallManifest = await runCli([
+    'install',
+    'positional-warpspace.toml',
+    '--manifest',
+    'flag-warpspace.toml'
+  ]);
+  assert.equal(conflictingInstallManifest.code, 1);
+  assert.match(conflictingInstallManifest.stderr, /Use either positional manifest path or --manifest/);
+  assert.match(conflictingInstallManifest.stderr, /Usage: qw install/);
+  assert.doesNotMatch(conflictingInstallManifest.stderr, /ENOENT|node:internal|at .*warpspace\.mjs/);
 });
 
 test('warpspace lock rejects unquoted barewords in TOML', async () => {
