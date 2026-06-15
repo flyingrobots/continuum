@@ -129,20 +129,30 @@ function assertUnderRoot({ runtimePath, runtimeRoot, label }) {
 }
 
 async function assertNoSymlinkEscape({ runtimePath, runtimeRoot }) {
-  if (!await pathExists(runtimePath)) {
+  if (!await pathExists(runtimeRoot)) {
     return;
   }
   const [physicalPath, physicalRoot] = await Promise.all([
-    realpath(runtimePath),
-    pathExists(runtimeRoot)
-      ? realpath(runtimeRoot)
-      : runtimeRoot
+    realpath(await deepestExistingAncestor(runtimePath)),
+    realpath(runtimeRoot)
   ]);
   assertUnderRoot({
     runtimePath: physicalPath,
     runtimeRoot: physicalRoot,
     label: 'input path realpath'
   });
+}
+
+async function deepestExistingAncestor(targetPath) {
+  let candidate = targetPath;
+  while (!await pathExists(candidate)) {
+    const parent = path.dirname(candidate);
+    if (parent === candidate) {
+      return candidate;
+    }
+    candidate = parent;
+  }
+  return candidate;
 }
 
 function renderWarpLocator({ warpspace, basis = null, segments }) {

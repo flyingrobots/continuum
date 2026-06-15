@@ -321,7 +321,7 @@ async function runWarpspace(argv, { stdout, stderr }) {
       return 0;
     } catch (error) {
       if (wantsJson) {
-        return writeJsonCommandError(stdout, error, 'warp.warpspace.locate.error.v1');
+        return writeJsonCommandError(stdout, error, 'warp.warpspace.locate.error.v1', 'EWARP_LOCATE_FAILED');
       }
       return writeCommandError(stderr, error);
     }
@@ -363,12 +363,12 @@ function writeCommandError(stderr, error) {
   return 1;
 }
 
-function writeJsonCommandError(stdout, error, kind) {
+function writeJsonCommandError(stdout, error, kind, fallbackCode = 'EINSTALL') {
   stdout(JSON.stringify({
     kind,
     ok: false,
     error: {
-      code: error?.code ?? 'EINSTALL',
+      code: error?.code ?? fallbackCode,
       message: error?.message ?? String(error)
     }
   }, null, 2) + '\n');

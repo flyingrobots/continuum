@@ -765,6 +765,50 @@ test('warpspace locate rejects undeclared siblings and symlink escapes', async (
     assert.equal(escaped.code, 1);
     const escapedError = JSON.parse(escaped.stdout);
     assert.equal(escapedError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const escapedNewLeaf = await runCli([
+      'warpspace',
+      'locate',
+      'outside/new.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(escapedNewLeaf.code, 1);
+    const escapedNewLeafError = JSON.parse(escapedNewLeaf.stdout);
+    assert.equal(escapedNewLeafError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace locate json errors use locate-domain fallback codes', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+
+  try {
+    await writeFile(lockPath, '{not-json', 'utf8');
+
+    const malformedLock = await runCli([
+      'warpspace',
+      'locate',
+      'echo/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      tempDir,
+      '--cwd',
+      tempDir,
+      '--json'
+    ]);
+    assert.equal(malformedLock.code, 1);
+    const parsed = JSON.parse(malformedLock.stdout);
+    assert.equal(parsed.kind, 'warp.warpspace.locate.error.v1');
+    assert.equal(parsed.error.code, 'EWARP_LOCATE_FAILED');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
