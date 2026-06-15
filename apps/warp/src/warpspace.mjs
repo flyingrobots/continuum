@@ -694,7 +694,11 @@ function runtimeImage(profile) {
     return requiredText(profile.image, '[runtime.default].image');
   }
 
-  const image = profile.image ?? {};
+  if (profile.image == null) {
+    throw new Error('[runtime.default.image] is required for devcontainer runtime profiles.');
+  }
+
+  const image = profile.image;
   if (image.ref != null) {
     return requiredText(image.ref, '[runtime.default.image].ref');
   }
@@ -704,7 +708,7 @@ function runtimeImage(profile) {
   if (image.source != null) {
     return requiredText(image.source, '[runtime.default.image].source');
   }
-  return 'mcr.microsoft.com/devcontainers/base:ubuntu';
+  throw new Error('[runtime.default.image] must declare ref or source.');
 }
 
 function runtimeEnv(profile) {
