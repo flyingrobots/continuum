@@ -10,7 +10,8 @@
   pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
 - Made devcontainer runtime projection require explicit
   `[runtime.default].mount` and `[runtime.default.image]` declarations instead
-  of silently defaulting runtime topology.
+  of silently defaulting runtime topology, and rejected comma-bearing mount
+  paths before composing `workspaceMount`.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.
 - Fixed `drift-watch` single-file `--mirror-root` handling for mirror
   surface paths.

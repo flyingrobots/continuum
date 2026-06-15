@@ -679,7 +679,7 @@ async function materializeRuntimeProjection({ lock, root }) {
     };
   }
 
-  const mount = requiredText(profile.mount, '[runtime.default].mount');
+  const mount = runtimeMount(profile);
   const devcontainerDir = path.join(root, '.devcontainer');
   const devcontainerPath = path.join(devcontainerDir, 'devcontainer.json');
   const config = {
@@ -724,6 +724,17 @@ function runtimeImage(profile) {
     return requiredText(image.source, '[runtime.default.image].source');
   }
   throw new Error('[runtime.default.image] must declare ref or source.');
+}
+
+function runtimeMount(profile) {
+  const mount = requiredText(profile.mount, '[runtime.default].mount');
+  if (!mount.startsWith('/')) {
+    throw new Error('[runtime.default].mount must be an absolute container path.');
+  }
+  if (mount.includes(',')) {
+    throw new Error('[runtime.default].mount must not contain commas.');
+  }
+  return mount;
 }
 
 function runtimeEnv(profile) {

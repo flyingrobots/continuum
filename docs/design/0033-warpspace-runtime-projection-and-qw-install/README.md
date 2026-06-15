@@ -99,9 +99,9 @@ JIM_WARPSPACE_ROOT = "/warpspaces/jim"
 ```
 
 Devcontainer runtime profiles must declare both `[runtime.default].mount` and
-`[runtime.default.image]`. `qw install` refuses to guess a mount or generic
-base image because the filesystem horizon and runtime toolchain are part of
-the projection contract.
+`[runtime.default.image]`. The mount must be an absolute comma-free container
+path. `qw install` refuses to guess a mount or generic base image because the
+filesystem horizon and runtime toolchain are part of the projection contract.
 
 The generated devcontainer should use portable editor/container substitution
 variables, not host absolute paths.

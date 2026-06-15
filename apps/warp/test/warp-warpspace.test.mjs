@@ -315,6 +315,53 @@ test('install rejects devcontainer runtime profiles without a mount', async () =
   }
 });
 
+test('install rejects devcontainer mount paths that inject workspaceMount fields', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await mkdir(root, { recursive: true });
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "jim"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        'rev = "main"',
+        'path = "echo"',
+        '',
+        '[runtime.default]',
+        'kind = "devcontainer"',
+        'mount = "/warpspaces/jim,type=volume"',
+        '',
+        '[runtime.default.image]',
+        'ref = "ghcr.io/flyingrobots/jim-runtime:test"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const cli = await runCli(['install', manifestPath]);
+    assert.equal(cli.code, 1);
+    assert.match(cli.stderr, /\[runtime\.default]\.mount.*comma/);
+    assert.equal(await pathExists(path.join(root, '.devcontainer', 'devcontainer.json')), false);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace rejects checkout paths outside the root', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
