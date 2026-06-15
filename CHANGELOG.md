@@ -6,7 +6,7 @@
   translated evidence branches.
 - Added Wesley union extraction and generated TypeScript/Zod support so
   `ContinuumEvidenceStatus` survives runtime-boundary artifact generation.
-- Added `warp warpspace lock`, `verify`, `sync`, and `doctor` for the first
+- Added `qw warpspace lock`, `verify`, `sync`, and `doctor` for the first
   pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
 - Made devcontainer runtime projection require explicit
   `[runtime.default].mount` and `[runtime.default.image]` declarations instead
