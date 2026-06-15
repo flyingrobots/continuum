@@ -752,6 +752,44 @@ test('warpspace lock rejects literal SHA revisions absent from local evidence', 
   }
 });
 
+test('warpspace lock rejects literal SHA evidence from a mismatched checkout origin', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+  const lockPath = path.join(root, 'warpspace.lock.json');
+
+  try {
+    const declaredEcho = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'declared-echo'),
+      fileName: 'echo.txt',
+      content: 'declared\n'
+    });
+    const impostorEcho = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'impostor-echo'),
+      fileName: 'echo.txt',
+      content: 'impostor\n'
+    });
+
+    await mkdir(root, { recursive: true });
+    git(['clone', impostorEcho.repoPath, path.join(root, 'echo')], tempDir);
+    await writeWarpspaceManifest({
+      manifestPath,
+      repoPath: declaredEcho.repoPath,
+      checkoutPath: 'echo',
+      rev: impostorEcho.head
+    });
+
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath, lockPath }),
+      /Cannot verify literal sha|origin mismatch|not found/
+    );
+    assert.equal(await pathExists(lockPath), false);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('defaultRunCommand returns command-execution failures in stderr', () => {
   const result = defaultRunCommand({
     command: 'definitely-not-a-real-command',

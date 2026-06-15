@@ -577,8 +577,9 @@ async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }
     const normalizedRev = rev.toLowerCase();
     const evidence = [];
 
-    const checkoutVerification = await verifyLiteralShaInLocalRepo({
+    const checkoutVerification = await verifyLiteralShaInDeclaredCheckout({
       repoPath: checkoutPath,
+      git,
       rev: normalizedRev,
       runCommand
     });
@@ -691,6 +692,33 @@ async function verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand }) {
     ok: false,
     evidence: (result.stderr || result.stdout || 'not found').trim()
   };
+}
+
+async function verifyLiteralShaInDeclaredCheckout({ repoPath, git, rev, runCommand }) {
+  if (repoPath == null || !await pathExists(repoPath)) {
+    return { ok: false };
+  }
+
+  const origin = runGit(['remote', 'get-url', 'origin'], {
+    cwd: repoPath,
+    runCommand
+  });
+  if (origin.status !== 0) {
+    return {
+      ok: false,
+      evidence: `cannot inspect origin: ${(origin.stderr || origin.stdout || 'not found').trim()}`
+    };
+  }
+
+  const actualOrigin = origin.stdout.trim();
+  if (actualOrigin !== git) {
+    return {
+      ok: false,
+      evidence: `origin mismatch: expected ${git}, found ${actualOrigin}`
+    };
+  }
+
+  return verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand });
 }
 
 function localGitSourcePath(git, manifestDir) {
