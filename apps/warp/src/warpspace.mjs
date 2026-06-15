@@ -805,9 +805,23 @@ function runtimeMount(profile) {
 
 function runtimeEnv(profile) {
   const env = profile.env ?? {};
+  if (typeof env !== 'object' || Array.isArray(env)) {
+    throw new Error('[runtime.default.env] must be a table.');
+  }
   return Object.fromEntries(
-    Object.entries(env).map(([key, value]) => [key, String(value)])
+    Object.entries(env).map(([key, value]) => [key, runtimeEnvValue(key, value)])
   );
+}
+
+function runtimeEnvValue(key, value) {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return String(value);
+  }
+  throw new Error(`[runtime.default.env.${key}] must be a string, number, or boolean.`);
 }
 
 function resolveCheckoutPath({ resolvedRoot, repo, lockPath }) {

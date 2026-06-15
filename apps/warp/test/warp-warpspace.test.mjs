@@ -363,6 +363,53 @@ test('install rejects devcontainer mount paths that inject workspaceMount fields
   }
 });
 
+test('install rejects nonscalar devcontainer runtime env values', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const arrayRoot = path.join(tempDir, 'array-env');
+  const tableRoot = path.join(tempDir, 'table-env');
+  const arrayManifestPath = path.join(arrayRoot, 'warpspace.toml');
+  const tableManifestPath = path.join(tableRoot, 'warpspace.toml');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await writeRuntimeEnvManifest({
+      root: arrayRoot,
+      manifestPath: arrayManifestPath,
+      repoPath: echo.repoPath,
+      envLines: [
+        '[runtime.default.env]',
+        'BROKEN = ["a", "b"]'
+      ]
+    });
+    const arrayCli = await runCli(['install', arrayManifestPath]);
+    assert.equal(arrayCli.code, 1);
+    assert.match(arrayCli.stderr, /\[runtime\.default\.env\.BROKEN]/);
+    assert.equal(await pathExists(path.join(arrayRoot, '.devcontainer', 'devcontainer.json')), false);
+
+    await writeRuntimeEnvManifest({
+      root: tableRoot,
+      manifestPath: tableManifestPath,
+      repoPath: echo.repoPath,
+      envLines: [
+        '[runtime.default.env.BROKEN]',
+        'VALUE = "x"'
+      ]
+    });
+    const tableCli = await runCli(['install', tableManifestPath]);
+    assert.equal(tableCli.code, 1);
+    assert.match(tableCli.stderr, /\[runtime\.default\.env\.BROKEN]/);
+    assert.equal(await pathExists(path.join(tableRoot, '.devcontainer', 'devcontainer.json')), false);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('install skip-sync without checkouts reports verification failure without success text', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -750,6 +797,40 @@ async function writeWarpspaceManifest({
       `git = ${JSON.stringify(repoPath)}`,
       `rev = ${JSON.stringify(rev)}`,
       `path = ${JSON.stringify(checkoutPath)}`,
+      ''
+    ].join('\n'),
+    'utf8'
+  );
+}
+
+async function writeRuntimeEnvManifest({
+  root,
+  manifestPath,
+  repoPath,
+  envLines
+}) {
+  await mkdir(root, { recursive: true });
+  await writeFile(
+    manifestPath,
+    [
+      'version = 1',
+      '',
+      '[warpspace]',
+      'name = "jim"',
+      '',
+      '[repos.echo]',
+      `git = ${JSON.stringify(repoPath)}`,
+      'rev = "main"',
+      'path = "echo"',
+      '',
+      '[runtime.default]',
+      'kind = "devcontainer"',
+      'mount = "/warpspaces/jim"',
+      '',
+      '[runtime.default.image]',
+      'ref = "ghcr.io/flyingrobots/jim-runtime:test"',
+      '',
+      ...envLines,
       ''
     ].join('\n'),
     'utf8'
