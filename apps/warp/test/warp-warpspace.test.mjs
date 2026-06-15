@@ -643,6 +643,11 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.match(conflictingInstallManifest.stderr, /Usage: qw install/);
   assert.doesNotMatch(conflictingInstallManifest.stderr, /ENOENT|node:internal|at .*warpspace\.mjs/);
 
+  const quietInstall = await runCli(['install', '-q']);
+  assert.equal(quietInstall.code, 1);
+  assert.match(quietInstall.stderr, /Warpspace manifest not found: .*warpspace\.toml/);
+  assert.doesNotMatch(quietInstall.stderr, /Warpspace manifest not found: .*-q/);
+
   try {
     const missingManifest = await runCli(['install', path.join(tempDir, 'missing.toml')]);
     assert.equal(missingManifest.code, 1);

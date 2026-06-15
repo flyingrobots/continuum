@@ -399,7 +399,7 @@ function parseInstallArgs(argv, usage) {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
 
-    if (!token.startsWith('--')) {
+    if (!token.startsWith('-')) {
       positionals.push(token);
       continue;
     }
