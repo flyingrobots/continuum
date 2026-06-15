@@ -1,7 +1,7 @@
 # WARPspace Constellation Manifests
 
-This directory holds small pinned-repo constellation manifests for `qw
-warpspace`.
+This directory holds small pinned-repo constellation manifests for
+`qw warpspace`.
 
 These manifests are not package-manager replacements. They name exact Git
 coordinates for multi-repo integration work before every participating crate or
