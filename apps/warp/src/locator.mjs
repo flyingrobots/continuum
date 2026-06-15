@@ -2,6 +2,7 @@ import path from 'node:path';
 import { lstat, readFile, realpath, stat } from 'node:fs/promises';
 
 const LOCATOR_KIND = 'warp.locator.v1';
+const CONSTELLATION_LOCK_KIND = 'warpspace.constellation-lock.v1';
 
 export async function locateWarpspacePath({
   lockPath = 'warpspace.lock.json',
@@ -90,6 +91,12 @@ async function readLock(lockPath) {
   }
 
   const lock = JSON.parse(content);
+  if (lock.kind !== CONSTELLATION_LOCK_KIND) {
+    throw userFacingError(
+      `WARPspace lock must declare kind "${CONSTELLATION_LOCK_KIND}": ${lockPath}`,
+      'EWARP_LOCK_INVALID'
+    );
+  }
   if (!Array.isArray(lock.repos)) {
     throw userFacingError(`WARPspace lock has no repos array: ${lockPath}`, 'EWARP_LOCK_INVALID');
   }

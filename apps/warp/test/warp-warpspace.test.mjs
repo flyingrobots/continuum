@@ -880,6 +880,49 @@ test('warpspace locate json errors use locate-domain fallback codes', async () =
   }
 });
 
+test('warpspace locate rejects files that are not constellation locks', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'not-a-warpspace.lock.json');
+
+  try {
+    await writeFile(
+      lockPath,
+      JSON.stringify({
+        kind: 'not-a-warpspace-lock',
+        warpspace: {
+          name: 'jim'
+        },
+        repos: [
+          {
+            name: 'echo',
+            path: 'echo'
+          }
+        ]
+      }, null, 2) + '\n',
+      'utf8'
+    );
+
+    const invalidKind = await runCli([
+      'warpspace',
+      'locate',
+      'echo/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      tempDir,
+      '--cwd',
+      tempDir,
+      '--json'
+    ]);
+    assert.equal(invalidKind.code, 1);
+    const parsed = JSON.parse(invalidKind.stdout);
+    assert.equal(parsed.error.code, 'EWARP_LOCK_INVALID');
+    assert.match(parsed.error.message, /must declare kind "warpspace\.constellation-lock\.v1"/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace lock rejects unquoted barewords in TOML', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
