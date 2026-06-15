@@ -1,7 +1,8 @@
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 const CONSTELLATION_LOCK_KIND = 'warpspace.constellation-lock.v1';
 
@@ -629,6 +630,21 @@ async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }
       evidence.push(`remote lookup failed: ${(advertised.stderr || advertised.stdout || 'not found').trim()}`);
     }
 
+    const fetchVerification = await verifyLiteralShaByRemoteFetch({
+      git,
+      rev: normalizedRev,
+      runCommand
+    });
+    if (fetchVerification.ok) {
+      return {
+        resolved: normalizedRev,
+        resolution: 'literal-sha'
+      };
+    }
+    if (fetchVerification.evidence != null) {
+      evidence.push(`remote fetch probe failed: ${fetchVerification.evidence}`);
+    }
+
     throw new Error(
       `Cannot verify literal sha ${rev} in ${git}: ${evidence.filter(Boolean).join('; ') || 'not found'}`
     );
@@ -719,6 +735,45 @@ async function verifyLiteralShaInDeclaredCheckout({ repoPath, git, rev, runComma
   }
 
   return verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand });
+}
+
+async function verifyLiteralShaByRemoteFetch({ git, rev, runCommand }) {
+  const probePath = await mkdtemp(path.join(tmpdir(), 'qw-literal-sha-'));
+  try {
+    const init = runGit(['init'], { cwd: probePath, runCommand });
+    if (init.status !== 0) {
+      return {
+        ok: false,
+        evidence: `probe init failed: ${(init.stderr || init.stdout || 'not found').trim()}`
+      };
+    }
+
+    const fetch = runGit(['fetch', '--no-tags', '--depth=1', git, rev], {
+      cwd: probePath,
+      runCommand
+    });
+    if (fetch.status !== 0) {
+      return {
+        ok: false,
+        evidence: (fetch.stderr || fetch.stdout || 'not found').trim()
+      };
+    }
+
+    const result = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
+      cwd: probePath,
+      runCommand
+    });
+    if (result.status === 0 && result.stdout.trim().toLowerCase() === rev) {
+      return { ok: true };
+    }
+
+    return {
+      ok: false,
+      evidence: (result.stderr || result.stdout || 'not found').trim()
+    };
+  } finally {
+    await rm(probePath, { recursive: true, force: true });
+  }
 }
 
 function localGitSourcePath(git, manifestDir) {

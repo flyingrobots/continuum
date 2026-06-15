@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 import { main } from '../src/cli.mjs';
 import {
@@ -804,6 +805,51 @@ test('warpspace lock rejects literal SHA evidence from a mismatched checkout ori
       /Cannot verify literal sha|origin mismatch|not found/
     );
     assert.equal(await pathExists(lockPath), false);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace lock accepts reachable literal SHA revisions not advertised as refs', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const manifestPath = path.join(tempDir, 'reachable-sha.toml');
+  const lockPath = path.join(tempDir, 'reachable-sha.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'first\n'
+    });
+    const firstHead = echo.head;
+    await writeFile(path.join(echo.repoPath, 'echo.txt'), 'second\n', 'utf8');
+    git(['add', 'echo.txt'], echo.repoPath);
+    git([
+      '-c',
+      'user.name=Warp Test',
+      '-c',
+      'user.email=warp-test@example.invalid',
+      '-c',
+      'commit.gpgsign=false',
+      'commit',
+      '-m',
+      'second'
+    ], echo.repoPath);
+    const secondHead = git(['rev-parse', 'HEAD'], echo.repoPath).stdout.trim();
+    assert.notEqual(firstHead, secondHead);
+
+    await writeWarpspaceManifest({
+      manifestPath,
+      repoPath: pathToFileURL(echo.repoPath).href,
+      checkoutPath: 'echo',
+      rev: firstHead
+    });
+
+    const lockResult = await lockWarpspace({ manifestPath, lockPath });
+
+    assert.equal(lockResult.lock.repos[0].resolved, firstHead);
+    assert.equal(lockResult.lock.repos[0].resolution, 'literal-sha');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
