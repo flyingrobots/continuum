@@ -126,6 +126,14 @@ async function runInstall(argv, { stdout, stderr }) {
       return result.ok ? 0 : 1;
     }
 
+    if (!result.ok) {
+      if (!options.quiet) {
+        stderr(`Install failed: ${result.root}\n`);
+      }
+      stderr(renderWarpspaceIssues(result.verification));
+      return 1;
+    }
+
     if (!options.quiet) {
       stdout(`Installed WARPspace: ${result.root}\n`);
       stdout(`Lock: ${result.lockPath}\n`);
@@ -140,11 +148,7 @@ async function runInstall(argv, { stdout, stderr }) {
       }
     }
 
-    if (!result.ok) {
-      stderr(renderWarpspaceIssues(result.verification));
-    }
-
-    return result.ok ? 0 : 1;
+    return 0;
   } catch (error) {
     return writeCommandError(stderr, error);
   }

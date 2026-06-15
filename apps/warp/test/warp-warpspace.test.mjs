@@ -362,6 +362,55 @@ test('install rejects devcontainer mount paths that inject workspaceMount fields
   }
 });
 
+test('install skip-sync without checkouts reports verification failure without success text', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await mkdir(root, { recursive: true });
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "jim"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        'rev = "main"',
+        'path = "echo"',
+        '',
+        '[runtime.default]',
+        'kind = "devcontainer"',
+        'mount = "/warpspaces/jim"',
+        '',
+        '[runtime.default.image]',
+        'ref = "ghcr.io/flyingrobots/jim-runtime:test"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const cli = await runCli(['install', manifestPath, '--skip-sync']);
+    assert.equal(cli.code, 1);
+    assert.doesNotMatch(cli.stdout, /Installed WARPspace/);
+    assert.match(cli.stderr, /Install failed/);
+    assert.match(cli.stderr, /missing-checkout/);
+    assert.equal(await pathExists(path.join(root, '.devcontainer', 'devcontainer.json')), true);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace rejects checkout paths outside the root', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
