@@ -734,6 +734,9 @@ test('warpspace locate rejects undeclared siblings and symlink escapes', async (
     await writeFile(path.join(outside, 'secret.txt'), 'nope\n', 'utf8');
     await symlink(outside, path.join(root, 'echo', 'outside'));
     await symlink(path.join(outside, 'missing'), path.join(root, 'echo', 'dangling'));
+    await mkdir(path.join(root, 'jedit'), { recursive: true });
+    await writeFile(path.join(root, 'jedit', 'secret.txt'), 'jedit\n', 'utf8');
+    await symlink(path.join(root, 'jedit'), path.join(root, 'echo', 'jedit-link'));
 
     const undeclared = await runCli([
       'warpspace',
@@ -798,6 +801,22 @@ test('warpspace locate rejects undeclared siblings and symlink escapes', async (
     assert.equal(danglingEscape.code, 1);
     const danglingEscapeError = JSON.parse(danglingEscape.stdout);
     assert.equal(danglingEscapeError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const repoEscape = await runCli([
+      'warpspace',
+      'locate',
+      'jedit-link/secret.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(repoEscape.code, 1);
+    const repoEscapeError = JSON.parse(repoEscape.stdout);
+    assert.equal(repoEscapeError.error.code, 'EWARP_LOCATE_OUTSIDE_REPO');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

@@ -24,10 +24,6 @@ export async function locateWarpspacePath({
     runtimeRoot,
     label: 'input path'
   });
-  await assertNoSymlinkEscape({
-    runtimePath,
-    runtimeRoot
-  });
 
   const repoMatch = findRepoMatch({
     repos: lock.repos,
@@ -40,6 +36,11 @@ export async function locateWarpspacePath({
       'EWARP_LOCATE_UNDECLARED_REPO'
     );
   }
+  await assertNoSymlinkEscape({
+    runtimePath,
+    runtimeRoot,
+    repoRoot: repoMatch.repoRoot
+  });
 
   const warpspace = requiredText(lock.warpspace?.name, 'lock warpspace name');
   const repoRelativePath = repoMatch.repoRelativePath;
@@ -117,18 +118,24 @@ function findRepoMatch({ repos, runtimeRoot, runtimePath }) {
   return candidates[0] ?? null;
 }
 
-function assertUnderRoot({ runtimePath, runtimeRoot, label }) {
+function assertUnderRoot({
+  runtimePath,
+  runtimeRoot,
+  label,
+  code = 'EWARP_LOCATE_OUTSIDE_ROOT',
+  boundary = 'WARPspace root'
+}) {
   const relativePath = path.relative(runtimeRoot, runtimePath);
   if (relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))) {
     return;
   }
   throw userFacingError(
-    `${label} resolves outside WARPspace root: ${runtimePath}`,
-    'EWARP_LOCATE_OUTSIDE_ROOT'
+    `${label} resolves outside ${boundary}: ${runtimePath}`,
+    code
   );
 }
 
-async function assertNoSymlinkEscape({ runtimePath, runtimeRoot }) {
+async function assertNoSymlinkEscape({ runtimePath, runtimeRoot, repoRoot }) {
   if (!await pathExists(runtimeRoot)) {
     return;
   }
@@ -142,6 +149,15 @@ async function assertNoSymlinkEscape({ runtimePath, runtimeRoot }) {
     runtimeRoot: physicalRoot,
     label: 'input path realpath'
   });
+  if (await pathExists(repoRoot)) {
+    assertUnderRoot({
+      runtimePath: physicalPath,
+      runtimeRoot: await realpath(repoRoot),
+      label: 'input path repo realpath',
+      code: 'EWARP_LOCATE_OUTSIDE_REPO',
+      boundary: 'matched repo root'
+    });
+  }
 }
 
 async function deepestExistingAncestor(targetPath) {
