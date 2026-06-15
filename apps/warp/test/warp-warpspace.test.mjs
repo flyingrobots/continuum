@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 
 import { main } from '../src/cli.mjs';
 import {
+  installWarpspace,
   lockWarpspace,
   syncWarpspace,
   verifyWarpspace,
@@ -406,6 +407,64 @@ test('install skip-sync without checkouts reports verification failure without s
     assert.match(cli.stderr, /Install failed/);
     assert.match(cli.stderr, /missing-checkout/);
     assert.equal(await pathExists(path.join(root, '.devcontainer', 'devcontainer.json')), true);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('install preserves an unchanged lock on repeated runs', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+  const lockPath = path.join(root, 'warpspace.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+
+    await mkdir(root, { recursive: true });
+    await writeFile(
+      manifestPath,
+      [
+        'version = 1',
+        '',
+        '[warpspace]',
+        'name = "jim"',
+        '',
+        '[repos.echo]',
+        `git = ${JSON.stringify(echo.repoPath)}`,
+        `rev = ${JSON.stringify(echo.head)}`,
+        'path = "echo"',
+        '',
+        '[runtime.default]',
+        'kind = "devcontainer"',
+        'mount = "/warpspaces/jim"',
+        '',
+        '[runtime.default.image]',
+        'ref = "ghcr.io/flyingrobots/jim-runtime:test"',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const first = await installWarpspace({
+      manifestPath,
+      now: () => new Date('2026-05-09T19:00:00.000Z')
+    });
+    assert.equal(first.ok, true);
+    const firstLock = await readFile(lockPath, 'utf8');
+
+    const second = await installWarpspace({
+      manifestPath,
+      now: () => new Date('2026-05-10T19:00:00.000Z')
+    });
+    assert.equal(second.ok, true);
+    assert.equal(second.sync.repos[0].cloned, false);
+    assert.equal(await readFile(lockPath, 'utf8'), firstLock);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

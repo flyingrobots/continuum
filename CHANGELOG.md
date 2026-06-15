@@ -12,6 +12,8 @@
   `[runtime.default].mount` and `[runtime.default.image]` declarations instead
   of silently defaulting runtime topology, and rejected comma-bearing mount
   paths before composing `workspaceMount`.
+- Preserved `warpspace.lock.json` timestamps for no-change lock refreshes so
+  repeated `qw install` runs do not dirty the lock on `lockedAt` alone.
 - Reset Continuum into a fresh METHOD-shaped coordination spine.
 - Fixed `drift-watch` single-file `--mirror-root` handling for mirror
   surface paths.

@@ -57,6 +57,7 @@ export async function lockWarpspace({
     contracts: manifest.contracts
   };
 
+  await preserveExistingLockedAt({ lock, lockPath: resolvedLockPath });
   await mkdir(path.dirname(resolvedLockPath), { recursive: true });
   await writeFile(resolvedLockPath, JSON.stringify(lock, null, 2) + '\n', 'utf8');
 
@@ -514,6 +515,61 @@ function userFacingError(message, code) {
   error.code = code;
   error.expose = true;
   return error;
+}
+
+async function preserveExistingLockedAt({ lock, lockPath }) {
+  const existing = await readJsonIfExists(lockPath);
+  if (
+    typeof existing?.lockedAt === 'string' &&
+    equivalentLocksExceptLockedAt(existing, lock)
+  ) {
+    lock.lockedAt = existing.lockedAt;
+  }
+}
+
+async function readJsonIfExists(filePath) {
+  let content;
+  try {
+    content = await readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    return null;
+  }
+}
+
+function equivalentLocksExceptLockedAt(left, right) {
+  return JSON.stringify(lockComparableWithoutLockedAt(left)) ===
+    JSON.stringify(lockComparableWithoutLockedAt(right));
+}
+
+function lockComparableWithoutLockedAt(lock) {
+  const {
+    lockedAt: _lockedAt,
+    ...rest
+  } = lock;
+  return stableJsonValue(rest);
+}
+
+function stableJsonValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => stableJsonValue(item));
+  }
+  if (value != null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, stableJsonValue(item)])
+    );
+  }
+  return value;
 }
 
 async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }) {

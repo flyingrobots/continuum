@@ -127,6 +127,10 @@ The first cut records:
 - image reference
 - runtime environment
 
+When a refresh resolves to the same lock content, `qw install` preserves the
+existing `lockedAt` value so repeated installs do not churn the lock file on
+timestamp alone.
+
 Later cuts should add:
 
 - image digest
