@@ -12,7 +12,7 @@ export async function lockWarpspace({
   runCommand = defaultRunCommand
 }) {
   const resolvedManifestPath = path.resolve(requiredText(manifestPath, 'warpspace manifest path'));
-  const manifestContent = await readFile(resolvedManifestPath, 'utf8');
+  const manifestContent = await readWarpspaceManifest(resolvedManifestPath);
   const manifest = parseWarpspaceToml(manifestContent, resolvedManifestPath);
   const resolvedLockPath = lockPath == null
     ? defaultLockPath(resolvedManifestPath)
@@ -496,6 +496,24 @@ function stripTomlComment(line) {
   }
 
   return out;
+}
+
+async function readWarpspaceManifest(manifestPath) {
+  try {
+    return await readFile(manifestPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw userFacingError(`Warpspace manifest not found: ${manifestPath}`, 'EWARPSPACE_MANIFEST_NOT_FOUND');
+    }
+    throw error;
+  }
+}
+
+function userFacingError(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  error.expose = true;
+  return error;
 }
 
 async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }) {

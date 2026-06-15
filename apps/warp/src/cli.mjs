@@ -313,12 +313,20 @@ function writeCommandError(stderr, error) {
     stderr(`${error.message}\n\n${error.usage}`);
     return 1;
   }
+  if (isUserFacingError(error)) {
+    stderr(`${error.message}\n`);
+    return 1;
+  }
   stderr(`${error?.stack || error?.message || String(error)}\n`);
   return 1;
 }
 
 function isUsageError(error) {
   return error?.code === 'EUSAGE';
+}
+
+function isUserFacingError(error) {
+  return error?.expose === true;
 }
 
 function parseInitArgs(argv, usage) {

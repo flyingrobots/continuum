@@ -376,6 +376,8 @@ test('warpspace rejects checkout paths outside the root', async () => {
 });
 
 test('warpspace help and usage errors stay user-facing', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+
   const installHelp = await runCli(['install', '--help']);
   assert.equal(installHelp.code, 0);
   assert.match(installHelp.stdout, /Usage: qw install \[warpspace\.toml]/);
@@ -413,6 +415,15 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.match(conflictingInstallManifest.stderr, /Use either positional manifest path or --manifest/);
   assert.match(conflictingInstallManifest.stderr, /Usage: qw install/);
   assert.doesNotMatch(conflictingInstallManifest.stderr, /ENOENT|node:internal|at .*warpspace\.mjs/);
+
+  try {
+    const missingManifest = await runCli(['install', path.join(tempDir, 'missing.toml')]);
+    assert.equal(missingManifest.code, 1);
+    assert.match(missingManifest.stderr, /Warpspace manifest not found/);
+    assert.doesNotMatch(missingManifest.stderr, /node:internal|at .*warpspace\.mjs/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 test('warpspace lock rejects unquoted barewords in TOML', async () => {
