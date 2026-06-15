@@ -101,8 +101,7 @@ function findRepoMatch({ repos, runtimeRoot, runtimePath }) {
     .map(repo => {
       const repoRoot = path.resolve(runtimeRoot, repo.path);
       const relativePath = path.relative(repoRoot, runtimePath);
-      const insideRepo = relativePath === '' ||
-        (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+      const insideRepo = isInsideOrSame(relativePath);
       if (!insideRepo) {
         return null;
       }
@@ -126,7 +125,7 @@ function assertUnderRoot({
   boundary = 'WARPspace root'
 }) {
   const relativePath = path.relative(runtimeRoot, runtimePath);
-  if (relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))) {
+  if (isInsideOrSame(relativePath)) {
     return;
   }
   throw userFacingError(
@@ -158,6 +157,15 @@ async function assertNoSymlinkEscape({ runtimePath, runtimeRoot, repoRoot }) {
       boundary: 'matched repo root'
     });
   }
+}
+
+function isInsideOrSame(relativePath) {
+  return relativePath === '' ||
+    (!isParentTraversal(relativePath) && !path.isAbsolute(relativePath));
+}
+
+function isParentTraversal(relativePath) {
+  return relativePath === '..' || relativePath.startsWith(`..${path.sep}`);
 }
 
 async function deepestExistingAncestor(targetPath) {

@@ -721,6 +721,36 @@ test('warpspace locate normalizes host and container projections to one typed lo
   }
 });
 
+test('warpspace locate accepts repo paths whose names begin with dotdot text', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+  const root = path.join(tempDir, 'jim');
+
+  try {
+    await writeLocateLock(lockPath);
+
+    const located = await runCli([
+      'warpspace',
+      'locate',
+      '..data/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(located.code, 0);
+    const parsed = JSON.parse(located.stdout);
+    assert.equal(parsed.repo, 'echo');
+    assert.equal(parsed.repoRelativePath, '..data/file.txt');
+    assert.deepEqual(parsed.typedLocator.segments, ['repo', 'echo', '..data', 'file.txt']);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace locate rejects undeclared siblings and symlink escapes', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const lockPath = path.join(tempDir, 'warpspace.lock.json');
