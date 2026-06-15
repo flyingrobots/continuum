@@ -476,7 +476,7 @@ function renderUsage() {
     '',
     'Options:',
     '  --profile <id>         Use a built-in Continuum release profile such as demo',
-    '  --manifest <path>      Use an explicit continuum-stack-release.json',
+    '  --manifest <path>      init: continuum-stack-release.json; install: warpspace.toml',
     '  --authority-root <p>   Override the Continuum authored-home root',
     '  --skip-generate        Do not invoke Wesley during bootstrap',
     '  --force                Initialize into a non-empty target directory',

@@ -580,6 +580,11 @@ test('warpspace rejects checkout paths outside the root', async () => {
 test('warpspace help and usage errors stay user-facing', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
 
+  const topHelp = await runCli(['--help']);
+  assert.equal(topHelp.code, 0);
+  assert.match(topHelp.stdout, /init: continuum-stack-release\.json/);
+  assert.match(topHelp.stdout, /install: warpspace\.toml/);
+
   const installHelp = await runCli(['install', '--help']);
   assert.equal(installHelp.code, 0);
   assert.match(installHelp.stdout, /Usage: qw install \[warpspace\.toml]/);
