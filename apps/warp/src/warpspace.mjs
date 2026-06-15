@@ -19,10 +19,13 @@ export async function lockWarpspace({
     : path.resolve(lockPath);
 
   const repos = [];
+  const manifestDir = path.dirname(resolvedManifestPath);
   for (const repo of manifest.repos) {
     const resolved = await resolveGitRef({
       git: repo.git,
       rev: repo.rev,
+      manifestDir,
+      checkoutPath: path.resolve(manifestDir, repo.path),
       runCommand
     });
     repos.push({
@@ -495,12 +498,65 @@ function stripTomlComment(line) {
   return out;
 }
 
-async function resolveGitRef({ git, rev, runCommand }) {
+async function resolveGitRef({ git, rev, manifestDir, checkoutPath, runCommand }) {
   if (/^[0-9a-f]{40}$/i.test(rev)) {
-    return {
-      resolved: rev.toLowerCase(),
-      resolution: 'literal-sha'
-    };
+    const normalizedRev = rev.toLowerCase();
+    const evidence = [];
+
+    const checkoutVerification = await verifyLiteralShaInLocalRepo({
+      repoPath: checkoutPath,
+      rev: normalizedRev,
+      runCommand
+    });
+    if (checkoutVerification.ok) {
+      return {
+        resolved: normalizedRev,
+        resolution: 'literal-sha'
+      };
+    }
+    if (checkoutVerification.evidence != null) {
+      evidence.push(`checkout ${checkoutPath}: ${checkoutVerification.evidence}`);
+    }
+
+    const localSourcePath = localGitSourcePath(git, manifestDir);
+    if (localSourcePath != null && localSourcePath !== checkoutPath) {
+      const sourceVerification = await verifyLiteralShaInLocalRepo({
+        repoPath: localSourcePath,
+        rev: normalizedRev,
+        runCommand
+      });
+      if (sourceVerification.ok) {
+        return {
+          resolved: normalizedRev,
+          resolution: 'literal-sha'
+        };
+      }
+      if (sourceVerification.evidence != null) {
+        evidence.push(`source ${localSourcePath}: ${sourceVerification.evidence}`);
+      }
+    }
+
+    const advertised = runGit(['ls-remote', git], { runCommand });
+    if (advertised.status === 0) {
+      const found = advertised.stdout
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .some(line => line.split(/\s+/, 1)[0]?.toLowerCase() === normalizedRev);
+      if (found) {
+        return {
+          resolved: normalizedRev,
+          resolution: 'literal-sha'
+        };
+      }
+      evidence.push('remote did not advertise the literal sha as a ref');
+    } else {
+      evidence.push(`remote lookup failed: ${(advertised.stderr || advertised.stdout || 'not found').trim()}`);
+    }
+
+    throw new Error(
+      `Cannot verify literal sha ${rev} in ${git}: ${evidence.filter(Boolean).join('; ') || 'not found'}`
+    );
   }
 
   // Prefer peeled tags first, then the tag object, then branches, then exact
@@ -542,6 +598,32 @@ async function resolveGitRef({ git, rev, runCommand }) {
     resolved: selected.sha.toLowerCase(),
     resolution: selected.ref
   };
+}
+
+async function verifyLiteralShaInLocalRepo({ repoPath, rev, runCommand }) {
+  if (repoPath == null || !await pathExists(repoPath)) {
+    return { ok: false };
+  }
+
+  const result = runGit(['rev-parse', '--verify', `${rev}^{commit}`], {
+    cwd: repoPath,
+    runCommand
+  });
+  if (result.status === 0 && result.stdout.trim().toLowerCase() === rev) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    evidence: (result.stderr || result.stdout || 'not found').trim()
+  };
+}
+
+function localGitSourcePath(git, manifestDir) {
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(git) || /^[^/\\]+@[^:]+:/.test(git)) {
+    return null;
+  }
+  return path.resolve(manifestDir, git);
 }
 
 async function readLock(lockPath) {

@@ -352,7 +352,7 @@ test('warpspace lock rejects unquoted barewords in TOML', async () => {
   }
 });
 
-test('warpspace lock accepts literal SHA revisions as resolved identities', async () => {
+test('warpspace lock rejects literal SHA revisions absent from local evidence', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
   const manifestPath = path.join(tempDir, 'literal-sha.toml');
@@ -382,9 +382,10 @@ test('warpspace lock accepts literal SHA revisions as resolved identities', asyn
       'utf8'
     );
 
-    const result = await lockWarpspace({ manifestPath, lockPath });
-    assert.equal(result.lock.repos[0].resolved, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-    assert.equal(result.lock.repos[0].resolution, 'literal-sha');
+    await assert.rejects(
+      () => lockWarpspace({ manifestPath, lockPath }),
+      /Cannot verify literal sha|not found/
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
