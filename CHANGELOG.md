@@ -8,6 +8,9 @@
   `ContinuumEvidenceStatus` survives runtime-boundary artifact generation.
 - Added `qw warpspace lock`, `verify`, `sync`, and `doctor` for the first
   pinned-Git constellation workflow, plus a `jedit`/Echo preview manifest.
+- Added `qw warpspace locate` as the first TACHYON resolver surface for turning
+  runtime paths into typed `warp://` locators with runtime projection metadata
+  excluded from hash scope.
 - Made devcontainer runtime projection require explicit
   `[runtime.default].mount` and `[runtime.default.image]` declarations instead
   of silently defaulting runtime topology, and rejected comma-bearing mount

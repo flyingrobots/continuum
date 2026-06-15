@@ -32,6 +32,7 @@ Prototype commands available here today:
   - `qw warpspace verify`
   - `qw warpspace sync`
   - `qw warpspace doctor`
+  - `qw warpspace locate`
 
 Current posture:
 
@@ -53,6 +54,9 @@ Current posture:
   `qw warpspace lock <manifest.toml>` writes a JSON lock, `verify` checks
   local checkouts, `sync` clones/fetches/checks out the locked commits, and
   `doctor` reports verification health
+- supports a first TACHYON locator flow:
+  `qw warpspace locate <path>` converts a runtime path projection into a typed
+  `warp://` locator scoped to repos declared in `warpspace.lock.json`
 - supports a first `qw install` cut for constellation-style
   `warpspace.toml` files: it refreshes `warpspace.lock.json`, syncs declared
   repo checkouts, writes `.devcontainer/devcontainer.json` for a
@@ -80,6 +84,7 @@ qw install
 qw warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
 qw warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 qw warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
+qw warpspace locate ../echo/src/lib.rs --lock warpspace.lock.json --root /warpspaces/jim --cwd /warpspaces/jim/jedit --json
 ```
 
 For repo-local development before packaging, the same CLI can be invoked with:

@@ -1,4 +1,5 @@
 import { initWarp } from './init.mjs';
+import { locateWarpspacePath } from './locator.mjs';
 import {
   doctorWarpspace,
   installWarpspace,
@@ -293,6 +294,39 @@ async function runWarpspace(argv, { stdout, stderr }) {
     }
   }
 
+  if (command === 'locate') {
+    const usage = renderWarpspaceLocateUsage();
+    if (hasHelpFlag(rest)) {
+      stdout(usage);
+      return 0;
+    }
+    const wantsJson = rest.includes('--json');
+    try {
+      const { options, positionals } = parseWarpspaceLocateArgs(rest, usage);
+      if (positionals.length !== 1) {
+        throw new UsageError('Expected exactly one path to locate.', usage);
+      }
+      const result = await locateWarpspacePath({
+        lockPath: options.lock ?? 'warpspace.lock.json',
+        root: options.root ?? null,
+        cwd: options.cwd ?? null,
+        basis: options.basis ?? null,
+        inputPath: positionals[0]
+      });
+      if (options.json) {
+        stdout(JSON.stringify(result, null, 2) + '\n');
+      } else {
+        stdout(`${result.basisLocator ?? result.locator}\n`);
+      }
+      return 0;
+    } catch (error) {
+      if (wantsJson) {
+        return writeJsonCommandError(stdout, error, 'warp.warpspace.locate.error.v1');
+      }
+      return writeCommandError(stderr, error);
+    }
+  }
+
   stderr(`Unknown warpspace command: ${command}\n\n`);
   stderr(renderWarpspaceUsage());
   return 1;
@@ -473,6 +507,42 @@ function parseWarpspaceArgs(argv, usage, allowedFlags = new Set()) {
   return { options, positionals };
 }
 
+function parseWarpspaceLocateArgs(argv, usage) {
+  const options = {};
+  const positionals = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+
+    if (!token.startsWith('--')) {
+      positionals.push(token);
+      continue;
+    }
+
+    switch (token) {
+      case '--lock':
+        options.lock = requireValue(argv, ++index, token, usage);
+        break;
+      case '--root':
+        options.root = requireValue(argv, ++index, token, usage);
+        break;
+      case '--cwd':
+        options.cwd = requireValue(argv, ++index, token, usage);
+        break;
+      case '--basis':
+        options.basis = requireValue(argv, ++index, token, usage);
+        break;
+      case '--json':
+        options.json = true;
+        break;
+      default:
+        throw new UsageError(`Unknown option: ${token}`, usage);
+    }
+  }
+
+  return { options, positionals };
+}
+
 function requireValue(argv, index, flag, usage) {
   const value = argv[index];
   if (value == null || value.startsWith('-')) {
@@ -526,6 +596,7 @@ function renderWarpspaceUsage() {
     '  qw warpspace verify <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
     '  qw warpspace sync <warpspace.lock.json> --root <dir> [--json]',
     '  qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]',
+    '  qw warpspace locate <path> [--lock <path>] [--root <dir>] [--cwd <dir>] [--basis <ref>] [--json]',
     ''
   ].join('\n');
 }
@@ -544,6 +615,10 @@ function renderWarpspaceSyncUsage() {
 
 function renderWarpspaceDoctorUsage() {
   return 'Usage: qw warpspace doctor <warpspace.lock.json> [--root <dir>] [--allow-dirty] [--json]\n';
+}
+
+function renderWarpspaceLocateUsage() {
+  return 'Usage: qw warpspace locate <path> [--lock <warpspace.lock.json>] [--root <dir>] [--cwd <dir>] [--basis <ref>] [--json]\n';
 }
 
 function renderWarpspaceIssues(result) {
