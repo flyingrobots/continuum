@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 import { main } from '../src/cli.mjs';
@@ -658,6 +658,271 @@ test('warpspace help and usage errors stay user-facing', async () => {
   }
 });
 
+test('warpspace locate normalizes host and container projections to one typed locator', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+  const hostRoot = path.join(tempDir, 'Users', 'james', 'git', 'jim');
+  const containerRoot = '/warpspaces/jim';
+
+  try {
+    await writeLocateLock(lockPath);
+
+    const host = await runCli([
+      'warpspace',
+      'locate',
+      '../echo/src/lib.rs',
+      '--lock',
+      lockPath,
+      '--root',
+      hostRoot,
+      '--cwd',
+      path.join(hostRoot, 'jedit'),
+      '--basis',
+      'basis:demo',
+      '--json'
+    ]);
+    assert.equal(host.code, 0);
+    const hostParsed = JSON.parse(host.stdout);
+
+    const container = await runCli([
+      'warpspace',
+      'locate',
+      '../echo/src/lib.rs',
+      '--lock',
+      lockPath,
+      '--root',
+      containerRoot,
+      '--cwd',
+      `${containerRoot}/jedit`,
+      '--basis',
+      'basis:demo',
+      '--json'
+    ]);
+    assert.equal(container.code, 0);
+    const containerParsed = JSON.parse(container.stdout);
+
+    assert.deepEqual(hostParsed.typedLocator, {
+      kind: 'warp.locator.v1',
+      warpspace: 'jim',
+      basis: 'basis:demo',
+      segments: ['repo', 'echo', 'src', 'lib.rs']
+    });
+    assert.deepEqual(containerParsed.typedLocator, hostParsed.typedLocator);
+    assert.equal(hostParsed.locator, 'warp://jim/repo/echo/src/lib.rs');
+    assert.equal(hostParsed.basisLocator, 'warp@basis:demo://jim/repo/echo/src/lib.rs');
+    assert.equal(containerParsed.locator, hostParsed.locator);
+    assert.equal(containerParsed.basisLocator, hostParsed.basisLocator);
+    assert.equal(hostParsed.runtimeProjection.path, path.join(hostRoot, 'echo', 'src', 'lib.rs'));
+    assert.equal(containerParsed.runtimeProjection.path, '/warpspaces/jim/echo/src/lib.rs');
+    assert.equal(hostParsed.runtimeProjection.hashScope, 'excluded');
+    assert.equal(containerParsed.runtimeProjection.hashScope, 'excluded');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace locate accepts repo paths whose names begin with dotdot text', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+  const root = path.join(tempDir, 'jim');
+
+  try {
+    await writeLocateLock(lockPath);
+
+    const located = await runCli([
+      'warpspace',
+      'locate',
+      '..data/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(located.code, 0);
+    const parsed = JSON.parse(located.stdout);
+    assert.equal(parsed.repo, 'echo');
+    assert.equal(parsed.repoRelativePath, '..data/file.txt');
+    assert.deepEqual(parsed.typedLocator.segments, ['repo', 'echo', '..data', 'file.txt']);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace locate rejects undeclared siblings and symlink escapes', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+  const root = path.join(tempDir, 'jim');
+  const outside = path.join(tempDir, 'outside');
+
+  try {
+    await writeLocateLock(lockPath);
+    await mkdir(path.join(root, 'echo'), { recursive: true });
+    await mkdir(outside, { recursive: true });
+    await writeFile(path.join(outside, 'secret.txt'), 'nope\n', 'utf8');
+    await symlink(outside, path.join(root, 'echo', 'outside'));
+    await symlink(path.join(outside, 'missing'), path.join(root, 'echo', 'dangling'));
+    await mkdir(path.join(root, 'jedit'), { recursive: true });
+    await writeFile(path.join(root, 'jedit', 'secret.txt'), 'jedit\n', 'utf8');
+    await symlink(path.join(root, 'jedit'), path.join(root, 'echo', 'jedit-link'));
+
+    const undeclared = await runCli([
+      'warpspace',
+      'locate',
+      '../bunny/src/lib.rs',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'jedit'),
+      '--json'
+    ]);
+    assert.equal(undeclared.code, 1);
+    const undeclaredError = JSON.parse(undeclared.stdout);
+    assert.equal(undeclaredError.error.code, 'EWARP_LOCATE_UNDECLARED_REPO');
+
+    const escaped = await runCli([
+      'warpspace',
+      'locate',
+      'outside/secret.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(escaped.code, 1);
+    const escapedError = JSON.parse(escaped.stdout);
+    assert.equal(escapedError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const escapedNewLeaf = await runCli([
+      'warpspace',
+      'locate',
+      'outside/new.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(escapedNewLeaf.code, 1);
+    const escapedNewLeafError = JSON.parse(escapedNewLeaf.stdout);
+    assert.equal(escapedNewLeafError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const danglingEscape = await runCli([
+      'warpspace',
+      'locate',
+      'dangling/new.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(danglingEscape.code, 1);
+    const danglingEscapeError = JSON.parse(danglingEscape.stdout);
+    assert.equal(danglingEscapeError.error.code, 'EWARP_LOCATE_OUTSIDE_ROOT');
+
+    const repoEscape = await runCli([
+      'warpspace',
+      'locate',
+      'jedit-link/secret.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      root,
+      '--cwd',
+      path.join(root, 'echo'),
+      '--json'
+    ]);
+    assert.equal(repoEscape.code, 1);
+    const repoEscapeError = JSON.parse(repoEscape.stdout);
+    assert.equal(repoEscapeError.error.code, 'EWARP_LOCATE_OUTSIDE_REPO');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace locate json errors use locate-domain fallback codes', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'warpspace.lock.json');
+
+  try {
+    await writeFile(lockPath, '{not-json', 'utf8');
+
+    const malformedLock = await runCli([
+      'warpspace',
+      'locate',
+      'echo/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      tempDir,
+      '--cwd',
+      tempDir,
+      '--json'
+    ]);
+    assert.equal(malformedLock.code, 1);
+    const parsed = JSON.parse(malformedLock.stdout);
+    assert.equal(parsed.kind, 'warp.warpspace.locate.error.v1');
+    assert.equal(parsed.error.code, 'EWARP_LOCATE_FAILED');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('warpspace locate rejects files that are not constellation locks', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const lockPath = path.join(tempDir, 'not-a-warpspace.lock.json');
+
+  try {
+    await writeFile(
+      lockPath,
+      JSON.stringify({
+        kind: 'not-a-warpspace-lock',
+        warpspace: {
+          name: 'jim'
+        },
+        repos: [
+          {
+            name: 'echo',
+            path: 'echo'
+          }
+        ]
+      }, null, 2) + '\n',
+      'utf8'
+    );
+
+    const invalidKind = await runCli([
+      'warpspace',
+      'locate',
+      'echo/file.txt',
+      '--lock',
+      lockPath,
+      '--root',
+      tempDir,
+      '--cwd',
+      tempDir,
+      '--json'
+    ]);
+    assert.equal(invalidKind.code, 1);
+    const parsed = JSON.parse(invalidKind.stdout);
+    assert.equal(parsed.error.code, 'EWARP_LOCK_INVALID');
+    assert.match(parsed.error.message, /must declare kind "warpspace\.constellation-lock\.v1"/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace lock rejects unquoted barewords in TOML', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -946,6 +1211,48 @@ async function writeRuntimeEnvManifest({
       ...envLines,
       ''
     ].join('\n'),
+    'utf8'
+  );
+}
+
+async function writeLocateLock(lockPath) {
+  await writeFile(
+    lockPath,
+    JSON.stringify({
+      kind: 'warpspace.constellation-lock.v1',
+      version: 1,
+      lockedAt: '2026-05-09T19:00:00.000Z',
+      manifest: {
+        path: 'warpspace.toml',
+        sha256: 'test'
+      },
+      warpspace: {
+        name: 'jim',
+        version: 1
+      },
+      repos: [
+        {
+          name: 'jedit',
+          git: 'git@github.com:flyingrobots/jedit.git',
+          rev: '1111111111111111111111111111111111111111',
+          resolved: '1111111111111111111111111111111111111111',
+          path: 'jedit',
+          resolution: 'literal-sha'
+        },
+        {
+          name: 'echo',
+          git: 'git@github.com:flyingrobots/echo.git',
+          rev: '2222222222222222222222222222222222222222',
+          resolved: '2222222222222222222222222222222222222222',
+          path: 'echo',
+          resolution: 'literal-sha'
+        }
+      ],
+      crates: {},
+      packages: {},
+      runtime: {},
+      contracts: {}
+    }, null, 2) + '\n',
     'utf8'
   );
 }

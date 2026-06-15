@@ -17,6 +17,10 @@ such as `/Users/...` or `/warpspaces/...`.
 The resolver subsystem for this boundary is named **TACHYON**: Typed Addressing
 for Causal History, Yielding Observer-basis Normalization. See
 [0032 - TACHYON Warpspace Resolution](../design/0032-tachyon-warpspace-resolution/README.md).
+The first CLI surface is `qw warpspace locate`, which accepts a runtime path,
+current working directory, root projection, lock file, and optional basis ref,
+then emits a typed locator plus runtime projection metadata marked outside hash
+scope.
 
 Current manifests:
 
