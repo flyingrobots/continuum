@@ -103,6 +103,7 @@ async function runInstall(argv, { stdout, stderr }) {
     stdout(usage);
     return 0;
   }
+  const wantsJson = argv.includes('--json');
 
   try {
     const { options, positionals } = parseInstallArgs(argv, usage);
@@ -150,6 +151,9 @@ async function runInstall(argv, { stdout, stderr }) {
 
     return 0;
   } catch (error) {
+    if (wantsJson) {
+      return writeJsonCommandError(stdout, error, 'warp.install.error.v1');
+    }
     return writeCommandError(stderr, error);
   }
 }
@@ -322,6 +326,18 @@ function writeCommandError(stderr, error) {
     return 1;
   }
   stderr(`${error?.stack || error?.message || String(error)}\n`);
+  return 1;
+}
+
+function writeJsonCommandError(stdout, error, kind) {
+  stdout(JSON.stringify({
+    kind,
+    ok: false,
+    error: {
+      code: error?.code ?? 'EINSTALL',
+      message: error?.message ?? String(error)
+    }
+  }, null, 2) + '\n');
   return 1;
 }
 

@@ -459,6 +459,25 @@ test('install skip-sync without checkouts reports verification failure without s
   }
 });
 
+test('install json mode serializes thrown install errors as json', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+
+  try {
+    const cli = await runCli(['install', path.join(tempDir, 'missing.toml'), '--json']);
+
+    assert.equal(cli.code, 1);
+    assert.equal(cli.stderr, '');
+    assert.doesNotMatch(cli.stdout, /node:internal|at .*warpspace\.mjs/);
+    const parsed = JSON.parse(cli.stdout);
+    assert.equal(parsed.kind, 'warp.install.error.v1');
+    assert.equal(parsed.ok, false);
+    assert.equal(parsed.error.code, 'EWARPSPACE_MANIFEST_NOT_FOUND');
+    assert.match(parsed.error.message, /Warpspace manifest not found/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('install preserves an unchanged lock on repeated runs', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
