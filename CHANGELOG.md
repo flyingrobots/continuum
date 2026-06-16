@@ -11,6 +11,9 @@
 - Added `qw warpspace locate` as the first TACHYON resolver surface for turning
   runtime paths into typed `warp://` locators with runtime projection metadata
   excluded from hash scope.
+- Added `qw runtime materialize`, `verify`, and `doctor` so runtime projection
+  files such as `.devcontainer/devcontainer.json` can be generated and checked
+  directly from `warpspace.lock.json` without running the full install flow.
 - Made devcontainer runtime projection require explicit
   `[runtime.default].mount` and `[runtime.default.image]` declarations instead
   of silently defaulting runtime topology, and rejected comma-bearing mount

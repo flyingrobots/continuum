@@ -537,6 +537,136 @@ test('install preserves an unchanged lock on repeated runs', async () => {
   }
 });
 
+test('runtime materialize verifies and doctors a devcontainer projection', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+  const lockPath = path.join(root, 'warpspace.lock.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+    await writeRuntimeEnvManifest({
+      root,
+      manifestPath,
+      repoPath: echo.repoPath,
+      envLines: [
+        '[runtime.default.env]',
+        'JIM_WARPSPACE_ROOT = "/warpspaces/jim"',
+        'FEATURE_ENABLED = true'
+      ]
+    });
+    await lockWarpspace({
+      manifestPath,
+      lockPath,
+      now: () => new Date('2026-05-09T19:00:00.000Z')
+    });
+
+    const materialize = await runCli(['runtime', 'materialize', lockPath, '--root', root, '--json']);
+    assert.equal(materialize.code, 0);
+    const materialized = JSON.parse(materialize.stdout);
+    assert.equal(materialized.kind, 'warp.runtime.materialize.result.v1');
+    assert.equal(materialized.status, 'written');
+    assert.equal(materialized.path, path.join(root, '.devcontainer', 'devcontainer.json'));
+    assert.equal(materialized.mount, '/warpspaces/jim');
+    assert.equal(materialized.image, 'ghcr.io/flyingrobots/jim-runtime:test');
+
+    const devcontainer = JSON.parse(await readFile(materialized.path, 'utf8'));
+    assert.deepEqual(devcontainer, {
+      name: 'jim runtime',
+      image: 'ghcr.io/flyingrobots/jim-runtime:test',
+      workspaceFolder: '/warpspaces/jim',
+      workspaceMount: 'source=${localWorkspaceFolder},target=/warpspaces/jim,type=bind,consistency=cached',
+      remoteEnv: {
+        JIM_WARPSPACE_ROOT: '/warpspaces/jim',
+        FEATURE_ENABLED: 'true'
+      }
+    });
+
+    const verify = await runCli(['runtime', 'verify', lockPath, '--root', root, '--json']);
+    assert.equal(verify.code, 0);
+    const verified = JSON.parse(verify.stdout);
+    assert.equal(verified.kind, 'warp.runtime.verify.result.v1');
+    assert.equal(verified.ok, true);
+    assert.equal(verified.status, 'ok');
+    assert.deepEqual(verified.issues, []);
+
+    const doctor = await runCli(['runtime', 'doctor', lockPath, '--root', root, '--json']);
+    assert.equal(doctor.code, 0);
+    const doctored = JSON.parse(doctor.stdout);
+    assert.equal(doctored.kind, 'warp.runtime.doctor.result.v1');
+    assert.equal(doctored.ok, true);
+    assert.equal(doctored.verification.status, 'ok');
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('runtime verify reports devcontainer projection drift', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
+  const upstreamRoot = path.join(tempDir, 'upstream');
+  const root = path.join(tempDir, 'jim');
+  const manifestPath = path.join(root, 'warpspace.toml');
+  const lockPath = path.join(root, 'warpspace.lock.json');
+  const devcontainerPath = path.join(root, '.devcontainer', 'devcontainer.json');
+
+  try {
+    const echo = await createGitRepo({
+      repoPath: path.join(upstreamRoot, 'echo'),
+      fileName: 'echo.txt',
+      content: 'echo\n'
+    });
+    await writeRuntimeEnvManifest({
+      root,
+      manifestPath,
+      repoPath: echo.repoPath,
+      envLines: [
+        '[runtime.default.env]',
+        'JIM_WARPSPACE_ROOT = "/warpspaces/jim"'
+      ]
+    });
+    await lockWarpspace({
+      manifestPath,
+      lockPath,
+      now: () => new Date('2026-05-09T19:00:00.000Z')
+    });
+    const materialize = await runCli(['runtime', 'materialize', lockPath, '--root', root, '--json']);
+    assert.equal(materialize.code, 0);
+
+    const drifted = JSON.parse(await readFile(devcontainerPath, 'utf8'));
+    drifted.image = 'ghcr.io/flyingrobots/wrong-runtime:test';
+    drifted.remoteEnv = {
+      JIM_WARPSPACE_ROOT: '/wrong'
+    };
+    await writeFile(devcontainerPath, JSON.stringify(drifted, null, 2) + '\n', 'utf8');
+
+    const verify = await runCli(['runtime', 'verify', lockPath, '--root', root, '--json']);
+    assert.equal(verify.code, 1);
+    const parsed = JSON.parse(verify.stdout);
+    assert.equal(parsed.ok, false);
+    assert.equal(parsed.status, 'drifted');
+    assert.deepEqual(
+      parsed.issues.map(issue => issue.code),
+      [
+        'runtime-image-mismatch',
+        'runtime-remote-env-mismatch'
+      ]
+    );
+
+    const doctor = await runCli(['runtime', 'doctor', lockPath, '--root', root]);
+    assert.equal(doctor.code, 1);
+    assert.match(doctor.stderr, /Runtime projection verification failed/);
+    assert.match(doctor.stderr, /runtime-image-mismatch/);
+    assert.match(doctor.stderr, /runtime-remote-env-mismatch/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('warpspace rejects checkout paths outside the root', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -610,6 +740,14 @@ test('warpspace help and usage errors stay user-facing', async () => {
   assert.match(installHelp.stdout, /Usage: qw install \[warpspace\.toml]/);
   assert.match(installHelp.stdout, /--manifest <path>/);
   assert.equal(installHelp.stderr, '');
+
+  const runtimeHelp = await runCli(['runtime', '--help']);
+  assert.equal(runtimeHelp.code, 0);
+  assert.match(runtimeHelp.stdout, /Usage:/);
+  assert.match(runtimeHelp.stdout, /qw runtime materialize/);
+  assert.match(runtimeHelp.stdout, /qw runtime verify/);
+  assert.match(runtimeHelp.stdout, /qw runtime doctor/);
+  assert.equal(runtimeHelp.stderr, '');
 
   const help = await runCli(['warpspace', 'lock', '--help']);
   assert.equal(help.code, 0);

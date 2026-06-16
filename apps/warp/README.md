@@ -27,6 +27,9 @@ Prototype commands available here today:
 
 - `qw init`
 - `qw install`
+- `qw runtime materialize`
+- `qw runtime verify`
+- `qw runtime doctor`
 - lower-level pieces behind the install flow:
   - `qw warpspace lock`
   - `qw warpspace verify`
@@ -57,6 +60,10 @@ Current posture:
 - supports a first TACHYON locator flow:
   `qw warpspace locate <path>` converts a runtime path projection into a typed
   `warp://` locator scoped to repos declared in `warpspace.lock.json`
+- supports direct runtime projection management:
+  `qw runtime materialize` writes the declared local runtime projection,
+  `qw runtime verify` checks for drift, and `qw runtime doctor` reports runtime
+  projection health without refreshing the lock or syncing repos
 - supports a first `qw install` cut for constellation-style
   `warpspace.toml` files: it refreshes `warpspace.lock.json`, syncs declared
   repo checkouts, writes `.devcontainer/devcontainer.json` for a
@@ -69,6 +76,9 @@ Product target:
 - `qw install` is the user-facing command that reads `warpspace.toml`,
   refreshes the lock, materializes source checkouts and runtime projection
   state, then verifies the WARPspace
+- `qw runtime` is the local runtime-projection surface behind `install`;
+  `.devcontainer/devcontainer.json` is generated state derived from the lock,
+  not a second source of truth
 - managed toolchain installation under `.warpspace/` is still incomplete for
   constellation-style installs
 - the current `qw warpspace lock/sync/verify/doctor` commands remain the
@@ -81,6 +91,8 @@ When the package is linked or installed:
 ```bash
 qw init my-app --profile demo
 qw install
+qw runtime materialize warpspace.lock.json
+qw runtime verify warpspace.lock.json
 qw warpspace lock docs/warpspaces/jedit-echo-dev.toml --lock /tmp/jedit-echo-dev.lock.json
 qw warpspace sync /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
 qw warpspace verify /tmp/jedit-echo-dev.lock.json --root ~/warpspaces/jedit-echo-dev
