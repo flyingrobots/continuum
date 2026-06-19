@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Added agent-neutral Edict participation invariants for Continuum design.
+- Added agent-neutral Edict participation invariants for Continuum design,
+  including lifecycle, bundle-subject, invocation, and authority rules.
 - Fixed the runtime-boundary `readingEnvelopes` footprint to include native and
   translated evidence branches.
 - Added Wesley union extraction and generated TypeScript/Zod support so
