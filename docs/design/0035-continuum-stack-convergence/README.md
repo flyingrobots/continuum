@@ -55,7 +55,7 @@ Repository ownership remains:
 | --- | --- |
 | Continuum | Cross-repo vocabulary, profiles, release bar, compatibility set shape, conformance posture, shared proof vocabulary. |
 | Echo | Runtime admission, WAL/WSC durability, receipts, readings, mutation execution, Echo 1.0 release contract. |
-| `git-warp` | Causal suffix substrate behavior and peer exchange implementation from the `git-warp` side. |
+| `git-warp` | Causal suffix substrate behavior and peer exchange implementation from the `git-stunts/git-warp` side. |
 | Edict | Deterministic source, compiler, bundle identity, artifact schema, lawpack, and target-profile lowering. |
 | `jedit` | Product operation semantics and the designated native operation proof. |
 | Graft | Structural observer posture and translated-versus-native evidence boundaries. |
@@ -259,11 +259,12 @@ Initial live hierarchy:
 - [Gate B - Echo 1.0 Release Bar](https://github.com/flyingrobots/echo/issues/584)
 - [Gate C - Edict Artifact Admission Contract](https://github.com/flyingrobots/edict/issues/11)
 - [Gate D - git-warp Suffix Exchange Profile](https://github.com/flyingrobots/continuum/issues/33)
+- [Gate D - git-warp Suffix Exchange Implementation](https://github.com/git-stunts/git-warp/issues/663)
 - [Gate E - jedit Native Operation Proof](https://github.com/flyingrobots/jedit/issues/143)
 - [Gate F - Cross-Repo Release Integrity](https://github.com/flyingrobots/continuum/issues/32)
 
-Gate D lives in Continuum until the public git-warp implementation repository is
-identified or created.
+Gate D's shared profile and release coordination live in Continuum. The
+git-warp peer implementation lives in `git-stunts/git-warp`.
 
 ## Playback Questions
 
