@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the Continuum Stack Convergence coordination packet, defining the
+  cross-repository release bar, Project model, gate contracts, compatibility
+  manifest, and repository ownership split for the Echo 1.0 / Continuum stack.
 - Added agent-neutral Edict participation invariants for Continuum design,
   including lifecycle, bundle-subject, invocation, and authority rules.
 - Fixed the runtime-boundary `readingEnvelopes` footprint to include native and
