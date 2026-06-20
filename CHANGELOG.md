@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Recorded `git-stunts/git-warp` as the git-warp implementation owner for the
+  Continuum stack suffix-exchange gate.
 - Added the Continuum Stack Convergence coordination packet, defining the
   cross-repository release bar, Project model, gate contracts, compatibility
   manifest, and repository ownership split for the Echo 1.0 / Continuum stack.
