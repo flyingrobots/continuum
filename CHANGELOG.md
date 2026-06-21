@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the Continuum Stack Project Slice Plan packet, translating Project #15
+  into a goalpost-by-goalpost, repo-grouped slice ledger while preserving
+  GitHub as the live roadmap authority.
 - Added the Continuum Stack Release Roadmap packet, recording the GP0-GP6
   release path, gate ownership, evidence requirements, and the GP1 Echo
   durability handoff while keeping live status in GitHub Project #15.
