@@ -4,7 +4,7 @@
 
 - Added the Continuum Stack Project Slice Plan packet, translating Project #15
   into a goalpost-by-goalpost, repo-grouped slice ledger while preserving
-  GitHub as the live roadmap authority.
+  GitHub Project #15 and GitHub issues as the operational roadmap authority.
 - Added milestone, goalpost, and slice Mermaid Gantt zoom layers to the
   Continuum Stack Project Slice Plan packet.
 - Added the Continuum Stack Release Roadmap packet, recording the GP0-GP6

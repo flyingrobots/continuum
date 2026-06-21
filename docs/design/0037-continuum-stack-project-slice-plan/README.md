@@ -22,15 +22,19 @@ Refines:
 
 ## Hill
 
-Record the slice-by-slice plan from the Continuum Stack Convergence Project in
-the repository that owns coordination truth.
+Record a versioned projection of the slice-by-slice plan from the Continuum
+Stack Convergence Project in the repository that owns coordination doctrine.
 
-This packet is a snapshot and orientation artifact. It is not the live task
-tracker. Current issue status, dependencies, pull request links, assignees,
-review state, proof state, and blockers belong in GitHub:
+GitHub Project #15 and the GitHub issue graph are the roadmap authority. This
+packet is a snapshot and orientation artifact. It is not the live task tracker.
+Current issue status, dependencies, pull request links, assignees, review state,
+proof state, and blockers belong in GitHub. If this packet disagrees with
+GitHub live state, GitHub wins.
 
 - Project: [Continuum Stack Convergence](https://github.com/users/flyingrobots/projects/15)
 - Release bar: [continuum#30](https://github.com/flyingrobots/continuum/issues/30)
+- Issue graph: the release bar, gate issues, capability epics, and PR-sized
+  slices linked from Project #15
 
 The lists below reflect Project #15 after Echo PR #599 merged on 2026-06-21.
 
@@ -39,7 +43,7 @@ The lists below reflect Project #15 after Echo PR #599 merged on 2026-06-21.
 - `[x]` means the Project item was `Done` when this snapshot was written.
 - `[ ]` means the Project item was not `Done` when this snapshot was written.
 - `*_PR_*` entries are Project evidence rows. They are not new work slices.
-- Issue rows are the work authority. Pull requests and proof packets are
+- GitHub issue rows are the work authority. Pull requests and proof packets are
   evidence that issue contracts were satisfied.
 
 ## Gantt Zoom Layers
