@@ -3,8 +3,11 @@
 ## Unreleased
 
 - Added the Continuum Stack Project Slice Plan packet, translating Project #15
-  into a goalpost-by-goalpost, repo-grouped slice ledger while preserving
-  GitHub Project #15 and GitHub issues as the operational roadmap authority.
+  into a goalpost-by-goalpost, repo-grouped, multi-lane slice ledger while
+  preserving GitHub Project #15 and GitHub issues as the operational roadmap
+  authority.
+- Updated the Continuum Stack Project Slice Plan packet after Project #15 was
+  repaired in place with distinct `Target: 1.0` and `Target: Launchpad` lanes.
 - Added project-update guidance to the Continuum Stack Project Slice Plan
   packet, including update triggers and suggested goalpost status posts.
 - Added milestone, goalpost, and slice Mermaid Gantt zoom layers to the

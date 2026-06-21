@@ -8,12 +8,13 @@ status: proposed
 **Cycle:** 0037-continuum-stack-project-slice-plan
 **Legend:** SOURCE
 **Type:** project slice ledger
-**Sponsored human:** A stack maintainer wants the release plan written
-goalpost-by-goalpost, grouped by repository, without losing the GitHub issue
-coordinates that define the work.
+**Sponsored human:** A stack maintainer wants the umbrella Project written
+goalpost-by-goalpost and lane-by-lane, grouped by repository, without losing the
+GitHub issue coordinates that define the work.
 **Sponsored agent:** A planning or execution agent needs a compact checklist of
 the cross-repository slices that lead from the current Echo durability work to
-Continuum stack convergence.
+Continuum stack convergence, while keeping Launchpad/browser-replay demo work
+visible but not confused with the hard 1.0 release lane.
 
 Refines:
 
@@ -36,12 +37,16 @@ GitHub live state, GitHub wins.
 - Issue graph: the release bar, gate issues, capability epics, and PR-sized
   slices linked from Project #15
 
-The lists below reflect Project #15 after Echo PR #599 merged on 2026-06-21.
+The lists below reflect Project #15 after Echo PR #599 merged and after the
+Project was repaired in place as a single umbrella Project with multiple
+`Target` lanes on 2026-06-21.
 
 ## Legend
 
 - `[x]` means the Project item was `Done` when this snapshot was written.
 - `[ ]` means the Project item was not `Done` when this snapshot was written.
+- `Target: 1.0` is the hard Echo 1.0 / Continuum stack release lane.
+- `Target: Launchpad` is the Continuum website/browser-replay demo lane.
 - `*_PR_*` entries are Project evidence rows. They are not new work slices.
 - GitHub issue rows are the work authority. Pull requests and proof packets are
   evidence that issue contracts were satisfied.
@@ -91,6 +96,12 @@ Roadmap authority: Project #15 and linked GitHub issues.
 The Mermaid Gantt charts below are sequencing maps, not schedules. Mermaid
 requires dates, so the dates are ordinal placeholders. The first placeholder
 day means "first sequencing slot," not a calendar commitment.
+
+These charts include both Project lanes. Read `CONT`, `ECHO`, `EDICT`,
+`GITWARP`, and `JEDIT` release-bar rows as the hard `Target: 1.0` lane. Read
+`FDEV`, `WARPTTD`, `WESLEY` Launchpad rows, `BIJOU` debugger rows, and Echo
+browser/WASM rows as the `Target: Launchpad` lane unless the GitHub issue graph
+explicitly promotes them into the 1.0 release bar.
 
 ### Milestone Zoom
 
@@ -338,22 +349,16 @@ Next: begin GP1 by advancing Echo durable causal history.
 
 ### Echo (GP0)
 
+- [ ] ECHO_528: Retire embedded filesystem METHOD tooling after GitHub Issues
+      migration
+      ([#528](https://github.com/flyingrobots/echo/issues/528)).
 - [ ] ECHO_584: Echo 1.0 Release Bar
       ([#584](https://github.com/flyingrobots/echo/issues/584)).
+- [ ] ECHO_587: Echo 1.0: GitHub-Native Roadmap Migration
+      ([#587](https://github.com/flyingrobots/echo/issues/587)).
 - [x] ECHO_PR_582: docs: define the Echo 1.0 release contract and move live
       planning to GitHub
       ([PR #582](https://github.com/flyingrobots/echo/pull/582)).
-
-### flyingrobots.dev (GP0)
-
-- [ ] FDEV_4: Launchpad Browser Replay Release Bar
-      ([#4](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/4)).
-- [x] FDEV_11: [LP-GP0] Roadmap, tracker, and boundary alignment
-      ([#11](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/11)).
-- [x] FDEV_12: [LP-GP0-S1] Record Launchpad browser-replay roadmap in repo
-      ([#12](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/12)).
-- [x] FDEV_PR_18: Refresh Continuum site and add launchpad roadmap
-      ([PR #18](https://github.com/flyingrobots-labs/flyingrobots.dev/pull/18)).
 
 ## Target 1.0 / Goalpost 1: Durable Causal History
 
@@ -375,7 +380,7 @@ enough for Continuum participation.
 Next: <next Echo durability slice or named blocker>.
 ```
 
-### Echo (GP1)
+### Echo / Durability (GP1)
 
 - [ ] ECHO_521: WAL/WSC Storage Relationship
       ([#521](https://github.com/flyingrobots/echo/issues/521)).
@@ -444,15 +449,6 @@ Next: <next Echo durability slice or named blocker>.
 - [x] ECHO_PR_599: Cover runtime WAL recovery CLI contract
       ([PR #599](https://github.com/flyingrobots/echo/pull/599)).
 
-### flyingrobots.dev (GP1)
-
-- [ ] FDEV_7: [LP-GP1] Static content substrate and single-page shell
-      ([#7](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/7)).
-- [ ] FDEV_13: [LP-GP1-S1] Static content manifest for launchpad pages
-      ([#13](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/13)).
-- [ ] FDEV_17: [LP-GP1-S2] Single-page launchpad shell routes as intents
-      ([#17](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/17)).
-
 ## Target 1.0 / Goalpost 2: Continuum Participation Protocol Spine
 
 Purpose: define the participant/profile vocabulary and generated contract
@@ -478,22 +474,10 @@ Next: <next protocol or generated-artifact slice>.
 - [ ] CONT_31: Gate A - Continuum Protocol Spine
       ([#31](https://github.com/flyingrobots/continuum/issues/31)).
 
-### Wesley (GP2)
+### Echo (GP2)
 
-- [ ] WESLEY_615: [LP-GP2-S2] Generate Echo contract-host artifacts for
-      Launchpad intents
-      ([#615](https://github.com/flyingrobots/wesley/issues/615)).
-- [ ] WESLEY_616: [LP-GP2-S1] Launchpad browsing and content GraphQL contract
-      fixture
-      ([#616](https://github.com/flyingrobots/wesley/issues/616)).
-- [ ] WESLEY_617: [LP-GP2-S3] Launchpad contract evidence package for debugger
-      consumption
-      ([#617](https://github.com/flyingrobots/wesley/issues/617)).
-
-### flyingrobots.dev (GP2)
-
-- [ ] FDEV_6: [LP-GP2] Launchpad intent contract and generated artifacts
-      ([#6](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/6)).
+- [ ] ECHO_585: Gate A - Continuum Participant Conformance
+      ([#585](https://github.com/flyingrobots/echo/issues/585)).
 
 ## Target 1.0 / Goalpost 3: Networked Suffix Exchange
 
@@ -523,24 +507,15 @@ Next: <next suffix, WASM, or browser-host slice>.
 
 ### Echo (GP3)
 
-- [ ] ECHO_500: WASM Runtime Integration
-      ([#500](https://github.com/flyingrobots/echo/issues/500)).
-- [ ] ECHO_594: [LP-GP3-S2] Witnessed Launchpad intent receipts and readings
-      ([#594](https://github.com/flyingrobots/echo/issues/594)).
-- [ ] ECHO_595: [LP-GP3-S1] Browser WASM static-content host capability
-      ([#595](https://github.com/flyingrobots/echo/issues/595)).
+- [ ] ECHO_489: Echo / git-warp witnessed suffix sync
+      ([#489](https://github.com/flyingrobots/echo/issues/489)).
+- [ ] ECHO_591: Gate B - Networked Causal Suffix Exchange
+      ([#591](https://github.com/flyingrobots/echo/issues/591)).
 
 ### git-warp (GP3)
 
 - [ ] GITWARP_663: Gate D - git-warp Suffix Exchange Implementation
       ([#663](https://github.com/git-stunts/git-warp/issues/663)).
-
-### flyingrobots.dev (GP3)
-
-- [ ] FDEV_9: [LP-GP3] Echo WASM application runtime proof
-      ([#9](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/9)).
-- [ ] FDEV_14: [LP-GP3-S3] Launchpad client adapter drives Echo WASM intents
-      ([#14](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/14)).
 
 ## Target 1.0 / Goalpost 4: Edict Artifact Pipeline
 
@@ -570,24 +545,8 @@ Next: <next artifact, replay, or fact-export slice>.
 
 ### Echo (GP4)
 
-- [ ] ECHO_596: [LP-GP4-S4] Debugger-safe browser session fact export
-      ([#596](https://github.com/flyingrobots/echo/issues/596)).
-
-### WARP TTD (GP4)
-
-- [ ] WARPTTD_106: [LP-GP4-S3] Rewind current visit control contract
-      ([#106](https://github.com/flyingrobots/warp-ttd/issues/106)).
-- [ ] WARPTTD_107: [LP-GP4-S2] Browser replay tick history read model
-      ([#107](https://github.com/flyingrobots/warp-ttd/issues/107)).
-- [ ] WARPTTD_108: [LP-GP4-S1] Launchpad browser runtime hello target
-      descriptor
-      ([#108](https://github.com/flyingrobots/warp-ttd/issues/108)).
-
-### flyingrobots.dev (GP4)
-
-- [ ] FDEV_5: [LP-GP4] WARP-TTD browser target and structured replay read
-      model
-      ([#5](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/5)).
+- [ ] ECHO_583: Echo 1.0: Edict Native Invocation in Echo
+      ([#583](https://github.com/flyingrobots/echo/issues/583)).
 
 ## Target 1.0 / Goalpost 5: Native Jedit-On-Edict Execution
 
@@ -609,28 +568,17 @@ rest of the stack.
 Next: <next native-operation or renderer-parity slice>.
 ```
 
-### Bijou (GP5)
+### Echo (GP5)
 
-- [ ] BIJOU_302: COOL IDEA: compile GraphQL-authored UI scenes into Bijou
-      Blocks
-      ([#302](https://github.com/flyingrobots/bijou/issues/302)).
-- [ ] BIJOU_441: [LP-GP5-S2] WARP-TTD debugger scene IR fixture
-      ([#441](https://github.com/flyingrobots/bijou/issues/441)).
-- [ ] BIJOU_442: [LP-GP5-S1] Browser renderer seam for ui-scene-ir
-      ([#442](https://github.com/flyingrobots/bijou/issues/442)).
-- [ ] BIJOU_443: [LP-GP5-S3] Terminal/browser parity witness for debugger
-      scene
-      ([#443](https://github.com/flyingrobots/bijou/issues/443)).
+- [ ] ECHO_515: jedit Real Echo Release Gate
+      ([#515](https://github.com/flyingrobots/echo/issues/515)).
+- [ ] ECHO_589: Gate C - Native Jedit-on-Edict Execution
+      ([#589](https://github.com/flyingrobots/echo/issues/589)).
 
 ### Jedit (GP5)
 
 - [ ] JEDIT_143: Gate E - jedit Native Operation Proof
       ([#143](https://github.com/flyingrobots/jedit/issues/143)).
-
-### flyingrobots.dev (GP5)
-
-- [ ] FDEV_10: [LP-GP5] Bijou IR browser renderer and debugger scene parity
-      ([#10](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/10)).
 
 ## Target 1.0 / Goalpost 6: Release Integrity And Compatibility Manifest
 
@@ -658,12 +606,149 @@ Next: <next release-proof slice or explicit merge/release blocker>.
 - [ ] CONT_32: Gate F - Cross-Repo Release Integrity
       ([#32](https://github.com/flyingrobots/continuum/issues/32)).
 
-### WARP TTD (GP6)
+### Echo (GP6)
+
+- [ ] ECHO_586: Echo 1.0: Echo Docs Split Before Release
+      ([#586](https://github.com/flyingrobots/echo/issues/586)).
+- [ ] ECHO_588: Gate D - Release Integrity
+      ([#588](https://github.com/flyingrobots/echo/issues/588)).
+
+## Target Launchpad: Continuum Website / Browser Replay Lane
+
+Purpose: keep the website/demo effort visible in the umbrella Project without
+making it a hard Echo 1.0 / Continuum stack release gate. These rows should use
+`Target: Launchpad` in Project #15.
+
+Post update when: a Launchpad slice produces a browser-visible proof, static
+site capability, generated contract artifact, WARP TTD replay read model,
+debugger scene witness, or integrated demo artifact.
+
+Suggested post:
+
+```text
+Launchpad status: browser replay lane advanced.
+Evidence: <flyingrobots.dev/Echo/Wesley/WARP TTD/Bijou issue or PR> proves
+<static shell, generated intent contract, Echo WASM path, replay read model,
+scene parity, or integrated demo>.
+Meaning: the Continuum website/demo is becoming a concrete consumer of the
+same Echo/WARP/Continuum proof stack without redefining the 1.0 release bar.
+Next: <next Launchpad slice or blocker>.
+```
+
+### Launchpad GP0: Control Surface
+
+#### flyingrobots.dev (LP-GP0)
+
+- [ ] FDEV_4: Launchpad Browser Replay Release Bar
+      ([#4](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/4)).
+- [x] FDEV_11: [LP-GP0] Roadmap, tracker, and boundary alignment
+      ([#11](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/11)).
+- [x] FDEV_12: [LP-GP0-S1] Record Launchpad browser-replay roadmap in repo
+      ([#12](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/12)).
+- [x] FDEV_PR_18: Refresh Continuum site and add launchpad roadmap
+      ([PR #18](https://github.com/flyingrobots-labs/flyingrobots.dev/pull/18)).
+
+### Launchpad GP1: Static Content Shell
+
+#### flyingrobots.dev (LP-GP1)
+
+- [ ] FDEV_7: [LP-GP1] Static content substrate and single-page shell
+      ([#7](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/7)).
+- [ ] FDEV_13: [LP-GP1-S1] Static content manifest for launchpad pages
+      ([#13](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/13)).
+- [ ] FDEV_17: [LP-GP1-S2] Single-page launchpad shell routes as intents
+      ([#17](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/17)).
+
+### Launchpad GP2: Intent Contracts
+
+#### flyingrobots.dev (LP-GP2)
+
+- [ ] FDEV_6: [LP-GP2] Launchpad intent contract and generated artifacts
+      ([#6](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/6)).
+
+#### Wesley (LP-GP2)
+
+- [ ] WESLEY_615: [LP-GP2-S2] Generate Echo contract-host artifacts for
+      Launchpad intents
+      ([#615](https://github.com/flyingrobots/wesley/issues/615)).
+- [ ] WESLEY_616: [LP-GP2-S1] Launchpad browsing and content GraphQL contract
+      fixture
+      ([#616](https://github.com/flyingrobots/wesley/issues/616)).
+- [ ] WESLEY_617: [LP-GP2-S3] Launchpad contract evidence package for debugger
+      consumption
+      ([#617](https://github.com/flyingrobots/wesley/issues/617)).
+
+### Launchpad GP3: Echo WASM App Proof
+
+#### Echo (LP-GP3)
+
+- [ ] ECHO_500: WASM Runtime Integration
+      ([#500](https://github.com/flyingrobots/echo/issues/500)).
+- [ ] ECHO_594: [LP-GP3-S2] Witnessed Launchpad intent receipts and readings
+      ([#594](https://github.com/flyingrobots/echo/issues/594)).
+- [ ] ECHO_595: [LP-GP3-S1] Browser WASM static-content host capability
+      ([#595](https://github.com/flyingrobots/echo/issues/595)).
+
+#### flyingrobots.dev (LP-GP3)
+
+- [ ] FDEV_9: [LP-GP3] Echo WASM application runtime proof
+      ([#9](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/9)).
+- [ ] FDEV_14: [LP-GP3-S3] Launchpad client adapter drives Echo WASM intents
+      ([#14](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/14)).
+
+### Launchpad GP4: Browser Replay Read Model
+
+#### Echo (LP-GP4)
+
+- [ ] ECHO_596: [LP-GP4-S4] Debugger-safe browser session fact export
+      ([#596](https://github.com/flyingrobots/echo/issues/596)).
+
+#### WARP TTD (LP-GP4)
+
+- [ ] WARPTTD_106: [LP-GP4-S3] Rewind current visit control contract
+      ([#106](https://github.com/flyingrobots/warp-ttd/issues/106)).
+- [ ] WARPTTD_107: [LP-GP4-S2] Browser replay tick history read model
+      ([#107](https://github.com/flyingrobots/warp-ttd/issues/107)).
+- [ ] WARPTTD_108: [LP-GP4-S1] Launchpad browser runtime hello target
+      descriptor
+      ([#108](https://github.com/flyingrobots/warp-ttd/issues/108)).
+
+#### flyingrobots.dev (LP-GP4)
+
+- [ ] FDEV_5: [LP-GP4] WARP-TTD browser target and structured replay read
+      model
+      ([#5](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/5)).
+
+### Launchpad GP5: Debugger Scene Parity
+
+#### Bijou (LP-GP5)
+
+- [ ] BIJOU_302: COOL IDEA: compile GraphQL-authored UI scenes into Bijou
+      Blocks
+      ([#302](https://github.com/flyingrobots/bijou/issues/302)).
+- [x] BIJOU_329: DX-046: GraphQL-authored DOGFOOD block fixture
+      ([#329](https://github.com/flyingrobots/bijou/issues/329)).
+- [ ] BIJOU_441: [LP-GP5-S2] WARP-TTD debugger scene IR fixture
+      ([#441](https://github.com/flyingrobots/bijou/issues/441)).
+- [ ] BIJOU_442: [LP-GP5-S1] Browser renderer seam for ui-scene-ir
+      ([#442](https://github.com/flyingrobots/bijou/issues/442)).
+- [ ] BIJOU_443: [LP-GP5-S3] Terminal/browser parity witness for debugger
+      scene
+      ([#443](https://github.com/flyingrobots/bijou/issues/443)).
+
+#### flyingrobots.dev (LP-GP5)
+
+- [ ] FDEV_10: [LP-GP5] Bijou IR browser renderer and debugger scene parity
+      ([#10](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/10)).
+
+### Launchpad GP6: Integrated Demo Gate
+
+#### WARP TTD (LP-GP6)
 
 - [ ] WARPTTD_56: Browser TTD delivery adapter
       ([#56](https://github.com/flyingrobots/warp-ttd/issues/56)).
 
-### flyingrobots.dev (GP6)
+#### flyingrobots.dev (LP-GP6)
 
 - [ ] FDEV_8: [LP-GP6] Integrated mic-drop launchpad release gate
       ([#8](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/8)).
@@ -672,41 +757,17 @@ Next: <next release-proof slice or explicit merge/release blocker>.
 - [ ] FDEV_16: [LP-GP6-S1] Integrated mic-drop tick history surface
       ([#16](https://github.com/flyingrobots-labs/flyingrobots.dev/issues/16)).
 
-## Project Metadata Repair Queue
+## Project Lane Repair Snapshot
 
-These Project #15 items were present in the Project but did not have
-`Target: 1.0` set when this snapshot was written. Most of them are still
-clearly part of the Echo 1.0 milestone or stack evidence path. Fix Project
-fields before relying on filtered release views.
+Project #15 was repaired in place on 2026-06-21 instead of splitting the
+Launchpad work into a second Project.
 
-### Bijou (Metadata Repair)
-
-- [x] BIJOU_329: DX-046: GraphQL-authored DOGFOOD block fixture
-      ([#329](https://github.com/flyingrobots/bijou/issues/329)).
-
-### Echo (Metadata Repair)
-
-- [ ] ECHO_489: Echo / git-warp witnessed suffix sync
-      ([#489](https://github.com/flyingrobots/echo/issues/489)).
-- [ ] ECHO_515: jedit Real Echo Release Gate
-      ([#515](https://github.com/flyingrobots/echo/issues/515)).
-- [ ] ECHO_528: Retire embedded filesystem METHOD tooling after GitHub Issues
-      migration
-      ([#528](https://github.com/flyingrobots/echo/issues/528)).
-- [ ] ECHO_583: Echo 1.0: Edict Native Invocation in Echo
-      ([#583](https://github.com/flyingrobots/echo/issues/583)).
-- [ ] ECHO_585: Gate A - Continuum Participant Conformance
-      ([#585](https://github.com/flyingrobots/echo/issues/585)).
-- [ ] ECHO_586: Echo 1.0: Echo Docs Split Before Release
-      ([#586](https://github.com/flyingrobots/echo/issues/586)).
-- [ ] ECHO_587: Echo 1.0: GitHub-Native Roadmap Migration
-      ([#587](https://github.com/flyingrobots/echo/issues/587)).
-- [ ] ECHO_588: Gate D - Release Integrity
-      ([#588](https://github.com/flyingrobots/echo/issues/588)).
-- [ ] ECHO_589: Gate C - Native Jedit-on-Edict Execution
-      ([#589](https://github.com/flyingrobots/echo/issues/589)).
-- [ ] ECHO_591: Gate B - Networked Causal Suffix Exchange
-      ([#591](https://github.com/flyingrobots/echo/issues/591)).
+- `Target: 1.0`: 53 hard release-bar rows.
+- `Target: Launchpad`: 31 website/browser-replay rows.
+- Added `Track: Durability` for Echo WAL/WSC durability work.
+- Added `Track: Bijou` for Launchpad debugger-scene renderer work.
+- No Project rows in this snapshot are missing `Target`, `Track`, or
+  `Goalpost`.
 
 ## Immediate Execution Handoff
 
@@ -735,7 +796,7 @@ closure.
 1. Can an agent find the next slice without guessing from a prose roadmap?
 2. Does each listed item name its owning repository and GitHub coordinate?
 3. Are evidence PR rows distinguished from issue-owned work slices?
-4. Are Project metadata gaps visible enough to repair before filtered views are
-   used for release decisions?
+4. Does the packet keep the hard `Target: 1.0` release lane distinct from the
+   `Target: Launchpad` website/browser-replay lane?
 5. Does the packet preserve Project #15 as live state authority instead of
    making this snapshot the work tracker?
