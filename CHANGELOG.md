@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the Continuum Stack Release Roadmap packet, recording the GP0-GP6
+  release path, gate ownership, evidence requirements, and the GP1 Echo
+  durability handoff while keeping live status in GitHub Project #15.
 - Recorded `git-stunts/git-warp` as the git-warp implementation owner for the
   Continuum stack suffix-exchange gate.
 - Added the Continuum Stack Convergence coordination packet, defining the

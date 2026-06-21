@@ -51,17 +51,17 @@ how those repos meet at protocol boundaries.
 
 Repository ownership remains:
 
-| Repository | Owns |
-| --- | --- |
-| Continuum | Cross-repo vocabulary, profiles, release bar, compatibility set shape, conformance posture, shared proof vocabulary. |
-| Echo | Runtime admission, WAL/WSC durability, receipts, readings, mutation execution, Echo 1.0 release contract. |
-| `git-warp` | Causal suffix substrate behavior and peer exchange implementation from the `git-stunts/git-warp` side. |
-| Edict | Deterministic source, compiler, bundle identity, artifact schema, lawpack, and target-profile lowering. |
-| `jedit` | Product operation semantics and the designated native operation proof. |
-| Graft | Structural observer posture and translated-versus-native evidence boundaries. |
-| WARP TTD | Debugger/trace/profile surfaces over Continuum-compatible participants. |
-| WARP DRIVE | Browser/app projection surfaces over readings and intents. |
-| Wesley | Contract-family compilation and generated adapter surfaces. |
+| Repository | Owns                                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| Continuum  | Cross-repo vocabulary, profiles, release bar, compatibility set shape, conformance posture, shared proof vocabulary. |
+| Echo       | Runtime admission, WAL/WSC durability, receipts, readings, mutation execution, Echo 1.0 release contract.            |
+| `git-warp` | Causal suffix substrate behavior and peer exchange implementation from the `git-stunts/git-warp` side.               |
+| Edict      | Deterministic source, compiler, bundle identity, artifact schema, lawpack, and target-profile lowering.              |
+| `jedit`    | Product operation semantics and the designated native operation proof.                                               |
+| Graft      | Structural observer posture and translated-versus-native evidence boundaries.                                        |
+| WARP TTD   | Debugger/trace/profile surfaces over Continuum-compatible participants.                                              |
+| WARP DRIVE | Browser/app projection surfaces over readings and intents.                                                           |
+| Wesley     | Contract-family compilation and generated adapter surfaces.                                                          |
 
 No repo may mint a shadow schema, shadow vocabulary, or shadow ownership map for
 shared Continuum contracts. Shared nouns need one authored home and explicit
@@ -105,9 +105,10 @@ Continuum Stack Convergence
 Initial Project:
 <https://github.com/users/flyingrobots/projects/15>
 
-The existing Echo 1.0 Project may remain as the Echo release train or be nested
-under the Continuum Project as a filtered view. Continuum-level work must not be
-tracked by copying Echo's release contract into every repo.
+The retired Echo 1.0 Project is no longer release authority. Echo release work
+is represented in the Continuum Stack Convergence Project through Echo-owned
+issues, native repository metadata, and filtered views. Continuum-level work
+must not be tracked by copying Echo's release contract into every repo.
 
 Use native GitHub metadata where it already exists:
 
@@ -123,14 +124,14 @@ Use native GitHub metadata where it already exists:
 
 Use custom fields only for cross-repo triage:
 
-| Field | Values |
-| --- | --- |
-| Track | Continuum, Echo, Suffix Exchange, Edict, Jedit, Graft, WARP TTD, WARP DRIVE, Wesley, Docs, Release |
-| Goalpost | GP0, GP1, GP2, GP3, GP4, GP5, GP6 |
-| Target | 1.0, Deferred, Research |
-| Risk | Low, Medium, High, Critical |
-| Proof | Missing, Unit, Integration, Conformance, Network, Release |
-| Slice | S, M, Needs decomposition |
+| Field    | Values                                                                                             |
+| -------- | -------------------------------------------------------------------------------------------------- |
+| Track    | Continuum, Echo, Suffix Exchange, Edict, Jedit, Graft, WARP TTD, WARP DRIVE, Wesley, Docs, Release |
+| Goalpost | GP0, GP1, GP2, GP3, GP4, GP5, GP6                                                                  |
+| Target   | 1.0, Deferred, Research                                                                            |
+| Risk     | Low, Medium, High, Critical                                                                        |
+| Proof    | Missing, Unit, Integration, Conformance, Network, Release                                          |
+| Slice    | S, M, Needs decomposition                                                                          |
 
 Do not create a custom Repository field. Repository is native metadata.
 
@@ -143,14 +144,14 @@ Do not treat Slice `Needs decomposition` as ready work.
 
 Start with six views:
 
-| View | Purpose |
-| --- | --- |
-| Release Bar | Stack gates grouped by parent issue and sub-issue progress. |
-| Now | Board grouped by Status for current execution. |
-| By Track | Table grouped by Track. |
-| Dependency & Risk | Blocked work plus High/Critical risk. |
-| Proof Debt | Target `1.0` issues whose Proof is not sufficient for their gate. |
-| Review Queue | Linked pull requests awaiting review or merge-gate judgment. |
+| View              | Purpose                                                           |
+| ----------------- | ----------------------------------------------------------------- |
+| Release Bar       | Stack gates grouped by parent issue and sub-issue progress.       |
+| Now               | Board grouped by Status for current execution.                    |
+| By Track          | Table grouped by Track.                                           |
+| Dependency & Risk | Blocked work plus High/Critical risk.                             |
+| Proof Debt        | Target `1.0` issues whose Proof is not sufficient for their gate. |
+| Review Queue      | Linked pull requests awaiting review or merge-gate judgment.      |
 
 GitHub CLI can create projects, fields, copy projects, and mark projects as
 templates. It does not currently provide a stable command for creating and
