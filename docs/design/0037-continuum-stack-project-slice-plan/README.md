@@ -46,6 +46,46 @@ The lists below reflect Project #15 after Echo PR #599 merged on 2026-06-21.
 - GitHub issue rows are the work authority. Pull requests and proof packets are
   evidence that issue contracts were satisfied.
 
+## Project Update Guidance
+
+Project updates should announce evidence transitions, not re-state the whole
+roadmap. Use them when a reader needs to know that the stack moved, stalled, or
+changed shape.
+
+Good update triggers:
+
+- A goalpost starts because its first PR-sized slice is in progress.
+- A goalpost closes because the required evidence exists and the owning issues
+  are closed.
+- A gate issue changes from blocked to unblocked, or from unblocked to blocked.
+- A cross-repository dependency changes shape, ownership, or sequencing.
+- A proof artifact lands: conformance report, compatibility manifest, network
+  trace, recovery report, admission receipt, release candidate, or demo.
+- Project #15 fields, dependencies, milestones, or issue hierarchy are repaired
+  in a way that changes the release view.
+- A risk becomes material enough that future work should route around it.
+
+Default posting targets:
+
+- Add operational updates to the relevant gate or release-bar issue.
+- Use GitHub Project status updates for cross-repository state changes.
+- Use broader public channels only when there is a durable proof artifact,
+  working demo, release candidate, or crisp architectural decision to point at.
+
+Every update should name the current goalpost, cite the GitHub issue or PR that
+changed, state the new evidence, and name the next slice. Do not copy the whole
+roadmap into an update. Link to Project #15 and the relevant issue graph.
+
+Reusable update shape:
+
+```text
+<Goalpost> status: <started | advanced | blocked | complete>.
+Evidence: <merged PR, report, demo, trace, receipt, or issue closure>.
+Meaning: <one sentence about what is now true>.
+Next: <single next slice or blocker>.
+Roadmap authority: Project #15 and linked GitHub issues.
+```
+
 ## Gantt Zoom Layers
 
 The Mermaid Gantt charts below are sequencing maps, not schedules. Mermaid
@@ -275,6 +315,20 @@ gantt
 Purpose: establish the release bar, Project, ownership map, and GitHub-native
 planning boundary.
 
+Post update when: the release-bar issue hierarchy, Project fields, dependency
+edges, or first release-board views are created or materially corrected.
+
+Suggested post:
+
+```text
+GP0 status: control surface established.
+Evidence: Project #15, release bar issues, gate issues, and issue dependencies
+now define the live roadmap.
+Meaning: roadmap motion now happens in GitHub Project #15 and linked issues,
+not in a living repository checklist.
+Next: begin GP1 by advancing Echo durable causal history.
+```
+
 ### Continuum (GP0)
 
 - [ ] CONT_30: Continuum Stack Convergence Release Bar
@@ -305,6 +359,21 @@ planning boundary.
 
 Purpose: make Echo's accepted causal history durable enough to support later
 Continuum participation, suffix exchange, retained evidence, and release proof.
+
+Post update when: a durability slice lands with executable evidence, the
+durability umbrella changes state, a crash/recovery proof lands, or a blocked
+durability assumption affects later goalposts.
+
+Suggested post:
+
+```text
+GP1 status: durable causal history advanced.
+Evidence: Echo <issue/PR> proves <WAL, WSC, retention, recovery, or crashpoint
+claim>.
+Meaning: Echo's accepted history is closer to being restart-safe and portable
+enough for Continuum participation.
+Next: <next Echo durability slice or named blocker>.
+```
 
 ### Echo (GP1)
 
@@ -389,6 +458,21 @@ Continuum participation, suffix exchange, retained evidence, and release proof.
 Purpose: define the participant/profile vocabulary and generated contract
 surfaces needed by Echo, Launchpad, and other participants.
 
+Post update when: the participant/profile vocabulary stabilizes, generated
+artifacts land, conformance fixtures become executable, or a protocol decision
+changes downstream Echo, Wesley, or Launchpad work.
+
+Suggested post:
+
+```text
+GP2 status: Continuum participation protocol advanced.
+Evidence: <Continuum/Wesley/flyingrobots.dev issue or PR> defines or generates
+<profile, descriptor, contract artifact, or conformance fixture>.
+Meaning: participants have a more explicit boundary for lawful registration,
+admission, invocation, observation, or evidence.
+Next: <next protocol or generated-artifact slice>.
+```
+
 ### Continuum (GP2)
 
 - [ ] CONT_31: Gate A - Continuum Protocol Spine
@@ -415,6 +499,22 @@ surfaces needed by Echo, Launchpad, and other participants.
 
 Purpose: prove witnessed suffix exchange over a real boundary while also
 advancing the browser/WASM runtime proof that will make the stack inspectable.
+
+Post update when: Echo and git-warp exchange suffixes over a real network
+boundary, any duplicate/reordered/tampered suffix case is proven, the browser
+WASM host executes a meaningful path, or a network proof blocks on protocol
+shape.
+
+Suggested post:
+
+```text
+GP3 status: networked suffix exchange advanced.
+Evidence: <Echo/git-warp/flyingrobots.dev issue or PR> demonstrates
+<network exchange, rejection case, WASM host path, or receipt chain>.
+Meaning: causal history is moving from local-only durability toward witnessed
+cross-runtime exchange.
+Next: <next suffix, WASM, or browser-host slice>.
+```
 
 ### Continuum (GP3)
 
@@ -447,6 +547,22 @@ advancing the browser/WASM runtime proof that will make the stack inspectable.
 Purpose: make Edict artifact admission and browser replay read models concrete
 enough for downstream native application proof.
 
+Post update when: Edict artifact identity/admission semantics are executable,
+Echo can expose debugger-safe browser facts, WARP TTD read/control contracts
+land, or a browser replay proof changes how downstream jedit work should route.
+
+Suggested post:
+
+```text
+GP4 status: Edict and replay pipeline advanced.
+Evidence: <Edict/Echo/WARP TTD/flyingrobots.dev issue or PR> proves
+<artifact admission, invocation boundary, browser replay read model, or session
+fact export>.
+Meaning: authored operations and browser replay evidence are becoming concrete
+enough for native product flows.
+Next: <next artifact, replay, or fact-export slice>.
+```
+
 ### Edict (GP4)
 
 - [ ] EDICT_11: Gate C - Edict Artifact Admission Contract
@@ -478,6 +594,21 @@ enough for downstream native application proof.
 Purpose: prove product operations through Edict and render the resulting
 debugger scene contract consistently.
 
+Post update when: a designated jedit operation compiles through Edict, the old
+bypass path becomes unreachable, a debugger scene fixture renders consistently,
+or Bijou/browser parity evidence lands.
+
+Suggested post:
+
+```text
+GP5 status: native jedit-on-Edict path advanced.
+Evidence: <jedit/Echo/Edict/Bijou/flyingrobots.dev issue or PR> proves
+<compiled operation, admitted invocation, bypass rejection, or scene parity>.
+Meaning: product behavior is moving onto the same lawful artifact path as the
+rest of the stack.
+Next: <next native-operation or renderer-parity slice>.
+```
+
 ### Bijou (GP5)
 
 - [ ] BIJOU_302: COOL IDEA: compile GraphQL-authored UI scenes into Bijou
@@ -505,6 +636,22 @@ debugger scene contract consistently.
 
 Purpose: produce the compatibility manifest, proof packets, release demo, and
 release integrity evidence for the whole stack.
+
+Post update when: the compatibility set is pinned, proof packets are attached,
+release candidate automation runs, adversarial demo cases pass, or any release
+gate changes readiness.
+
+Suggested post:
+
+```text
+GP6 status: release proof advanced.
+Evidence: <Continuum/WARP TTD/flyingrobots.dev issue or PR> produces
+<compatibility manifest, proof packet, release candidate, or adversarial demo
+result>.
+Meaning: Echo 1.0 / Continuum stack readiness is now judged against pinned
+cross-repository evidence rather than independent green repos.
+Next: <next release-proof slice or explicit merge/release blocker>.
+```
 
 ### Continuum (GP6)
 
