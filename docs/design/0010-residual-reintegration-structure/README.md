@@ -1,6 +1,6 @@
 ---
 title: Residual Reintegration Structure
-status: proposed
+status: archived
 ---
 
 # Residual Reintegration Structure

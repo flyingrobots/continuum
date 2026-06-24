@@ -1,6 +1,6 @@
 ---
 title: Echo Against Continuum Invariants
-status: proposed
+status: archived
 ---
 
 # Echo Against Continuum Invariants

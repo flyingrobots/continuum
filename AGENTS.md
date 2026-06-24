@@ -26,8 +26,9 @@ truth across Echo, `git-warp`, `warp-ttd`, and Wesley.
 - All documentation follows the
   [Continuum Documentation Standard](docs/DOCUMENTATION_POLICY.md). Read it
   before adding or changing docs.
-- Durable truth lives in reader-task pages (`docs/reference/`, `docs/how-to/`,
-  `docs/explanation/`), not in the design log.
+- Durable truth lives in reader-task pages under `docs/` organized by reader
+  need (today `docs/how-to/` and `docs/invariants/`; reference and explanation
+  shelves are being lifted out of the design log), not in the design log.
 - `docs/design/` is a **frozen historical decision log**. Do not add new packets
   there. Record new decisions as a one-screen ADR-lite note or a `CHANGELOG.md`
   line.

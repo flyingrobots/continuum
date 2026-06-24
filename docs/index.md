@@ -39,6 +39,6 @@ For how this documentation is organized and the rules it follows, see the
 ## Understand the theory
 
 - [Overview](OVERVIEW.md) is the synthesis hub.
-- The full record lives in the [design packets](design/README.md). Packets are
-  append-only decision records; a superseded packet links forward rather than
-  being deleted.
+- The full record lives in the [design packets](design/README.md), a **frozen
+  historical decision log**. A superseded packet stays as history rather than
+  being deleted; new decisions use a decision record or a `CHANGELOG.md` line.

@@ -16,7 +16,9 @@ Continuum work should produce:
 
 - signposts: [docs/BEARING.md](docs/BEARING.md),
   [docs/VISION.md](docs/VISION.md)
-- design cycles: `docs/design/<NNNN-slug>/`
+- design log (frozen archive): `docs/design/<NNNN-slug>/` — no new packets;
+  record decisions as ADR-lite notes or a `CHANGELOG.md` line
+  (see [docs/DOCUMENTATION_POLICY.md](docs/DOCUMENTATION_POLICY.md) §7)
 - backlog lanes:
   `docs/method/backlog/inbox/`
   `docs/method/backlog/asap/`
@@ -28,7 +30,9 @@ Continuum work should produce:
 ## Working Rules
 
 1. Start with the smallest honest hill.
-2. Prefer one good design packet over scattered notes.
+2. Record a new decision as a one-screen ADR-lite note or a `CHANGELOG.md` line,
+   not a new design packet (`docs/design/` is a frozen archive; see
+   [docs/DOCUMENTATION_POLICY.md](docs/DOCUMENTATION_POLICY.md) §7).
 3. Prefer one concrete backlog note over leaving a useful discovery only in
    chat.
 4. Keep repo truth short; link outward to active repos instead of copying whole

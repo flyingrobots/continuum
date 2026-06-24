@@ -1,6 +1,6 @@
 ---
 title: Agent-Neutral Edict Participation
-status: proposed
+status: archived
 ---
 
 # Agent-Neutral Edict Participation

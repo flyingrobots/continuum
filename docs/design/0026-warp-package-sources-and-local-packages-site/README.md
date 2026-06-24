@@ -1,6 +1,6 @@
 ---
 title: Warp Package Sources And Local Packages Site
-status: proposed
+status: archived
 ---
 
 # Warp Package Sources And Local Packages Site

@@ -1,6 +1,6 @@
 ---
 title: Focus Boundary Structure
-status: proposed
+status: archived
 ---
 
 # Focus Boundary Structure

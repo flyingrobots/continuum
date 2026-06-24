@@ -46,11 +46,17 @@ before treating this module as standalone repo truth.
 
 ## Local Checks
 
-The hermetic unit checks do not require the host CLI:
+The unit checks do not require the Wesley **host CLI**, but they do require the
+Wesley base platform (`@wesley/core`). Install `@wesley/cli` and `@wesley/core`,
+or set `WESLEY_REPO_ROOT` to a Wesley checkout, then run:
 
 ```bash
 node --test wesley/test/*.test.mjs
 ```
+
+Without a resolvable `@wesley/core` these tests fail to load (see
+`wesley/support/wesley-deps.mjs`). They are therefore not run in this repo's CI,
+which has no Wesley checkout.
 
 The Bats checks require `bats`, the sibling Wesley host CLI, and the Continuum
 module loaded through `WESLEY_MODULES`. The test helper sets `WESLEY_MODULES`

@@ -1,6 +1,6 @@
 ---
 title: TACHYON Warpspace Resolution
-status: proposed
+status: archived
 ---
 
 # TACHYON Warpspace Resolution

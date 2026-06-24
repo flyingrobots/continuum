@@ -1,6 +1,6 @@
 ---
 title: Neighborhood Core And Admission Outcome Family
-status: proposed
+status: archived
 ---
 
 # Neighborhood Core And Admission Outcome Family

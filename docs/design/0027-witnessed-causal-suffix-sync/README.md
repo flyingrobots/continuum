@@ -1,6 +1,6 @@
 ---
 title: Witnessed Causal Suffix Sync
-status: proposed
+status: archived
 ---
 
 # Witnessed Causal Suffix Sync

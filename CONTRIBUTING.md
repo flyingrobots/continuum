@@ -12,8 +12,9 @@ All documentation follows the
 [Continuum Documentation Standard](docs/DOCUMENTATION_POLICY.md). Read it before
 adding or changing docs. In short:
 
-- Durable truth lives in **reader-task pages** (`docs/reference/`,
-  `docs/how-to/`, `docs/explanation/`), organized by what a reader is trying to
+- Durable truth lives in **reader-task pages** under `docs/` (today
+  `docs/how-to/` and `docs/invariants/`; reference and explanation shelves are
+  being lifted out of the design log), organized by what a reader is trying to
   do — not by source layout.
 - `docs/design/` is a **frozen historical decision log**. Do not add new packets.
   Record a new decision as a one-screen ADR-lite note or a `CHANGELOG.md` line.

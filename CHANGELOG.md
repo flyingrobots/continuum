@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Audited every documentation file against source code and recorded the result
+  in `docs/method/DOCUMENTATION_AUDIT.md` (per-claim verdicts with `path#line@sha`
+  citations, accuracy scores, keep/merge/trash decisions, and a signpost +
+  `docs/topics/` consolidation map).
+- Fixed documentation claims the audit found contradicted by source: removed the
+  nonexistent `qw build`/`qw doctor` step from `GETTING_STARTED.md`; removed the
+  false "Done: `docs/reference/release-targets.md`" claim from the documentation
+  standard §18; corrected `AGENTS.md`/`CONTRIBUTING.md` references to reader-task
+  directories that do not exist; and corrected `wesley/README.md`'s "hermetic"
+  unit-test claim (the tests require `@wesley/core`).
+- Reframed the design log as a frozen archive in practice: rewrote
+  `docs/design/README.md` from a live-cycle workspace into an archive index,
+  relabelled all 41 design files' frontmatter `status: proposed` → `archived`,
+  and replaced the design-cycle mandate in `METHOD.md` and `docs/method/process.md`
+  with the ADR-lite/`CHANGELOG.md` rule (closing the METHOD follow-up flagged
+  earlier in this changelog).
+- Updated `docs/index.md` to describe packets as a frozen historical decision
+  log rather than append-only records.
+
 - Adopted the reader-task Documentation Product Standard as a Continuum-specific
   hub policy (`docs/DOCUMENTATION_POLICY.md`), defining the capability taxonomy,
   hub-native page types, and the generate-don't-curate rule for cross-repo

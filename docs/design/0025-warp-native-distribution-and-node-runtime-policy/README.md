@@ -1,6 +1,6 @@
 ---
 title: Warp Native Distribution And Node Runtime Policy
-status: proposed
+status: archived
 ---
 
 # Warp Native Distribution And Node Runtime Policy

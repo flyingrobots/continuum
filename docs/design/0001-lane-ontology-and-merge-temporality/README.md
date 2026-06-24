@@ -1,6 +1,6 @@
 ---
 title: Lane Ontology And Merge Temporality
-status: proposed
+status: archived
 ---
 
 # Lane Ontology And Merge Temporality

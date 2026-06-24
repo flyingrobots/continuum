@@ -343,10 +343,9 @@ log**, not new authoring — the durable truth already exists, scattered across 
 packets.
 
 1. Freeze `docs/design/`; stop synthesizing it into reader-task pages.
-2. Lift mis-filed reference material out of packets into reader-task pages. Done:
-   the release-targets reference (`docs/reference/release-targets.md`, lifted from
-   former packet 0038). Next: the convergence (0035) and ownership-law (0014)
-   reference content.
+2. Lift mis-filed reference material out of packets into reader-task pages. The
+   first candidates are the convergence (0035) and ownership-law (0014)
+   reference content; none have been lifted yet.
 3. Consolidate the theory packets (0001-0022) into one living "How Continuum
    works" explanation and retire `OVERVIEW.md`'s "synthesis of packets" framing.
 4. Hold each capability to the §8 coverage matrix; route new decisions to

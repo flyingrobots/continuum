@@ -74,7 +74,10 @@ If the `qw` bootstrap flow exists, the getting-started path should be:
 1. Install `qw`.
 2. Run `qw init my-app --profile demo`.
 3. Enter the new repo.
-4. Run `qw build` or `qw doctor`.
+4. Inspect the generated workspace (`warpspace.toml`, `warpspace.lock.json`,
+   `contracts/continuum/`, and the generated outputs). Day-to-day commands such
+   as `qw build`, `qw doctor`, and `qw update` are planned but not yet
+   implemented — see [apps/warp/VISION.md](../apps/warp/VISION.md).
 5. Start writing app-local contracts and app code on top of the generated
    shared family.
 

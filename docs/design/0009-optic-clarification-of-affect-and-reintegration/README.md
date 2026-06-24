@@ -1,6 +1,6 @@
 ---
 title: Optic Clarification Of Affect And Reintegration
-status: proposed
+status: archived
 ---
 
 # Optic Clarification Of Affect And Reintegration
