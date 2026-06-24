@@ -36,6 +36,13 @@
   (status: proposed, with a no-source caveat) so the front-door narrative stops
   presenting an unbuilt protocol surface as current, and corrected its
   `warp doctor` reference to the `qw` CLI.
+- Added `docs/reference/glossary.md` as the canonical shared-noun glossary
+  (source-backed against the authored families) and pointed `APP_GLOSSARY.md` at
+  it; added `docs/reference/qw-cli.md` as the exact `qw` command reference
+  (from `apps/warp/src/cli.mjs`). De-scaffolded `docs/OVERVIEW.md`, removing the
+  "synthesis of packets 0001–0018" framing and relabelling its packet links as
+  design history. Registered the new pages in `docs/catalog.yaml` and linked
+  them from `docs/index.md`.
 
 - Adopted the reader-task Documentation Product Standard as a Continuum-specific
   hub policy (`docs/DOCUMENTATION_POLICY.md`), defining the capability taxonomy,

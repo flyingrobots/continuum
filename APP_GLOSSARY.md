@@ -6,6 +6,10 @@ It is not a paper and it is not a full ontology. It is a coordination aid for
 people touching `continuum`, `echo`, `jedit`, and Wesley-generated contract
 surfaces.
 
+The canonical vocabulary for the shared Continuum nouns lives in the
+[Shared Noun Glossary](docs/reference/glossary.md); this note adds the per-app
+mapping (notably `jedit`'s) on top of it.
+
 ## Rules
 
 - App nouns are allowed.

@@ -69,7 +69,25 @@ pages:
     path: GETTING_STARTED.md
     audiences: [newcomer, app-author]
     intents: [run-something-first]
-    related: [overview]
+    related: [overview, qw-cli]
+  - id: glossary
+    title: Shared Noun Glossary
+    type: reference
+    capability: ontology
+    status: current
+    path: reference/glossary.md
+    audiences: [newcomer, maintainer, agent]
+    intents: [look-up-a-term]
+    related: [ownership-map, contract-family-registry, overview]
+  - id: qw-cli
+    title: qw command reference
+    type: reference
+    capability: warp-cli
+    status: current
+    path: reference/qw-cli.md
+    audiences: [app-author, maintainer, agent]
+    intents: [look-up-a-command]
+    related: [getting-started]
 
   # --- contract families: registry, schemas, conformance ---
   - id: contract-family-registry

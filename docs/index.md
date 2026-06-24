@@ -16,7 +16,8 @@ For how this documentation is organized and the rules it follows, see the
 ## Start here
 
 - New to the model? Read the [overview](OVERVIEW.md), then the [full reference](../README_FULL.md).
-- Want to run something first? Follow [Getting Started](GETTING_STARTED.md).
+- Want to run something first? Follow [Getting Started](GETTING_STARTED.md); the exact commands are in the [qw command reference](reference/qw-cli.md).
+- Need a term? See the [Shared Noun Glossary](reference/glossary.md).
 - Setting direction? See [Bearing](BEARING.md) and [Vision](VISION.md).
 
 ## Conform a repo to Continuum (sibling maintainers)
@@ -38,7 +39,7 @@ For how this documentation is organized and the rules it follows, see the
 
 ## Understand the theory
 
-- [Overview](OVERVIEW.md) is the synthesis hub.
+- [Overview](OVERVIEW.md) is the living explanation of the model.
 - The full record lives in the [design packets](design/README.md), a **frozen
   historical decision log**. A superseded packet stays as history rather than
   being deleted; new decisions use a decision record or a `CHANGELOG.md` line.

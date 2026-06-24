@@ -89,7 +89,7 @@ Fit: large, mixes explanation + an *unbuilt* tier/profile spec. The durable half
 tier/profile catalogue should be relabelled **proposed** and moved to a single
 "protocol profiles (proposed)" reference, or dropped until authored.
 
-### `docs/OVERVIEW.md` — accuracy ≈ 80% (as theory synthesis) — **MERGE → `docs/explanation/` hub**
+### `docs/OVERVIEW.md` — accuracy ≈ 80% (as theory synthesis) — **DONE: de-scaffolded in place** (was MERGE)
 
 | Claim | Verdict | Conf. | Evidence |
 | --- | --- | --- | --- |
@@ -208,7 +208,7 @@ Direction-setting; "current hill" language. Doctrine, no source claims. Slightly
 stale ("establishing METHOD lanes… deciding the first artifacts") given those
 now exist, but acceptable for a bearing.
 
-### `APP_GLOSSARY.md` — accuracy ≈ 88% — **MERGE → ontology reference (glossary)**
+### `APP_GLOSSARY.md` — accuracy ≈ 88% — **DONE: canonical glossary lifted to `docs/reference/glossary.md`** (APP_GLOSSARY kept for the per-app mapping)
 
 - ✅ "Continuum Shared Publication Families" table maps `NeighborhoodCore`, `SettlementDelta`, `ImportCandidate`, `ConflictArtifact`, `SettlementDecision`, `SettlementPlan`, `SettlementResult`, `laneId`, `frameIndex` to real schema symbols.
 - 🟡 The `jedit` hot-text table cites `jedit/...` files in a sibling repo — coordination aid, but skirts the §2.1 hub invariant (don't host sibling runtime truth). Keep the WARP-term column; link out for the jedit-local column rather than reproducing it.
@@ -345,8 +345,9 @@ split — see "Structural consolidation completed" below).
 - **Slice 1 — ownership map lifted:** `docs/reference/ownership-map.md` authored from packet 0014 (updated to current schema truth, incl. settlement + runtime-boundary nouns); `index.md` + `catalog.yaml` repointed; packet demoted to archived design-packet.
 - **Slice 3 — convergence lifted:** `docs/reference/convergence.md` authored from packets 0035/0036 (durable gate/owner/evidence/ordering; GitHub state linked, not copied); 0037/0030 linked as history; routing repointed; packets archived in catalog.
 - **Slice 2 — README_FULL split:** the unbuilt T0–T6 tiers and `continuum.*.v1` profiles moved to `docs/explanation/protocol-profiles.md` (status: proposed, with an honest no-source banner); `README_FULL.md` now points there and its `warp doctor` reference is corrected.
+- **Slice 4 — canonical glossary:** `docs/reference/glossary.md` authored (source-backed shared nouns + cross-repo terms + banned collapses); `APP_GLOSSARY.md` points at it and keeps only the per-app mapping role.
+- **Slice 5 — OVERVIEW de-scaffolded:** removed the "synthesis of packets 0001–0018" framing (policy §18); the per-section "Detailed packets" labels are now "Design history". OVERVIEW kept in place as the ontology explanation hub (relocating it would break many inbound links).
+- **Slice 6 — qw command reference:** `docs/reference/qw-cli.md` authored from `apps/warp/src/cli.mjs` + README; linked from `index.md` and registered in the catalog. `GETTING_STARTED.md` retained as the warp-cli how-to.
 
 ### Still open
-- Lift the glossary (`APP_GLOSSARY.md` shared-families table → `docs/reference/glossary.md`) and the ontology explanation (`OVERVIEW.md`, de-scaffolded → `docs/explanation/`).
-- Author the warp-cli shelf (`docs/how-to/get-started-with-qw.md` + `docs/reference/qw-cli.md`) from `GETTING_STARTED.md` + `apps/warp/README.md`.
-- Decide whether to vendor/install `@wesley/core` in CI so the receipt/settlement `fixture-witnessed` evidence is gated.
+- Decide whether to vendor/install `@wesley/core` in CI so the receipt/settlement `fixture-witnessed` evidence is gated. (The only remaining item; everything else in the consolidation map is done.)
