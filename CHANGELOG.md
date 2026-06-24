@@ -20,6 +20,11 @@
   earlier in this changelog).
 - Updated `docs/index.md` to describe packets as a frozen historical decision
   log rather than append-only records.
+- Removed `GoodIdeas.md` (old-repo salvage list whose Continuum-relevant ideas
+  are already realized in current docs); captured the remaining still-live
+  runtime ideas as `cool ideas` GitHub issues (#39–42) for the owning runtimes
+  before deletion. Recorded the consolidation target as the policy's named
+  reader-task directories (no `docs/topics/` tree).
 
 - Adopted the reader-task Documentation Product Standard as a Continuum-specific
   hub policy (`docs/DOCUMENTATION_POLICY.md`), defining the capability taxonomy,

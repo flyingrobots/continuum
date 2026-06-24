@@ -10,7 +10,7 @@ verify each claim **against source code only** (`schemas/`, `apps/warp/`,
 doc. Citations use `path#line@sha`.
 
 It is the input to a consolidation pass: collapse ~80 doc files into a few
-signposts plus `docs/topics/` shelves per `docs/DOCUMENTATION_POLICY.md`.
+signposts plus the policy's reader-task shelves per `docs/DOCUMENTATION_POLICY.md`.
 
 ### Verdict legend (per claim)
 
@@ -89,7 +89,7 @@ Fit: large, mixes explanation + an *unbuilt* tier/profile spec. The durable half
 tier/profile catalogue should be relabelled **proposed** and moved to a single
 "protocol profiles (proposed)" reference, or dropped until authored.
 
-### `docs/OVERVIEW.md` — accuracy ≈ 80% (as theory synthesis) — **MERGE → `docs/topics/` explanation hub**
+### `docs/OVERVIEW.md` — accuracy ≈ 80% (as theory synthesis) — **MERGE → `docs/explanation/` hub**
 
 | Claim | Verdict | Conf. | Evidence |
 | --- | --- | --- | --- |
@@ -212,16 +212,17 @@ now exist, but acceptable for a bearing.
 
 - ✅ "Continuum Shared Publication Families" table maps `NeighborhoodCore`, `SettlementDelta`, `ImportCandidate`, `ConflictArtifact`, `SettlementDecision`, `SettlementPlan`, `SettlementResult`, `laneId`, `frameIndex` to real schema symbols.
 - 🟡 The `jedit` hot-text table cites `jedit/...` files in a sibling repo — coordination aid, but skirts the §2.1 hub invariant (don't host sibling runtime truth). Keep the WARP-term column; link out for the jedit-local column rather than reproducing it.
-- The glossary is the policy's required `ontology` reference. Lift it into `docs/topics/` and make it the canonical glossary.
+- The glossary is the policy's required `ontology` reference. Lift it into `docs/reference/glossary.md` and make it the canonical glossary.
 
-### `GoodIdeas.md` — accuracy ≈ 40% (as current truth) — **TRASH** (→ git history) / archive
+### `GoodIdeas.md` — accuracy ≈ 40% (as current truth) — **TRASHED** (deleted; live ideas → issues #39–42)
 
 Salvage notes referencing an *old* Continuum repo's files (`docs/DOCS-GOVERNANCE.md`,
 `docs/ARCH/ARCH-0002…`, `crates/jitos-core/…`) that **do not exist here**. Its
 "First Integration Targets" (invariant index, compatibility matrix, glossary) are
 **already done** (`docs/invariants/CONTINUUM.md`, `docs/contract-family-registry.md`,
 `APP_GLOSSARY.md`). No current-repo claims to verify. Pure historical scaffolding;
-its job is finished. Delete from the working tree (history preserves it).
+its job is finished. **Deleted** in this pass; the four still-live runtime ideas
+were captured as `cool ideas` issues #39–42 first (history preserves the file).
 
 ### `CHANGELOG.md` — accuracy ≈ 98% — **KEEP**
 
@@ -278,37 +279,43 @@ policy + CONTRIBUTING; reconcile or close them. Leave the rest as backlog.
 
 ---
 
-## Proposed consolidation (signposts + `docs/topics/` shelves)
+## Proposed consolidation (signposts + the policy's reader-task shelves)
 
-Target shape per `docs/DOCUMENTATION_POLICY.md` §3–§8. Honest, source-backed
-claims cluster into these topics; everything else becomes signpost, archive, or
+Target shape per `docs/DOCUMENTATION_POLICY.md` §3–§8, using the **policy's own
+named directories** (`docs/reference/`, `docs/how-to/`, `docs/explanation/`,
+`docs/invariants/`) — capability is catalog metadata, not a directory. (An
+earlier draft called these "`docs/topics/`"; that was shorthand, not a real
+plan — no `docs/topics/` tree will be created.) Honest, source-backed claims
+cluster into these pages; everything else becomes signpost, archive, or
 deletion.
 
 ### Signposts (short, route outward — keep at current homes)
 - `README.md` (repo front door) · `docs/index.md` (reader-goal router) · `docs/BEARING.md` · `docs/VISION.md` · `apps/warp/VISION.md`.
 
-### `docs/topics/` shelves (lift durable truth here)
-| Shelf | Page type | Sourced from | Primary evidence |
-| --- | --- | --- | --- |
-| `ontology/` — the causal-history model + glossary | explanation + reference | `OVERVIEW.md` (de-scaffolded) + `APP_GLOSSARY.md` shared-families table | schemas (admission/settlement/neighborhood nouns) |
-| `contract-families/` — registry + per-family reference + conformance how-to | reference + conformance-guide | `contract-family-registry.md`, `schemas/README.md`, `how-to/publish-runtime-evidence…` | `schemas/*.graphql`, gate coverage |
-| `ownership-law/` — shared-noun ownership map | ownership-map | **lift packet 0014** | registry rows |
-| `convergence/` — release bar, gates, compatibility set | reference + gate-record | **lift packets 0035/0036/0037/0030**, `docs/releases/demo/*` | `continuum-stack-release.json` |
-| `warp-cli/` — quickstart + command reference | tutorial + reference | `GETTING_STARTED.md` (drop `qw build`/`doctor`) + `apps/warp/README.md` | `apps/warp/src/*` |
-| `invariants/` — already correct | invariant | `docs/invariants/CONTINUUM.md` | schemas (inv. 8, 12) |
-| `method/` — how work runs here | contributor | rewritten `METHOD.md` (§7-aligned) | n/a |
-| `protocol-profiles/` *(proposed)* | reference, status: proposed | tiers + profiles extracted from `README_FULL.md` | **none yet — label proposed** |
+### Reader-task shelves (lift durable truth here)
+| Target page | Page type | Capability | Sourced from | Primary evidence |
+| --- | --- | --- | --- | --- |
+| `docs/explanation/causal-history-model.md` | explanation | ontology | `OVERVIEW.md` (de-scaffolded) | schemas (admission/settlement/neighborhood nouns) |
+| `docs/reference/glossary.md` | reference | ontology | `APP_GLOSSARY.md` shared-families table | `schemas/*.graphql` |
+| `docs/contract-family-registry.md` (stays) | reference | contract-families | current | `schemas/*.graphql`, gate coverage |
+| `docs/how-to/publish-runtime-evidence-for-a-contract-family.md` (stays) | conformance-guide | contract-families | current | gate coverage |
+| `docs/reference/ownership-map.md` | ownership-map | ownership-law | **lift packet 0014** | registry rows |
+| `docs/reference/convergence.md` (+ gate-records) | reference + gate-record | convergence | **lift packets 0035/0036/0037/0030**, `docs/releases/demo/*` | `continuum-stack-release.json` |
+| `docs/how-to/get-started-with-qw.md` + `docs/reference/qw-cli.md` | tutorial/how-to + reference | warp-cli | `GETTING_STARTED.md` (no `qw build`/`doctor`) + `apps/warp/README.md` | `apps/warp/src/*` |
+| `docs/invariants/CONTINUUM.md` (stays) | invariant | ontology | current | schemas (inv. 8, 12) |
+| `METHOD.md` (rewritten, §7-aligned) | contributor | method | current | n/a |
+| `docs/explanation/protocol-profiles.md` *(status: proposed)* | reference | — | tiers T0–T6 + `continuum.*.v1` profiles extracted from `README_FULL.md` | **none yet — label proposed** |
 
 ### Keep as archive (frozen, not load-bearing)
 - All `docs/design/00NN/**` (relabel status; demote `design/README.md` to index).
 - `docs/method/backlog/**`, `docs/method/retro/**`, `docs/method/legends/**`.
 
 ### Trash (working tree; history retains)
-- `GoodIdeas.md` (job done; references a repo that no longer exists).
-- `README_FULL.md` *as a single page* — split: durable model prose → `ontology/` explanation; tier/profile catalogue → `protocol-profiles/` (proposed) or drop.
+- `GoodIdeas.md` — **done**: deleted; the ~4 still-live runtime ideas captured as `cool ideas` issues #39–42, the rest already realized in current docs.
+- `README_FULL.md` *as a single page* — split: durable model prose → `docs/explanation/`; tier/profile catalogue → `docs/explanation/protocol-profiles.md` (status: proposed) or drop.
 
 ### Net effect
-~80 files → **5 signposts + 8 topic shelves + 1 frozen archive tree**, with the
+~80 files → **5 signposts + the policy's reader-task shelves + 1 frozen archive tree**, with the
 ~50 packet/backlog files demoted out of the reader path. Every retained
 reader-task page above has at least one ✅ source citation; every unverifiable
 page is either an honest signpost, a clearly-scoped invariant/doctrine page, or
@@ -318,10 +325,10 @@ a `proposed`-labelled future surface.
 
 ## Fixes applied in this pass (content corrections only)
 
-These were the unambiguous, source-backed corrections. No files were deleted,
-moved, or split; the structural consolidation (creating `docs/topics/`, lifting
-packets, splitting `README_FULL.md`, trashing `GoodIdeas.md`) is held for a
-separate confirmed pass.
+These were the unambiguous, source-backed corrections, plus the confirmed
+deletion of `GoodIdeas.md` (its live ideas captured as issues #39–42). The rest
+of the structural consolidation (creating the reader-task shelves, lifting
+packets, splitting `README_FULL.md`) is held for a separate confirmed pass.
 
 - `docs/GETTING_STARTED.md`: removed the "Run `qw build` or `qw doctor`" step (neither command exists); replaced with inspecting generated workspace + a pointer that those commands are planned.
 - `docs/DOCUMENTATION_POLICY.md` §18: removed the false "Done: `docs/reference/release-targets.md` … packet 0038" claim (file, dir, and packet do not exist).
@@ -332,8 +339,9 @@ separate confirmed pass.
 - All 41 design files (37 packets + 4 backlog-origin): frontmatter `status: proposed` → `status: archived`.
 - `wesley/README.md`: corrected the false "hermetic unit checks" claim (they require `@wesley/core`).
 
+- `GoodIdeas.md`: **done** — deleted; live runtime ideas captured as `cool ideas` issues #39–42 (the rest were already realized in current docs).
+
 ### Still open (structural, needs confirmation)
-- Create `docs/topics/` shelves and lift packets 0014/0029/0030/0035/0036/0037 into reference/ownership-map/convergence pages; then update `docs/index.md` and `docs/catalog.yaml` routing (today they still route current tasks into the frozen log — §7 anti-pattern).
-- Split `README_FULL.md`: durable model prose → ontology explanation; tiers T0–T6 + `continuum.*.v1` profiles → a single `protocol-profiles` page **labelled proposed** (or drop until authored).
-- Delete `GoodIdeas.md` from the working tree (history retains it).
+- Create the policy's reader-task shelves (`docs/reference/`, `docs/explanation/`) and lift packets 0014/0029/0030/0035/0036/0037 into reference/ownership-map/convergence pages; then update `docs/index.md` and `docs/catalog.yaml` routing (today they still route current tasks into the frozen log — §7 anti-pattern).
+- Split `README_FULL.md`: durable model prose → `docs/explanation/`; tiers T0–T6 + `continuum.*.v1` profiles → a single `docs/explanation/protocol-profiles.md` **labelled proposed** (or drop until authored).
 - Decide whether to vendor/install `@wesley/core` in CI so the receipt/settlement `fixture-witnessed` evidence is gated.
