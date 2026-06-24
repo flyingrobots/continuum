@@ -81,7 +81,8 @@ explanation, troubleshooting, contributor) and adds these hub-native types:
 
 | Page type | Purpose | Notes |
 | --- | --- | --- |
-| `design-packet` | A dated decision record under `docs/design/NNNN-slug/`. | Append-only. See §5. |
+| `decision-record` | A short ADR-lite record (Context / Decision / Consequences) or a single `CHANGELOG.md` line. | Replaces numbered packets for new decisions. See §5. |
+| `design-packet` | Legacy chronological decision log under `docs/design/NNNN-slug/`. | Frozen archive, not for new docs. See §5. |
 | `invariant` | A normative rule the stack must not violate. | Under `docs/invariants/`. |
 | `ownership-map` | A table assigning the ownership axes of shared nouns. | Generated-or-validated where practical (§6). |
 | `family-reference` | Reference for one authored contract family. | Backed by a file under `schemas/`. |
@@ -93,18 +94,51 @@ A `conformance-guide` MUST be titled as a goal beginning with a verb, MUST state
 the exact evidence that proves success, and MUST link to the authored home and
 the relevant registry entry rather than reproducing them.
 
-## 5. Design packets are append-only decision records
+## 5. The documentation system is reader-task pages, not the packet log
 
-Design packets (`docs/design/NNNN-slug/`) are decision records. The base
-standard's "delete obsolete pages" rule (base §13.4) explicitly exempts decision
-records and versioned history, and that exemption is in force here.
+Continuum's `docs/design/NNNN-slug/` packets are a **historical decision log**,
+not the documentation system. They record what was decided and why, in order.
+They are not where a reader should Learn, Look up, or Understand the system
+(base §1) — that is the job of the reader-task pages.
 
-- A superseded packet is NOT deleted. It records `status` and links forward to
-  the packet that refines or replaces it.
-- A packet's conclusions may be wrong in hindsight; the packet still stands as
-  the record of what was decided and why.
-- Synthesis pages (for example `docs/OVERVIEW.md`) are not packets. They are
-  explanation pages and are subject to normal staleness rules (§6).
+This **reverses an earlier stance in this policy.** Packets are valuable as
+provenance and a liability when they become the primary way to understand
+Continuum: a reader then has to chew dozens of chronological documents to
+reconstruct current truth, which is the base §16 anti-pattern at repo scale.
+
+The rules:
+
+- **Durable truth lives in reader-task pages** (explanation, reference, how-to,
+  contributor), organized by reader need, not by packet number. When a packet's
+  conclusion becomes current truth, consolidate that truth into the relevant
+  reader-task page; the packet stays as the record of the decision.
+- **New decisions use a decision record, not a packet.** A decision record is at
+  most one screen — Context, Decision, Consequences — and many decisions need
+  only a `CHANGELOG.md` line plus the commit. Do not open a numbered design
+  cycle for an ordinary decision.
+- **The `docs/design/` tree is frozen as an archive.** Do not synthesize it into
+  reader-task pages (for example, `docs/OVERVIEW.md` must stop billing itself as
+  a synthesis of packets), and do not require a reader to visit it to understand
+  the product. A superseded packet is not deleted (base §13.4; it is real
+  history); it is simply no longer load-bearing.
+
+This supersedes METHOD.md's design-cycle mandate for documentation purposes.
+METHOD.md still needs a follow-up edit to drop "prefer one good design packet."
+
+### 5.1 Coverage matrix
+
+Coverage is selected per capability (base §5), and `not needed` is a valid,
+reasoned answer — it is the governor that stops new sprawl. Add a page type only
+when a real reader job demands it; a blank cell is never a placeholder page.
+
+| Capability | Tutorial | How-to | Reference | Explanation | Troubleshooting | Contributor |
+| --- | :--: | :--: | :--: | :--: | :--: | :--: |
+| `ontology` | not needed | not needed | required (glossary) | required | not needed | required |
+| `contract-families` | not needed | required | required | optional | optional | required |
+| `ownership-law` | not needed | not needed | required | required | not needed | required |
+| `convergence` | not needed | required | required | optional | not needed | required |
+| `warp-cli` | required (quickstart) | required | required | optional | recommended | optional |
+| `method` | not needed | not needed | optional | required | not needed | required |
 
 ## 6. Generate, validate, do not curate by hand
 
@@ -178,7 +212,21 @@ node scripts/docs-lint.mjs
 
 ## 9. Adoption sequence
 
-Per base §18, this repo does not mass-convert pages. The chosen first capability
-is `contract-families`, because it is the highest-traffic surface for both
-sibling maintainers and agents and the one most exposed to drift. Subsequent
-capabilities adopt the policy only after the first one is observed in real use.
+Per base §18, this repo does not mass-convert pages, and per §5 the work is
+mostly **consolidation from the packet log**, not new authoring — the durable
+truth already exists, scattered across the packets.
+
+1. Freeze `docs/design/` as the archive; stop synthesizing it into reader-task
+   pages.
+2. Lift mis-filed reference material out of packets into reader-task pages. The
+   first done is the release-targets reference (`docs/reference/release-targets.md`,
+   lifted from former packet 0038); the convergence (0035) and ownership-law
+   (0014) reference content are the next candidates.
+3. Consolidate the theory packets (0001-0022) into one living "How Continuum
+   works" explanation and retire `OVERVIEW.md`'s "synthesis of packets" framing.
+4. Hold each capability to the §5.1 coverage matrix; route new decisions to
+   decision records, not packets.
+
+`contract-families` remains the lead capability (highest-traffic for sibling
+maintainers and agents, most exposed to drift). Other capabilities adopt only
+after the first is observed in real use.

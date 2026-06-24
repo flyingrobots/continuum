@@ -4,8 +4,13 @@
 
 - Adopted the reader-task Documentation Product Standard as a Continuum-specific
   hub policy (`docs/DOCUMENTATION_POLICY.md`), defining the capability taxonomy,
-  hub-native page types, the append-only decision-record rule for design
-  packets, and the generate-don't-curate rule for cross-repo tables.
+  hub-native page types, and the generate-don't-curate rule for cross-repo
+  tables.
+- Reframed the documentation system around reader-task pages instead of the
+  design-packet log: packets are a frozen historical decision log, new decisions
+  use ADR-lite records or a CHANGELOG line, and a per-capability coverage matrix
+  governs what gets written. Flags METHOD.md's design-cycle mandate for a
+  follow-up edit.
 - Added `docs/index.md` (reader-goal router), `docs/catalog.yaml`
   (machine-readable catalog with cross-repo routing fields), and the first
   contract-families conformance guide under `docs/how-to/`.
