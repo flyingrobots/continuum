@@ -2,8 +2,9 @@
 # Discovery surface for agents and contributors. See docs/DOCUMENTATION_POLICY.md.
 # Controlled vocabularies:
 #   type:       tutorial, how-to, reference, explanation, troubleshooting,
-#               contributor, design-packet, invariant, ownership-map,
-#               family-reference, conformance-guide, gate-record, signpost
+#               contributor, decision-record, design-packet, invariant,
+#               ownership-map, family-reference, conformance-guide, gate-record,
+#               signpost
 #   capability: ontology, contract-families, ownership-law, convergence,
 #               warp-cli, method
 #   audiences:  newcomer, maintainer, agent, contributor, app-author,
@@ -23,7 +24,7 @@ pages:
     intents: [find-the-right-page, orient]
     related: [doc-policy, overview, contract-family-registry]
   - id: doc-policy
-    title: Continuum Documentation Policy
+    title: Continuum Documentation Standard
     type: contributor
     capability: method
     status: current

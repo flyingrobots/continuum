@@ -16,12 +16,23 @@ truth across Echo, `git-warp`, `warp-ttd`, and Wesley.
 
 ## Process
 
-- Read [METHOD.md](METHOD.md) before changing structure.
-- Keep active work in `docs/design/`.
-- Keep concrete work in `docs/method/backlog/`.
-- Keep retros in `docs/method/retro/`.
+- Keep concrete work in `docs/method/backlog/` and retros in
+  `docs/method/retro/`.
 - Update [docs/BEARING.md](docs/BEARING.md) and [docs/VISION.md](docs/VISION.md)
   only at cycle boundaries.
+
+## Documentation
+
+- All documentation follows the
+  [Continuum Documentation Standard](docs/DOCUMENTATION_POLICY.md). Read it
+  before adding or changing docs.
+- Durable truth lives in reader-task pages (`docs/reference/`, `docs/how-to/`,
+  `docs/explanation/`), not in the design log.
+- `docs/design/` is a **frozen historical decision log**. Do not add new packets
+  there. Record new decisions as a one-screen ADR-lite note or a `CHANGELOG.md`
+  line.
+- Run the documentation gate before committing doc changes:
+  `node scripts/docs-lint.mjs`.
 
 ## Doctrine
 

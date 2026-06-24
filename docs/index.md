@@ -10,7 +10,7 @@ page routes you to the right kind of help. It is a router, not an encyclopedia â
 follow the links.
 
 For how this documentation is organized and the rules it follows, see the
-[documentation policy](DOCUMENTATION_POLICY.md). Agents route through the
+[documentation standard](DOCUMENTATION_POLICY.md). Agents route through the
 [machine-readable catalog](catalog.yaml).
 
 ## Start here

@@ -20,8 +20,9 @@ const warn = (m) => warnings.push(m);
 
 const TYPES = new Set([
   "tutorial", "how-to", "reference", "explanation", "troubleshooting",
-  "contributor", "design-packet", "invariant", "ownership-map",
-  "family-reference", "conformance-guide", "gate-record", "signpost",
+  "contributor", "decision-record", "design-packet", "invariant",
+  "ownership-map", "family-reference", "conformance-guide", "gate-record",
+  "signpost",
 ]);
 const CAPABILITIES = new Set([
   "ontology", "contract-families", "ownership-law", "convergence",
