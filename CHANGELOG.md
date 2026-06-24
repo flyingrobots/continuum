@@ -25,6 +25,17 @@
   runtime ideas as `cool ideas` GitHub issues (#39–42) for the owning runtimes
   before deletion. Recorded the consolidation target as the policy's named
   reader-task directories (no `docs/topics/` tree).
+- Lifted durable truth out of the frozen design log into reader-task reference
+  pages: `docs/reference/ownership-map.md` (from packet 0014, refreshed with the
+  settlement and runtime-boundary families) and `docs/reference/convergence.md`
+  (from packets 0035/0036, with live release state linked to GitHub rather than
+  copied). Repointed `docs/index.md` and `docs/catalog.yaml` at the reference
+  pages and marked the source packets archived.
+- Split `README_FULL.md`: moved the not-yet-authored capability tiers (T0–T6)
+  and `continuum.*.v1` profiles into `docs/explanation/protocol-profiles.md`
+  (status: proposed, with a no-source caveat) so the front-door narrative stops
+  presenting an unbuilt protocol surface as current, and corrected its
+  `warp doctor` reference to the `qw` CLI.
 
 - Adopted the reader-task Documentation Product Standard as a Continuum-specific
   hub policy (`docs/DOCUMENTATION_POLICY.md`), defining the capability taxonomy,

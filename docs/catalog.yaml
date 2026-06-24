@@ -60,7 +60,7 @@ pages:
     path: OVERVIEW.md
     audiences: [newcomer, maintainer, agent]
     intents: [understand-the-model]
-    related: [getting-started, packet-0014, contract-family-registry]
+    related: [getting-started, ownership-map, contract-family-registry]
   - id: getting-started
     title: Getting Started
     type: how-to
@@ -156,6 +156,17 @@ pages:
     consumers: [Echo, git-warp, Wesley, warp-ttd]
     compatibility_status: interop-open
 
+  # --- proposed protocol surface ---
+  - id: protocol-profiles
+    title: Protocol profiles and capability tiers (proposed)
+    type: explanation
+    capability: contract-families
+    status: proposed
+    path: explanation/protocol-profiles.md
+    audiences: [maintainer, agent]
+    intents: [understand-proposed-profiles]
+    related: [contract-family-registry, schema-runtime-boundary]
+
   # --- invariants ---
   - id: invariants-continuum
     title: Continuum invariants
@@ -168,47 +179,65 @@ pages:
     related: [overview]
 
   # --- ownership and convergence ---
-  - id: packet-0014
+  - id: ownership-map
     title: Shared Noun Ownership Map
     type: ownership-map
     capability: ownership-law
-    status: proposed
-    path: design/0014-shared-noun-ownership-map/README.md
+    status: current
+    path: reference/ownership-map.md
     audiences: [maintainer, agent]
     intents: [find-noun-owner]
-    related: [contract-family-registry, overview]
-  - id: packet-0035
+    related: [contract-family-registry, overview, schemas-readme, packet-0014]
+  - id: packet-0014
+    title: Shared Noun Ownership Map (design packet)
+    type: design-packet
+    capability: ownership-law
+    status: archived
+    path: design/0014-shared-noun-ownership-map/README.md
+    audiences: [maintainer, agent]
+    intents: [understand-ownership-design]
+    related: [ownership-map, contract-family-registry]
+  - id: convergence
     title: Continuum Stack Convergence
+    type: reference
+    capability: convergence
+    status: current
+    path: reference/convergence.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release, find-gate]
+    related: [ownership-map, contract-family-registry, packet-0035, packet-0036]
+  - id: packet-0035
+    title: Continuum Stack Convergence (design packet)
     type: design-packet
     capability: convergence
-    status: proposed
+    status: archived
     path: design/0035-continuum-stack-convergence/README.md
     audiences: [stack-maintainer, agent]
     intents: [coordinate-release, find-gate]
-    related: [packet-0036, packet-0037, packet-0030]
+    related: [convergence, packet-0036, packet-0037, packet-0030]
   - id: packet-0036
     title: Continuum Stack Release Roadmap
     type: design-packet
     capability: convergence
-    status: proposed
+    status: archived
     path: design/0036-continuum-stack-release-roadmap/README.md
     audiences: [stack-maintainer, agent]
     intents: [coordinate-release]
-    related: [packet-0035, packet-0037]
+    related: [convergence, packet-0035, packet-0037]
   - id: packet-0037
     title: Continuum Stack Project Slice Plan
     type: design-packet
     capability: convergence
-    status: proposed
+    status: archived
     path: design/0037-continuum-stack-project-slice-plan/README.md
     audiences: [stack-maintainer, agent]
     intents: [coordinate-release, plan-slices]
-    related: [packet-0035, packet-0036]
+    related: [convergence, packet-0035, packet-0036]
   - id: packet-0029
     title: Cross-Repo Contract Family Registry
     type: design-packet
     capability: contract-families
-    status: proposed
+    status: archived
     path: design/0029-cross-repo-contract-family-registry/README.md
     audiences: [maintainer, agent]
     intents: [understand-registry-design]
@@ -217,8 +246,8 @@ pages:
     title: Continuum Spine Protocol Report
     type: design-packet
     capability: convergence
-    status: proposed
+    status: archived
     path: design/0030-continuum-spine-protocol-report/README.md
     audiences: [stack-maintainer, agent]
     intents: [coordinate-release]
-    related: [packet-0035]
+    related: [convergence, packet-0035]

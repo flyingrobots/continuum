@@ -326,9 +326,9 @@ a `proposed`-labelled future surface.
 ## Fixes applied in this pass (content corrections only)
 
 These were the unambiguous, source-backed corrections, plus the confirmed
-deletion of `GoodIdeas.md` (its live ideas captured as issues #39–42). The rest
-of the structural consolidation (creating the reader-task shelves, lifting
-packets, splitting `README_FULL.md`) is held for a separate confirmed pass.
+deletion of `GoodIdeas.md` (its live ideas captured as issues #39–42), plus the
+first structural slices (ownership-map lift, convergence lift, README_FULL
+split — see "Structural consolidation completed" below).
 
 - `docs/GETTING_STARTED.md`: removed the "Run `qw build` or `qw doctor`" step (neither command exists); replaced with inspecting generated workspace + a pointer that those commands are planned.
 - `docs/DOCUMENTATION_POLICY.md` §18: removed the false "Done: `docs/reference/release-targets.md` … packet 0038" claim (file, dir, and packet do not exist).
@@ -341,7 +341,12 @@ packets, splitting `README_FULL.md`) is held for a separate confirmed pass.
 
 - `GoodIdeas.md`: **done** — deleted; live runtime ideas captured as `cool ideas` issues #39–42 (the rest were already realized in current docs).
 
-### Still open (structural, needs confirmation)
-- Create the policy's reader-task shelves (`docs/reference/`, `docs/explanation/`) and lift packets 0014/0029/0030/0035/0036/0037 into reference/ownership-map/convergence pages; then update `docs/index.md` and `docs/catalog.yaml` routing (today they still route current tasks into the frozen log — §7 anti-pattern).
-- Split `README_FULL.md`: durable model prose → `docs/explanation/`; tiers T0–T6 + `continuum.*.v1` profiles → a single `docs/explanation/protocol-profiles.md` **labelled proposed** (or drop until authored).
+### Structural consolidation completed
+- **Slice 1 — ownership map lifted:** `docs/reference/ownership-map.md` authored from packet 0014 (updated to current schema truth, incl. settlement + runtime-boundary nouns); `index.md` + `catalog.yaml` repointed; packet demoted to archived design-packet.
+- **Slice 3 — convergence lifted:** `docs/reference/convergence.md` authored from packets 0035/0036 (durable gate/owner/evidence/ordering; GitHub state linked, not copied); 0037/0030 linked as history; routing repointed; packets archived in catalog.
+- **Slice 2 — README_FULL split:** the unbuilt T0–T6 tiers and `continuum.*.v1` profiles moved to `docs/explanation/protocol-profiles.md` (status: proposed, with an honest no-source banner); `README_FULL.md` now points there and its `warp doctor` reference is corrected.
+
+### Still open
+- Lift the glossary (`APP_GLOSSARY.md` shared-families table → `docs/reference/glossary.md`) and the ontology explanation (`OVERVIEW.md`, de-scaffolded → `docs/explanation/`).
+- Author the warp-cli shelf (`docs/how-to/get-started-with-qw.md` + `docs/reference/qw-cli.md`) from `GETTING_STARTED.md` + `apps/warp/README.md`.
 - Decide whether to vendor/install `@wesley/core` in CI so the receipt/settlement `fixture-witnessed` evidence is gated.

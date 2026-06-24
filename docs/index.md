@@ -23,7 +23,7 @@ For how this documentation is organized and the rules it follows, see the
 
 - [Contract Family Registry](contract-family-registry.md) — authored homes, shared nouns, current evidence, and the open cut per family.
 - [Publish runtime evidence that closes a contract-family gap](how-to/publish-runtime-evidence-for-a-contract-family.md).
-- [Shared Noun Ownership Map](design/0014-shared-noun-ownership-map/README.md) — who owns the semantics, authored home, runtime truth, and product surface of each shared noun.
+- [Shared Noun Ownership Map](reference/ownership-map.md) — who owns the semantics, authored home, runtime truth, and product surface of each shared noun.
 - [Continuum invariants](invariants/CONTINUUM.md) — rules the stack must not violate.
 
 ## Author and consume contract families
@@ -33,8 +33,8 @@ For how this documentation is organized and the rules it follows, see the
 
 ## Coordinate the stack release (stack maintainers)
 
-- [Continuum Stack Convergence](design/0035-continuum-stack-convergence/README.md) — ownership, gates, and the compatibility set.
-- [Release Roadmap](design/0036-continuum-stack-release-roadmap/README.md) and [Project Slice Plan](design/0037-continuum-stack-project-slice-plan/README.md).
+- [Continuum Stack Convergence](reference/convergence.md) — ownership, gates, goalpost ordering, and the compatibility set; links to live GitHub state.
+- Design history: [convergence packet](design/0035-continuum-stack-convergence/README.md), [release roadmap](design/0036-continuum-stack-release-roadmap/README.md), [project slice plan](design/0037-continuum-stack-project-slice-plan/README.md).
 
 ## Understand the theory
 
