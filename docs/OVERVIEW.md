@@ -1,7 +1,9 @@
 # OVERVIEW
 
 This document is the brief synthesis of Continuum's **theory and ontology**,
-covering design packets `0001` through `0022`.
+covering design packets `0001` through `0018`, plus the neighborhood-core
+family (`0022`). Packets `0019`-`0021` and `0023`+ are not synthesized here;
+route through the links below.
 
 It is not the place for full proofs. It is the place to remember what the
 current theory says, what the important nouns mean, and how that theory cashes

@@ -6,6 +6,10 @@
 #               family-reference, conformance-guide, gate-record, signpost
 #   capability: ontology, contract-families, ownership-law, convergence,
 #               warp-cli, method
+#   audiences:  newcomer, maintainer, agent, contributor, app-author,
+#               stack-maintainer
+# Contract-family entries (type: family-reference) also carry cross-repo fields:
+#   authored_home, compiler_owner, runtime_owner, consumers, compatibility_status
 schema_version: 1
 pages:
   # --- routers and signposts ---
@@ -103,6 +107,11 @@ pages:
     audiences: [maintainer, agent]
     intents: [conform-to-family]
     related: [contract-family-registry]
+    authored_home: ../schemas/continuum-receipt-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, warp-ttd]
+    compatibility_status: runtime-open
   - id: schema-settlement
     title: Settlement family
     type: family-reference
@@ -112,6 +121,11 @@ pages:
     audiences: [maintainer, agent]
     intents: [conform-to-family]
     related: [contract-family-registry]
+    authored_home: ../schemas/continuum-settlement-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, warp-ttd]
+    compatibility_status: runtime-open
   - id: schema-neighborhood-core
     title: Neighborhood core family
     type: family-reference
@@ -121,6 +135,11 @@ pages:
     audiences: [maintainer, agent]
     intents: [conform-to-family]
     related: [contract-family-registry]
+    authored_home: ../schemas/continuum-neighborhood-core-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [warp-ttd, Echo, git-warp]
+    compatibility_status: runtime-open
   - id: schema-runtime-boundary
     title: Runtime boundary family
     type: family-reference
@@ -130,6 +149,11 @@ pages:
     audiences: [maintainer, agent]
     intents: [conform-to-family]
     related: [contract-family-registry]
+    authored_home: ../schemas/continuum-runtime-boundary-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, Wesley, warp-ttd]
+    compatibility_status: interop-open
 
   # --- invariants ---
   - id: invariants-continuum

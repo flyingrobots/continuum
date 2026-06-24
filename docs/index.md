@@ -10,12 +10,12 @@ page routes you to the right kind of help. It is a router, not an encyclopedia â
 follow the links.
 
 For how this documentation is organized and the rules it follows, see the
-[documentation policy](DOCUMENTATION_POLICY.md). The machine-readable index is
-[`catalog.yaml`](catalog.yaml).
+[documentation policy](DOCUMENTATION_POLICY.md). Agents route through the
+[machine-readable catalog](catalog.yaml).
 
 ## Start here
 
-- New to the model? Read the [overview](OVERVIEW.md), then [README_FULL](../README_FULL.md).
+- New to the model? Read the [overview](OVERVIEW.md), then the [full reference](../README_FULL.md).
 - Want to run something first? Follow [Getting Started](GETTING_STARTED.md).
 - Setting direction? See [Bearing](BEARING.md) and [Vision](VISION.md).
 

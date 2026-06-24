@@ -91,7 +91,7 @@ explanation, troubleshooting, contributor) and adds these hub-native types:
 
 A `conformance-guide` MUST be titled as a goal beginning with a verb, MUST state
 the exact evidence that proves success, and MUST link to the authored home and
-the registry row rather than reproducing them.
+the relevant registry entry rather than reproducing them.
 
 ## 5. Design packets are append-only decision records
 
@@ -112,8 +112,10 @@ Three surfaces are the most drift-prone in this repo because they are
 hand-maintained cross-repo tables:
 
 - the contract family registry (`docs/contract-family-registry.md`);
-- the shared noun ownership map (`docs/design/0014-.../README.md` and successors);
-- the convergence release bar (`docs/design/0035-.../README.md`).
+- the shared noun ownership map
+  (`docs/design/0014-shared-noun-ownership-map/README.md` and successors);
+- the convergence release bar
+  (`docs/design/0035-continuum-stack-convergence/README.md`).
 
 For these, prefer generation or validation from the authoritative source over
 hand curation (base §2.6, §13):
@@ -127,9 +129,11 @@ hand curation (base §2.6, §13):
 - Live GitHub state (issues, PRs, project status) is linked, never copied
   (base §13.5).
 
-Cross-repo metadata is first-class here. Catalog records and registry rows carry
-fields the base standard does not need: `authored_home`, `compiler_owner`,
-`runtime_owner`, `consumers`, and `compatibility_status`.
+Cross-repo metadata is first-class here. Contract-family catalog entries
+(`type: family-reference`) and registry rows carry fields the base standard does
+not need: `authored_home`, `runtime_owner`, `consumers`, and
+`compatibility_status`, plus `compiler_owner` where a compiler participates.
+Other catalog entries omit these fields, so do not expect them on every record.
 
 ## 7. Machine-readable catalog
 
@@ -139,8 +143,10 @@ fields in §6. Rules:
 - page IDs MUST be unique and stable;
 - `path` MUST resolve to a file that exists;
 - `type` MUST be one of the page types in §4; `capability` MUST be one of §3;
+- `audiences` MUST be drawn from the controlled set `newcomer`, `maintainer`,
+  `agent`, `contributor`, `app-author`, `stack-maintainer`;
 - `related` IDs MUST resolve to other catalog entries;
-- agents SHOULD route by `capability`, `audience`, `intents`, and `type` rather
+- agents SHOULD route by `capability`, `audiences`, `intents`, and `type` rather
   than loading a capability's whole corpus.
 
 The catalog is a discovery surface. It does not make weak prose useful.
@@ -148,16 +154,21 @@ The catalog is a discovery surface. It does not make weak prose useful.
 ## 8. Deterministic gates
 
 `scripts/docs-lint.mjs` runs the checks this repo can determine reliably. CI
-SHOULD block on them once a workflow exists. Current checks:
+SHOULD block on them once a workflow exists. Blocking checks:
 
-- internal relative links and anchors in `docs/**` resolve;
-- `docs/catalog.yaml` integrity: unique IDs, resolving paths, controlled `type`
-  and `capability`, resolving `related` IDs;
+- internal relative links in `docs/**` resolve;
+- `docs/catalog.yaml` integrity: unique IDs, resolving paths, controlled `type`,
+  `capability`, and `audiences`, resolving `related` IDs, and no unparsed lines;
 - registry/schema coverage: every authored `schemas/*.graphql` has a registry
   row and every referenced schema file exists.
 
-Advisory signals (page length, sentence complexity, tone, duplication) MAY be
-reported but MUST NOT block (base §12.3).
+Anchor (`#fragment`) resolution is reported but **advisory**, not blocking. The
+gate resolves anchors with an approximate GitHub-style slug, so a mismatch is a
+hint rather than proof. This narrows base §12.2 deliberately to avoid brittle
+false failures; the §2 hub invariant and link resolution remain blocking.
+
+Other advisory signals (page length, sentence complexity, tone, duplication)
+MAY be reported but MUST NOT block (base §12.3).
 
 Run:
 
