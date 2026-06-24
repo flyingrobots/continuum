@@ -1,11 +1,19 @@
 # OVERVIEW
 
-This document is the brief synthesis of Continuum design packets `0001` through
-`0017`.
+This document is the brief synthesis of Continuum's **theory and ontology**,
+covering design packets `0001` through `0022`.
 
 It is not the place for full proofs. It is the place to remember what the
 current theory says, what the important nouns mean, and how that theory cashes
 out across Echo, `git-warp`, `warp-ttd`, and Wesley.
+
+Coordination and release material introduced in later packets (`0023`+:
+warpspace bootstrap, the cross-repo contract family registry, and stack
+convergence) is not synthesized here. For that, route through the
+[documentation index](index.md):
+
+- contract families and their evidence: [Contract Family Registry](contract-family-registry.md);
+- stack release coordination: [Continuum Stack Convergence](design/0035-continuum-stack-convergence/README.md).
 
 For the detailed arguments, examples, and open theorem questions, read the
 packets in [docs/design](design/README.md).
