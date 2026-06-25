@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Deleted the obsolete `continuum/wesley/` JS module (64 files). It was a
+  Node-hosted Wesley extension built on the now-deleted `@wesley/core` /
+  `wesley-host-node` packages; the real Wesley is a Rust crate
+  (`cargo install wesley-cli`, installed at 0.1.0). Nothing in the repo imported
+  it. Its capabilities (TTD compiler, zod/registry codegen, `echo`/`warp-ttd`
+  targets, receipt/settlement witness) are Continuum-owned and to be
+  re-platformed onto the Rust Wesley target registry — tracked on issue #47.
+- Downgraded the receipt and settlement families in the contract-family registry
+  from `fixture-witnessed` to `authored`: the witness suite that backed that
+  status lived in `continuum/wesley/test` and was removed, so the stronger claim
+  is no longer evidenced. Open cut updated to "re-establish on the Rust
+  `wesley-cli` target."
 - Hardened the docs gate (`scripts/docs-lint.mjs`): `catalog.yaml` `status` is now
   validated against a controlled set (`current`, `proposed`, `archived`, `draft`,
   `deprecated`), and `type: family-reference` entries must carry the policy §9
