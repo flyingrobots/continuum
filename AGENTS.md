@@ -37,11 +37,13 @@ truth across Echo, `git-warp`, `warp-ttd`, and Wesley.
 
 ## Testing
 
-- Tests assert **software behavior only** — return values, state, observable
-  API behavior. Never assert on stdout/help text, Markdown, generated output, or
-  repo artifacts as strings (see [CONTRIBUTING.md](CONTRIBUTING.md) "Testing
-  principle"). Doc/artifact checks belong in `scripts/docs-lint.mjs`, not the
-  test suite.
+- Tests assert **software behavior** — return values, state, observable API
+  behavior, and the artifacts the software produces (a generated schema, a
+  lockfile, an emitted symbol: assert the structured contract). Never assert on
+  incidental text — stdout/help/usage strings or prose matched as a string. Test
+  what the software does, not the exact strings it prints (see
+  [CONTRIBUTING.md](CONTRIBUTING.md) "Testing principle"). Documentation checks
+  belong in `scripts/docs-lint.mjs`, not the test suite.
 - "Tests are the spec": do not alter, skip, or circumvent a failing test to
   unblock yourself. If a test looks wrong (e.g. it asserts on an artifact), stop
   and flag it rather than rewriting it silently.

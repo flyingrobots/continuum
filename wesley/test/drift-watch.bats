@@ -32,12 +32,9 @@ make_mirror_dir() {
     export MIRROR_TEMP_DIR
 }
 
-@test "drift-watch help works" {
+@test "drift-watch help succeeds" {
     run node "$CLI_PATH" drift-watch --help
     assert_success
-    assert_output --partial "Inspect local Continuum outputs and nearby mirrors for contract drift"
-    assert_output --partial "--mirror-root"
-    assert_output --partial "--report-out"
 }
 
 @test "drift-watch passes for coherent receipt-family mirrors" {

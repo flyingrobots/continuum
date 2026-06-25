@@ -47,23 +47,28 @@ pull requests.
 
 ## Testing principle
 
-Tests assert **software behavior, exclusively**. A test asserts return values,
-state transitions, data structures, and observable behavior through an API.
+Tests assert **software behavior**: return values, state transitions, data
+structures, and the artifacts the software produces. Test what the software
+*does*, not the exact strings it happens to print.
 
-A test **must not** assert on:
+A test **must not** assert on incidental text:
 
-- stdout/stderr text or help/usage strings,
-- Markdown, README, or other documentation content,
-- generated or formatted output treated as a string snapshot,
-- repo artifacts (catalogs, lockfiles, generated docs) as text.
+- stdout/stderr or help/usage strings (the exact wording printed to a console),
+- Markdown, README, or other prose matched as a string.
 
-Those assertions are fragile: they break on cosmetic edits and create friction
-every time a workflow or message changes. Checks over docs and repo artifacts
-belong in a **separate gate** (`scripts/docs-lint.mjs`), never in the behavior
-test suite. When you must verify a tool produces a file, assert the structured
-contract (parsed fields, not rendered text). If you find a test asserting on an
-artifact, flag it rather than silently rewriting it — see the
-"Tests are the spec" rules in [AGENTS.md](AGENTS.md).
+Those assertions are fragile — they break on cosmetic edits and create friction
+every time a message or workflow changes. Checks over documentation belong in a
+**separate gate** (`scripts/docs-lint.mjs`), never in the behavior test suite.
+
+It **is** fine to assert that the software produced a generated artifact — code,
+a schema, a lockfile, a structured report — because producing it is the
+behavior. Assert the artifact's structured contract (parsed fields, the presence
+of an expected symbol), not its incidental formatting. Within reason: a
+template that substitutes a project name into a file is behavior worth checking;
+a fixed sentence of prose in that file is not.
+
+If you find a test asserting on incidental strings, flag it rather than silently
+rewriting it — see the "Tests are the spec" rules in [AGENTS.md](AGENTS.md).
 
 ## Evidence discipline
 

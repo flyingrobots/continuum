@@ -2,10 +2,16 @@
 
 ## Unreleased
 
-- Adopted a testing principle: tests assert software behavior only — never
-  stdout/help text, Markdown, generated output, or repo artifacts as strings.
-  Documentation and artifact checks stay in the `scripts/docs-lint.mjs` gate,
-  not the behavior test suite. Recorded in `CONTRIBUTING.md` and `AGENTS.md`.
+- Adopted a testing principle: tests assert software behavior — return values,
+  state, and the artifacts the software produces (assert the structured
+  contract) — never incidental stdout/help-text strings or prose matched as a
+  string. Documentation checks stay in the `scripts/docs-lint.mjs` gate, not the
+  behavior test suite. Recorded in `CONTRIBUTING.md` and `AGENTS.md`.
+- Applied it to the clearest violations: the three `*help works` bats cases
+  (`contract`, `drift-watch`, `witness-continuum`) asserted exact help/usage
+  text and flag-name strings; reduced them to asserting `--help` exits zero
+  (renamed `*help succeeds`). The behavioral tests that assert generated
+  bundles/reports are unchanged — producing those artifacts is the behavior.
 
 - Audited every documentation file against source code and recorded the result
   in `docs/method/DOCUMENTATION_AUDIT.md` (per-claim verdicts with `path#line@sha`

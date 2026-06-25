@@ -50,16 +50,9 @@ run_witness_continuum() {
         "$@"
 }
 
-@test "witness-continuum help works" {
+@test "witness-continuum help succeeds" {
     run node "$CLI_PATH" witness-continuum --help
     assert_success
-    assert_output --partial 'Compatibility alias for "wesley witness"'
-    assert_output --partial "--schema"
-    assert_output --partial "--out-dir"
-    assert_output --partial "--report-out"
-    assert_output --partial "--scope"
-    assert_output --partial "--ttd-schema"
-    assert_output --partial "--echo-dir"
 }
 
 @test "witness-continuum accepts the root-oriented receipt-family interface" {
