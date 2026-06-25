@@ -12,6 +12,13 @@
   text and flag-name strings; reduced them to asserting `--help` exits zero
   (renamed `*help succeeds`). The behavioral tests that assert generated
   bundles/reports are unchanged — producing those artifacts is the behavior.
+- Swept the rest of the test suite. In `apps/warp/test/warp-warpspace.test.mjs`
+  the help/usage test asserted help-text content and echoed `Usage:` strings;
+  dropped those and kept the behavioral checks (exit codes, no stack-trace leak,
+  which validation fired). Left intact, as legitimate behavior: generated-code
+  and schema-symbol assertions (`wesley/test/continuum-compile-targets`,
+  `observer-plan`, `runtime-boundary-invariants`) and the generated `toml`/lock
+  assertions — producing those artifacts is what the software does.
 
 - Audited every documentation file against source code and recorded the result
   in `docs/method/DOCUMENTATION_AUDIT.md` (per-claim verdicts with `path#line@sha`
