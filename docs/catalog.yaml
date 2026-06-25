@@ -9,6 +9,7 @@
 #               warp-cli, method
 #   audiences:  newcomer, maintainer, agent, contributor, app-author,
 #               stack-maintainer
+#   status:     current, proposed, archived, draft, deprecated
 # Contract-family entries (type: family-reference) also carry cross-repo fields:
 #   authored_home, compiler_owner, runtime_owner, consumers, compatibility_status
 schema_version: 1

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Hardened the docs gate (`scripts/docs-lint.mjs`): `catalog.yaml` `status` is now
+  validated against a controlled set (`current`, `proposed`, `archived`, `draft`,
+  `deprecated`), and `type: family-reference` entries must carry the policy §9
+  cross-repo fields (`authored_home`, `runtime_owner`, `consumers`,
+  `compatibility_status`). Closes #46.
+- Fixed a stale cross-reference in the conformance how-to that pointed at an
+  external "base standard §11.2"; it now links the self-contained documentation
+  standard §11.
+
 - Adopted a testing principle: tests assert software behavior — return values,
   state, and the artifacts the software produces (assert the structured
   contract) — never incidental stdout/help-text strings or prose matched as a

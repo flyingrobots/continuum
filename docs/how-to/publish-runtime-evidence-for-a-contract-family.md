@@ -35,7 +35,7 @@ runnable check, and an `Open cut` that honestly states what remains.
    (for example, "live sibling-runtime receipt publication" rather than fixture
    vectors).
 2. In your own repo, land the check that produces the evidence. Name the
-   narrowest practical executable case (base standard §11.2): the specific test
+   narrowest practical executable case (see the [documentation standard](../DOCUMENTATION_POLICY.md) §11): the specific test
    or workflow, not the whole suite.
 3. Open a pull request against Continuum that edits only the affected registry
    row. Update `Evidence today` to reference the executable check by stable

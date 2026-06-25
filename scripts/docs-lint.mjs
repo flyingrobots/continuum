@@ -2,7 +2,8 @@
 // Continuum documentation gate. See docs/DOCUMENTATION_POLICY.md §8.
 // Dependency-free. Checks the facts this repo can determine reliably:
 //   1. internal relative links in docs/** resolve (anchors are advisory);
-//   2. docs/catalog.yaml integrity (ids, paths, controlled vocab, related);
+//   2. docs/catalog.yaml integrity (ids, paths, controlled type/capability/
+//      audiences/status vocab, family-reference cross-repo fields, related);
 //   3. registry/schema coverage (every authored family has a row, vice versa).
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
@@ -32,6 +33,13 @@ const AUDIENCES = new Set([
   "newcomer", "maintainer", "agent", "contributor", "app-author",
   "stack-maintainer",
 ]);
+const STATUSES = new Set([
+  "current", "proposed", "archived", "draft", "deprecated",
+]);
+// Cross-repo fields a contract-family entry MUST carry (policy §9).
+const FAMILY_REF_FIELDS = [
+  "authored_home", "runtime_owner", "consumers", "compatibility_status",
+];
 
 function walk(dir, ext, out = []) {
   for (const name of readdirSync(dir)) {
@@ -152,6 +160,14 @@ if (!existsSync(catalogPath)) {
     }
     for (const a of [].concat(p.audiences || [])) {
       if (!AUDIENCES.has(a)) err(`catalog.yaml: ${label} has unknown audience "${a}"`);
+    }
+    if (p.status && !STATUSES.has(p.status)) {
+      err(`catalog.yaml: ${label} has unknown status "${p.status}"`);
+    }
+    if (p.type === "family-reference") {
+      for (const f of FAMILY_REF_FIELDS) {
+        if (!p[f]) err(`catalog.yaml: family-reference ${label} missing cross-repo field "${f}"`);
+      }
     }
     if (p.path && !existsSync(resolve(DOCS, p.path))) {
       err(`catalog.yaml: ${label} path does not resolve -> ${p.path}`);
