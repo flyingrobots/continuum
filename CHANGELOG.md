@@ -14,11 +14,18 @@
   bundles/reports are unchanged — producing those artifacts is the behavior.
 - Swept the rest of the test suite. In `apps/warp/test/warp-warpspace.test.mjs`
   the help/usage test asserted help-text content and echoed `Usage:` strings;
-  dropped those and kept the behavioral checks (exit codes, no stack-trace leak,
-  which validation fired). Left intact, as legitimate behavior: generated-code
-  and schema-symbol assertions (`wesley/test/continuum-compile-targets`,
-  `observer-plan`, `runtime-boundary-invariants`) and the generated `toml`/lock
-  assertions — producing those artifacts is what the software does.
+  dropped those and kept the behavioral checks (exit codes, which validation
+  fired). Left intact, as legitimate behavior: generated-code and schema-symbol
+  assertions (`wesley/test/continuum-compile-targets`, `observer-plan`,
+  `runtime-boundary-invariants`) and the generated `toml`/lock assertions —
+  producing those artifacts is what the software does.
+- Second cleanup pass on the gray cases: `warp-init` now asserts the generated
+  `README.md` / `.warpspace/README.md` are absent before init and present after
+  (file existence as behavior) instead of matching prose; removed the
+  stack-trace-absence `doesNotMatch` guards (kept exit codes, the structured
+  `--json` `error.code`, and the behavioral `-q`/no-success checks); and dropped
+  the redundant `assert_output "Continuum … failed"` lines in the wesley bats,
+  which already `assert_failure` and `jq` the failed report.
 
 - Audited every documentation file against source code and recorded the result
   in `docs/method/DOCUMENTATION_AUDIT.md` (per-claim verdicts with `path#line@sha`

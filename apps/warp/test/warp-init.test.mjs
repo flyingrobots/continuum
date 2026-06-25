@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
-import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 import { initWarp } from '../src/init.mjs';
@@ -155,6 +155,11 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
       'utf8'
     );
 
+    const readmePath = path.join(projectDir, 'README.md');
+    const internalReadmePath = path.join(projectDir, '.warpspace', 'README.md');
+    await assert.rejects(access(readmePath));
+    await assert.rejects(access(internalReadmePath));
+
     const result = await initWarp({
       projectDir,
       manifestPath,
@@ -181,11 +186,8 @@ test('initWarp scaffolds the template, materializes families, and writes warpspa
     );
     assert.equal(materialized, schemaContent);
 
-    const readme = await readFile(path.join(projectDir, 'README.md'), 'utf8');
-    assert.match(readme, /# app/);
-
-    const internalReadme = await readFile(path.join(projectDir, '.warpspace', 'README.md'), 'utf8');
-    assert.match(internalReadme, /Managed WARPspace State/);
+    await assert.doesNotReject(access(readmePath));
+    await assert.doesNotReject(access(internalReadmePath));
     assert.equal(lock.engineLocal, undefined);
     assert.equal(lock.bootstrap.wesleyWarpspaceBridgePath, undefined);
 

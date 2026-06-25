@@ -105,7 +105,6 @@ NODE
         --report-out out/proof/witness/drift-watch.json
 
     assert_failure
-    assert_output --partial "Continuum drift watch failed"
     run jq -e '.checks[] | select(.id == "mirror.1.surface-1.hash-coherence" and .status == "fail")' out/proof/witness/drift-watch.json
     assert_success
 }
@@ -134,7 +133,6 @@ EOF
         --report-out out/proof/witness/drift-watch.json
 
     assert_failure
-    assert_output --partial "Continuum drift watch failed"
     run jq -e '.checks[] | select(.id == "mirror.1.provenance" and .status == "fail")' out/proof/witness/drift-watch.json
     assert_success
 }

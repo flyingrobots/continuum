@@ -102,7 +102,6 @@ run_witness_continuum() {
         --echo-dir out/echo \
         --out out/witness/conformance.json
     assert_failure
-    assert_output --partial "Continuum witness failed"
     assert_file_exist out/witness/conformance.json
     run jq -e '.status == "fail" and .summary.failed > 0' out/witness/conformance.json
     assert_success
