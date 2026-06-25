@@ -342,12 +342,15 @@ Do not mass-convert pages. The work is mostly **consolidation from the packet
 log**, not new authoring — the durable truth already exists, scattered across the
 packets.
 
-1. Freeze `docs/design/`; stop synthesizing it into reader-task pages.
-2. Lift mis-filed reference material out of packets into reader-task pages. The
-   first candidates are the convergence (0035) and ownership-law (0014)
-   reference content; none have been lifted yet.
+1. Freeze `docs/design/`; stop synthesizing it into reader-task pages. Done:
+   `docs/design/` is an archive index; every packet's frontmatter is `archived`.
+2. Lift mis-filed reference material out of packets into reader-task pages. Done:
+   the ownership-law map (`docs/reference/ownership-map.md`, from 0014) and the
+   convergence reference (`docs/reference/convergence.md`, from 0035/0036).
 3. Consolidate the theory packets (0001-0022) into one living "How Continuum
    works" explanation and retire `OVERVIEW.md`'s "synthesis of packets" framing.
+   Done: the synthesis framing is retired; `OVERVIEW.md` is the living
+   explanation and its packet links read as design history.
 4. Hold each capability to the §8 coverage matrix; route new decisions to
    decision records, not packets.
 
