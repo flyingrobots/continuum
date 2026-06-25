@@ -45,6 +45,26 @@ node --test 'apps/warp/test/**/*.test.mjs'
 The `pre-commit` hook runs the documentation gate automatically. CI runs both on
 pull requests.
 
+## Testing principle
+
+Tests assert **software behavior, exclusively**. A test asserts return values,
+state transitions, data structures, and observable behavior through an API.
+
+A test **must not** assert on:
+
+- stdout/stderr text or help/usage strings,
+- Markdown, README, or other documentation content,
+- generated or formatted output treated as a string snapshot,
+- repo artifacts (catalogs, lockfiles, generated docs) as text.
+
+Those assertions are fragile: they break on cosmetic edits and create friction
+every time a workflow or message changes. Checks over docs and repo artifacts
+belong in a **separate gate** (`scripts/docs-lint.mjs`), never in the behavior
+test suite. When you must verify a tool produces a file, assert the structured
+contract (parsed fields, not rendered text). If you find a test asserting on an
+artifact, flag it rather than silently rewriting it — see the
+"Tests are the spec" rules in [AGENTS.md](AGENTS.md).
+
 ## Evidence discipline
 
 A compatibility claim is only as strong as its recorded evidence. Record a gap as

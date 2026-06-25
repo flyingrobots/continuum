@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Adopted a testing principle: tests assert software behavior only — never
+  stdout/help text, Markdown, generated output, or repo artifacts as strings.
+  Documentation and artifact checks stay in the `scripts/docs-lint.mjs` gate,
+  not the behavior test suite. Recorded in `CONTRIBUTING.md` and `AGENTS.md`.
+
 - Audited every documentation file against source code and recorded the result
   in `docs/method/DOCUMENTATION_AUDIT.md` (per-claim verdicts with `path#line@sha`
   citations, accuracy scores, keep/merge/trash decisions, and a signpost +
