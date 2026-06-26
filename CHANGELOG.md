@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added a `crate` Wesley install source to `qw init` (`apps/warp/src/init.mjs`):
+  it resolves the crates.io-installed `wesley` binary from `PATH`
+  (`cargo install wesley-cli`) and invokes it natively (`wesley emit …`), with a
+  clear "run cargo install wesley-cli" error when it is absent. No
+  `.warpspace` staging — just a resolution receipt. Covered by two new
+  `warp-init` tests (resolve-and-invoke; not-installed error).
+- Flipped the demo stack release manifest to that source: Wesley is now
+  `wesley-cli` `0.1.0` from crates.io (native-rust runner), replacing the dead
+  `@wesley/host-node` Node entrypoint. Trimmed the demo's projections to
+  `typescript` (the `zod`/`echo-ir`/`warp-ttd` targets lived in the deleted
+  `continuum/wesley` module and are deferred to #47). Updated the demo README,
+  `apps/warp/README.md`, `GETTING_STARTED.md`, and `apps/warp/VISION.md` to
+  describe `cargo install wesley-cli` instead of sibling-Node staging.
 - Deleted the obsolete `continuum/wesley/` JS module (64 files). It was a
   Node-hosted Wesley extension built on the now-deleted `@wesley/core` /
   `wesley-host-node` packages; the real Wesley is a Rust crate

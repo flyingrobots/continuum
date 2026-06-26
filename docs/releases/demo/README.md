@@ -13,7 +13,7 @@ This release artifact freezes one exact compatibility tuple for the current
 neighborhood-core demo slice:
 
 - Continuum neighborhood-core family `0.1.0`
-- Wesley host tooling `0.1.0`
+- Wesley CLI `wesley-cli` `0.1.0` (crates.io)
 - Echo `warp-core` `0.1.1`
 - `git-warp` `17.0.0`
 - `warp-ttd` `0.1.0`
@@ -42,8 +42,8 @@ That means:
 - the current demo can anchor itself to this manifest
 - a local-first `qw init` prototype in Continuum can already consume this
   manifest
-- the current demo auto-stages the current-process Node runtime and sibling
-  Wesley entrypoint under `.warpspace/packages/`
+- the current demo resolves the Wesley CLI from PATH (`cargo install wesley-cli`)
+  and invokes it natively; Node is not required for the native-rust path
 - the final released `qw init --profile demo` consumer flow is still a
   follow-on implementation
 

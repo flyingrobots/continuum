@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
+  access,
   chmod,
   copyFile,
   cp,
@@ -14,6 +15,7 @@ import {
   symlink,
   writeFile
 } from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const STACK_RELEASE_KIND = 'continuum.stack-release.v1';
@@ -31,7 +33,8 @@ export async function initWarp({
   force = false,
   generate = true,
   now = () => new Date(),
-  runCommand = defaultRunCommand
+  runCommand = defaultRunCommand,
+  resolveBinary = defaultResolveBinary
 }) {
   const resolvedProjectDir = path.resolve(requiredText(projectDir, 'project directory'));
   const resolvedManifestPath = manifestPath == null
@@ -79,7 +82,8 @@ export async function initWarp({
     manifest,
     authorityRoot: resolvedAuthorityRoot,
     projectDir: resolvedProjectDir,
-    installLayout
+    installLayout,
+    resolveBinary
   });
 
   const materializedFamilies = [];
@@ -390,7 +394,8 @@ async function installManagedToolchain({
   manifest,
   authorityRoot,
   projectDir,
-  installLayout
+  installLayout,
+  resolveBinary
 }) {
   const packageSources = resolvePackageSources({
     packageSources: manifest.packageSources ?? {},
@@ -409,7 +414,8 @@ async function installManagedToolchain({
     packageSources,
     authorityRoot,
     projectDir,
-    installLayout
+    installLayout,
+    resolveBinary
   });
 
   return { node, wesley };
@@ -515,10 +521,57 @@ async function installWesleyTool({
   packageSources,
   authorityRoot,
   projectDir,
-  installLayout
+  installLayout,
+  resolveBinary = defaultResolveBinary
 }) {
   const install = wesleySpec.install;
   const source = requiredText(install.source, 'toolchain.wesley.install.source');
+
+  if (source === 'crate') {
+    const runner = normalizeWesleyRunner(install.runner ?? wesleySpec.runner ?? 'native-binary');
+    const commandSet = normalizeWesleyCommandSet(wesleySpec.commandSet ?? 'native-rust');
+    validateWesleyRunnerCommandSet({ runner, commandSet });
+    const binName = requiredText(install.bin ?? 'wesley', 'toolchain.wesley.install.bin');
+    const crate = install.crate ?? wesleySpec.package ?? 'wesley-cli';
+
+    // The crates.io Wesley is a binary on PATH (cargo install wesley-cli); resolve
+    // and invoke it directly rather than staging a managed copy.
+    const resolvedPath = await resolveBinary(binName);
+    if (resolvedPath == null) {
+      throw new Error(
+        `Wesley binary "${binName}" was not found on PATH. Install it with: cargo install ${crate}`
+      );
+    }
+
+    const installRoot = path.join(
+      projectDir,
+      install.managedPath ?? path.join(installLayout.packages, 'wesley', 'current')
+    );
+    await mkdir(installRoot, { recursive: true });
+    const receiptPath = path.join(installRoot, 'install-receipt.json');
+    const receipt = {
+      kind: 'warp.tool-install-receipt.v1',
+      tool: 'wesley',
+      source,
+      runner,
+      commandSet,
+      package: crate,
+      version: wesleySpec.version ?? null,
+      resolvedPath
+    };
+    await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
+
+    return {
+      package: crate,
+      version: wesleySpec.version ?? null,
+      source,
+      runner,
+      commandSet,
+      sourcePath: resolvedPath,
+      entrypointPath: resolvedPath,
+      receiptPath
+    };
+  }
 
   if (source === 'local-sibling-entrypoint') {
     const runner = normalizeWesleyRunner('node-entrypoint');
@@ -663,8 +716,26 @@ async function installWesleyTool({
 
   throw new Error(
     `Unsupported toolchain.wesley.install.source "${source}". ` +
-    'The current prototype supports "local-sibling-entrypoint", "local-sibling-binary", and "package-source".'
+    'The current prototype supports "crate", "local-sibling-entrypoint", "local-sibling-binary", and "package-source".'
   );
+}
+
+// Resolve an executable by name from PATH (or verify an absolute path).
+async function defaultResolveBinary(binName) {
+  if (path.isAbsolute(binName)) {
+    return (await pathExists(binName)) ? binName : null;
+  }
+  const dirs = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
+  for (const dir of dirs) {
+    const candidate = path.join(dir, binName);
+    try {
+      await access(candidate, fsConstants.X_OK);
+      return candidate;
+    } catch {
+      // not in this directory; keep looking
+    }
+  }
+  return null;
 }
 
 function normalizeWesleyRunner(value) {
@@ -1160,7 +1231,10 @@ function manifestWesleyRunner(wesleySpec) {
   if (explicitRunner != null) {
     return explicitRunner;
   }
-  if (wesleySpec?.install?.source === 'local-sibling-binary') {
+  if (
+    wesleySpec?.install?.source === 'local-sibling-binary' ||
+    wesleySpec?.install?.source === 'crate'
+  ) {
     return 'native-binary';
   }
   return 'node-entrypoint';

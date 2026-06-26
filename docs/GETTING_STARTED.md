@@ -112,11 +112,11 @@ A local-first prototype now exists in Continuum:
 node apps/warp/bin/warp.mjs init my-app --profile demo
 ```
 
-For the current local-sibling demo profile, that command:
+For the current demo profile, that command:
 
-- stages the current-process Node runtime under `.warpspace/packages/node/`
-- stages a sibling Wesley entrypoint under `.warpspace/packages/wesley/`
-- then invokes Wesley through those staged toolchain paths
+- resolves the Wesley CLI from `PATH` (install it with `cargo install wesley-cli`)
+- invokes it natively through the Rust `wesley emit` command set
+- requires no Node runtime for the native-rust path
 
 The closest real starting point today is:
 
