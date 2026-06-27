@@ -1,0 +1,300 @@
+# Continuum documentation catalog.
+# Discovery surface for agents and contributors. See docs/DOCUMENTATION_POLICY.md.
+# Controlled vocabularies:
+#   type:       tutorial, how-to, reference, explanation, troubleshooting,
+#               contributor, decision-record, design-packet, invariant,
+#               ownership-map, family-reference, conformance-guide, gate-record,
+#               signpost
+#   capability: ontology, contract-families, ownership-law, convergence,
+#               warp-cli, method
+#   audiences:  newcomer, maintainer, agent, contributor, app-author,
+#               stack-maintainer
+#   status:     current, proposed, archived, draft, deprecated
+#   intents:    see docs/DOCUMENTATION_POLICY.md §10
+# Contract-family entries (type: family-reference) also carry cross-repo fields:
+#   authored_home, compiler_owner, runtime_owner, consumers, compatibility_status
+schema_version: 1
+pages:
+  # --- routers and signposts ---
+  - id: docs-index
+    title: Continuum documentation index
+    type: reference
+    capability: method
+    status: current
+    path: index.md
+    audiences: [newcomer, maintainer, agent]
+    intents: [find-the-right-page, orient]
+    related: [doc-policy, overview, contract-family-registry]
+  - id: doc-policy
+    title: Continuum Documentation Standard
+    type: contributor
+    capability: method
+    status: current
+    path: DOCUMENTATION_POLICY.md
+    audiences: [contributor, agent]
+    intents: [author-docs, understand-doc-rules]
+    related: [docs-index, contract-family-registry]
+  - id: bearing
+    title: Bearing
+    type: signpost
+    capability: method
+    status: current
+    path: BEARING.md
+    audiences: [contributor, agent]
+    intents: [orient]
+    related: [vision, overview]
+  - id: vision
+    title: Vision
+    type: signpost
+    capability: method
+    status: current
+    path: VISION.md
+    audiences: [contributor, agent]
+    intents: [orient]
+    related: [bearing]
+  - id: release-runbook
+    title: Continuum Release Lifecycle and Runbook
+    type: contributor
+    capability: method
+    status: current
+    path: method/release-runbook.md
+    audiences: [maintainer, stack-maintainer, agent, contributor]
+    intents: [plan-release, prepare-release, publish-release, verify-release]
+    related: [convergence]
+  - id: release-process
+    title: Release process
+    type: contributor
+    capability: method
+    status: current
+    path: ../RELEASE.md
+    audiences: [maintainer, agent, contributor]
+    intents: [prepare-release, verify-release]
+    related: [release-runbook]
+
+  # --- ontology and orientation ---
+  - id: overview
+    title: Overview
+    type: explanation
+    capability: ontology
+    status: current
+    path: OVERVIEW.md
+    audiences: [newcomer, maintainer, agent]
+    intents: [understand-the-model]
+    related: [getting-started, ownership-map, contract-family-registry]
+  - id: getting-started
+    title: Getting Started
+    type: how-to
+    capability: warp-cli
+    status: current
+    path: GETTING_STARTED.md
+    audiences: [newcomer, app-author]
+    intents: [run-something-first]
+    related: [overview, qw-cli]
+  - id: glossary
+    title: Shared Noun Glossary
+    type: reference
+    capability: ontology
+    status: current
+    path: reference/glossary.md
+    audiences: [newcomer, maintainer, agent]
+    intents: [look-up-a-term]
+    related: [app-noun-map, ownership-map, contract-family-registry, overview]
+  - id: app-noun-map
+    title: App Noun Map
+    type: reference
+    capability: ontology
+    status: current
+    path: reference/app-noun-map.md
+    audiences: [maintainer, agent, app-author]
+    intents: [look-up-a-term]
+    related: [glossary, ownership-map, contract-family-registry]
+  - id: qw-cli
+    title: qw command reference
+    type: reference
+    capability: warp-cli
+    status: current
+    path: reference/qw-cli.md
+    audiences: [app-author, maintainer, agent]
+    intents: [look-up-a-command]
+    related: [getting-started]
+
+  # --- contract families: registry, schemas, conformance ---
+  - id: contract-family-registry
+    title: Contract Family Registry
+    type: reference
+    capability: contract-families
+    status: current
+    path: contract-family-registry.md
+    audiences: [maintainer, agent]
+    intents: [find-authored-home, check-evidence, find-open-cut]
+    related: [schema-receipt, schema-settlement, schema-neighborhood-core, schema-runtime-boundary, howto-publish-evidence, packet-0029]
+  - id: howto-publish-evidence
+    title: Publish runtime evidence that closes a contract-family gap
+    type: conformance-guide
+    capability: contract-families
+    status: current
+    path: how-to/publish-runtime-evidence-for-a-contract-family.md
+    audiences: [maintainer]
+    intents: [close-a-registry-gap, prove-conformance]
+    related: [contract-family-registry, schemas-readme]
+  - id: schemas-readme
+    title: Continuum Schemas
+    type: reference
+    capability: contract-families
+    status: current
+    path: ../schemas/README.md
+    audiences: [maintainer, agent]
+    intents: [find-authored-home]
+    related: [contract-family-registry]
+  - id: schema-receipt
+    title: Receipt family
+    type: family-reference
+    capability: contract-families
+    status: current
+    path: ../schemas/continuum-receipt-family.graphql
+    audiences: [maintainer, agent]
+    intents: [conform-to-family]
+    related: [contract-family-registry]
+    authored_home: ../schemas/continuum-receipt-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, warp-ttd]
+    compatibility_status: runtime-open
+  - id: schema-settlement
+    title: Settlement family
+    type: family-reference
+    capability: contract-families
+    status: current
+    path: ../schemas/continuum-settlement-family.graphql
+    audiences: [maintainer, agent]
+    intents: [conform-to-family]
+    related: [contract-family-registry]
+    authored_home: ../schemas/continuum-settlement-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, warp-ttd]
+    compatibility_status: runtime-open
+  - id: schema-neighborhood-core
+    title: Neighborhood core family
+    type: family-reference
+    capability: contract-families
+    status: current
+    path: ../schemas/continuum-neighborhood-core-family.graphql
+    audiences: [maintainer, agent]
+    intents: [conform-to-family]
+    related: [contract-family-registry]
+    authored_home: ../schemas/continuum-neighborhood-core-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [warp-ttd, Echo, git-warp]
+    compatibility_status: runtime-open
+  - id: schema-runtime-boundary
+    title: Runtime boundary family
+    type: family-reference
+    capability: contract-families
+    status: current
+    path: ../schemas/continuum-runtime-boundary-family.graphql
+    audiences: [maintainer, agent]
+    intents: [conform-to-family]
+    related: [contract-family-registry]
+    authored_home: ../schemas/continuum-runtime-boundary-family.graphql
+    compiler_owner: Wesley
+    runtime_owner: [Echo, git-warp]
+    consumers: [Echo, git-warp, Wesley, warp-ttd]
+    compatibility_status: interop-open
+
+  # --- proposed protocol surface ---
+  - id: protocol-profiles
+    title: Protocol profiles and capability tiers (proposed)
+    type: explanation
+    capability: contract-families
+    status: proposed
+    path: explanation/protocol-profiles.md
+    audiences: [maintainer, agent]
+    intents: [understand-proposed-profiles]
+    related: [contract-family-registry, schema-runtime-boundary]
+
+  # --- invariants ---
+  - id: invariants-continuum
+    title: Continuum invariants
+    type: invariant
+    capability: ontology
+    status: current
+    path: invariants/CONTINUUM.md
+    audiences: [maintainer, agent]
+    intents: [check-an-invariant]
+    related: [overview]
+
+  # --- ownership and convergence ---
+  - id: ownership-map
+    title: Shared Noun Ownership Map
+    type: ownership-map
+    capability: ownership-law
+    status: current
+    path: reference/ownership-map.md
+    audiences: [maintainer, agent]
+    intents: [find-noun-owner]
+    related: [contract-family-registry, overview, schemas-readme, packet-0014]
+  - id: packet-0014
+    title: Shared Noun Ownership Map (design packet)
+    type: design-packet
+    capability: ownership-law
+    status: archived
+    path: design/0014-shared-noun-ownership-map/README.md
+    audiences: [maintainer, agent]
+    intents: [understand-ownership-design]
+    related: [ownership-map, contract-family-registry]
+  - id: convergence
+    title: Continuum Stack Convergence
+    type: reference
+    capability: convergence
+    status: current
+    path: reference/convergence.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release, find-gate]
+    related: [ownership-map, contract-family-registry, packet-0035, packet-0036]
+  - id: packet-0035
+    title: Continuum Stack Convergence (design packet)
+    type: design-packet
+    capability: convergence
+    status: archived
+    path: design/0035-continuum-stack-convergence/README.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release, find-gate]
+    related: [convergence, packet-0036, packet-0037, packet-0030]
+  - id: packet-0036
+    title: Continuum Stack Release Roadmap
+    type: design-packet
+    capability: convergence
+    status: archived
+    path: design/0036-continuum-stack-release-roadmap/README.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release]
+    related: [convergence, packet-0035, packet-0037]
+  - id: packet-0037
+    title: Continuum Stack Project Slice Plan
+    type: design-packet
+    capability: convergence
+    status: archived
+    path: design/0037-continuum-stack-project-slice-plan/README.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release, plan-slices]
+    related: [convergence, packet-0035, packet-0036]
+  - id: packet-0029
+    title: Cross-Repo Contract Family Registry
+    type: design-packet
+    capability: contract-families
+    status: archived
+    path: design/0029-cross-repo-contract-family-registry/README.md
+    audiences: [maintainer, agent]
+    intents: [understand-registry-design]
+    related: [contract-family-registry]
+  - id: packet-0030
+    title: Continuum Spine Protocol Report
+    type: design-packet
+    capability: convergence
+    status: archived
+    path: design/0030-continuum-spine-protocol-report/README.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release]
+    related: [convergence, packet-0035]

@@ -1,6 +1,6 @@
 ---
 title: Continuum Stack Release Roadmap
-status: proposed
+status: archived
 ---
 
 # Continuum Stack Release Roadmap

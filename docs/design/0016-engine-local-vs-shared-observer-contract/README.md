@@ -1,6 +1,6 @@
 ---
 title: Engine-Local Runtime vs Shared Observer Contract
-status: proposed
+status: archived
 ---
 
 # Engine-Local Runtime vs Shared Observer Contract

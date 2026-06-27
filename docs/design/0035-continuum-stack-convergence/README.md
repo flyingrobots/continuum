@@ -1,6 +1,6 @@
 ---
 title: Continuum Stack Convergence
-status: proposed
+status: archived
 ---
 
 # Continuum Stack Convergence

@@ -1,6 +1,6 @@
 ---
 title: Affect Boundary Versus Reintegration Boundary
-status: proposed
+status: archived
 ---
 
 # Affect Boundary Versus Reintegration Boundary

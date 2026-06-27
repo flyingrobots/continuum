@@ -1,6 +1,6 @@
 ---
 title: Witness Core And Receipt Shell
-status: proposed
+status: archived
 ---
 
 # Witness Core And Receipt Shell

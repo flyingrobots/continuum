@@ -113,10 +113,11 @@ The prototype is real, but it is not the final product form.
 What is not done yet:
 
 - `qw` is not yet shipped as the final standalone native binary
-- released profiles do not yet install real downloadable Node and Wesley
-  artifacts
-- the demo profile still uses local development posture for managed toolchain
-  staging
+- the demo profile now resolves the Wesley CLI from crates.io
+  (`cargo install wesley-cli`), but it still relies on the user having that
+  binary on `PATH` rather than `qw` installing a pinned, prebuilt artifact
+- released profiles do not yet install real downloadable, version-pinned
+  toolchain artifacts (Node when a legacy path needs it, prebuilt Wesley)
 - the broader day-to-day command set such as `qw build`, `qw doctor`, and
   `qw update` is not yet implemented
 - the managed toolchain install story still relies on proof package sources
@@ -193,7 +194,10 @@ The next implementation priority is not another doctrine pass.
 
 The next implementation priority is:
 
-- move the demo profile off current-process Node and sibling Wesley inputs
-- install both from manifest-resolved package sources
+- the demo profile no longer uses the sibling Node Wesley entrypoint; it
+  resolves the crates.io `wesley` binary (done)
+- next: install a pinned, prebuilt Wesley (and Node where a legacy path needs it)
+  from manifest-resolved package sources instead of relying on an ambient
+  `cargo install`
 - keep the user-facing contract exactly the same while making the managed
   toolchain story honest

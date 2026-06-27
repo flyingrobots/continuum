@@ -41,13 +41,15 @@ Current posture:
 - writes `warpspace.toml` and `warpspace.lock.json`
 - scaffolds the demo host template
 - materializes Continuum family sources into the host repo
-- stages the current-process Node runtime under `.warpspace/packages/node/`
-- stages the Wesley tool declared by the stack manifest under
-  `.warpspace/packages/wesley/`
-- invokes Wesley through those staged paths using the real `warpspace.toml`
-- supports both the legacy Node Wesley entrypoint (`.mjs` via Node) and the
-  native Rust Wesley binary runner (direct binary execution); new Wesley work
-  should target the Rust runner
+- the `demo` profile resolves the crates.io Wesley CLI (`cargo install wesley-cli`)
+  from `PATH` via the `crate` install source and invokes it natively (no Node
+  required); the resolution is recorded as a receipt under `.warpspace/packages/wesley/`
+- Wesley install sources: `crate` (resolve the crates.io binary from `PATH`),
+  `local-sibling-binary` (a built Rust binary), `package-source` (staged from a
+  declared source site), and the legacy `local-sibling-entrypoint` (Node `.mjs`,
+  now unused since Wesley is a Rust crate)
+- when a profile needs Node (legacy paths only), stages the current-process Node
+  runtime under `.warpspace/packages/node/`
 - supports manifest-declared package source sites, including a `local-packages`
   source used in tests and local proof work
 - supports a narrow constellation flow for pinned Git repos:

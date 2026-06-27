@@ -1,6 +1,6 @@
 ---
 title: Shared Noun Ownership Map Backlog Origin
-status: proposed
+status: archived
 ---
 
 # Shared Noun Ownership Map

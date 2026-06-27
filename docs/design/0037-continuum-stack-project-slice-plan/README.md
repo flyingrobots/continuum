@@ -1,6 +1,6 @@
 ---
 title: Continuum Stack Project Slice Plan
-status: proposed
+status: archived
 ---
 
 # Continuum Stack Project Slice Plan

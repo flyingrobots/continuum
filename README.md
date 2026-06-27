@@ -59,7 +59,9 @@ Echo and `git-warp` own runtime truth. Wesley compiles contracts. WARP TTD debug
 
 ## Getting started
 
-If the goal is to understand the model, start with [docs/OVERVIEW.md](docs/OVERVIEW.md) and then read [README_FULL.md](README_FULL.md). 
+For a map of all documentation by reader goal, start at the [docs index](docs/index.md).
+
+If the goal is to understand the model, start with [docs/OVERVIEW.md](docs/OVERVIEW.md) and then read [README_FULL.md](README_FULL.md).
 
 If the goal is to run something first, try:
 

@@ -17,10 +17,7 @@
       "sha256": "7984dbc052de8ffab0e0a7a50dc7ae8778527164c467bd8d681ace238903c00d",
       "materializeTo": "contracts/continuum/continuum-neighborhood-core-family.graphql",
       "defaultProjections": [
-        "typescript",
-        "zod",
-        "echo-ir",
-        "warp-ttd"
+        "typescript"
       ]
     }
   ],
@@ -32,18 +29,16 @@
       "managedPath": ".warpspace/packages/node/current/bin/node"
     },
     "wesley": {
-      "package": "@wesley/host-node",
+      "package": "wesley-cli",
       "version": "0.1.0",
       "repo": "https://github.com/flyingrobots/wesley",
-      "commit": "a80e47accb76854f68236c6cafd1f314e53b05ff",
-      "bundleFormat": 1,
       "command": "wesley",
-      "runner": "node-entrypoint",
-      "commandSet": "legacy-node",
+      "runner": "native-binary",
+      "commandSet": "native-rust",
       "install": {
-        "source": "local-sibling-entrypoint",
-        "path": "../wesley/packages/wesley-host-node/bin/wesley.mjs",
-        "managedPath": ".warpspace/packages/wesley/current/bin/wesley.mjs"
+        "source": "crate",
+        "crate": "wesley-cli",
+        "bin": "wesley"
       }
     }
   },

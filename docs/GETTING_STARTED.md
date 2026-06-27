@@ -74,7 +74,10 @@ If the `qw` bootstrap flow exists, the getting-started path should be:
 1. Install `qw`.
 2. Run `qw init my-app --profile demo`.
 3. Enter the new repo.
-4. Run `qw build` or `qw doctor`.
+4. Inspect the generated workspace (`warpspace.toml`, `warpspace.lock.json`,
+   `contracts/continuum/`, and the generated outputs). Do not run `qw build`,
+   top-level `qw doctor`, or `qw update` yet; those are planned product targets,
+   not current commands. See [apps/warp/VISION.md](../apps/warp/VISION.md).
 5. Start writing app-local contracts and app code on top of the generated
    shared family.
 
@@ -109,11 +112,11 @@ A local-first prototype now exists in Continuum:
 node apps/warp/bin/warp.mjs init my-app --profile demo
 ```
 
-For the current local-sibling demo profile, that command:
+For the current demo profile, that command:
 
-- stages the current-process Node runtime under `.warpspace/packages/node/`
-- stages a sibling Wesley entrypoint under `.warpspace/packages/wesley/`
-- then invokes Wesley through those staged toolchain paths
+- resolves the Wesley CLI from `PATH` (install it with `cargo install wesley-cli`)
+- invokes it natively through the Rust `wesley emit` command set
+- requires no Node runtime for the native-rust path
 
 The closest real starting point today is:
 
