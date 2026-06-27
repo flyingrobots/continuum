@@ -11,6 +11,10 @@
   `RELEASE.md` signpost. The profile declares current validation and signposts
   honestly while marking release-prep, autotag, and publish workflows as not yet
   implemented.
+- Hardened PR #38 review blockers: pinned CI action references, disabled
+  checkout credential persistence, made catalog paths require files, made
+  registry/schema coverage fail closed on missing required surfaces, and added a
+  tracked hook setup script for `.githooks`.
 
 - Added a `crate` Wesley install source to `qw init` (`apps/warp/src/init.mjs`):
   it resolves the crates.io-installed `wesley` binary from `PATH`

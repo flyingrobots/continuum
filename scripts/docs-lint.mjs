@@ -169,8 +169,13 @@ if (!existsSync(catalogPath)) {
         if (!p[f]) err(`catalog.yaml: family-reference ${label} missing cross-repo field "${f}"`);
       }
     }
-    if (p.path && !existsSync(resolve(DOCS, p.path))) {
-      err(`catalog.yaml: ${label} path does not resolve -> ${p.path}`);
+    if (p.path) {
+      const catalogTarget = resolve(DOCS, p.path);
+      if (!existsSync(catalogTarget)) {
+        err(`catalog.yaml: ${label} path does not resolve -> ${p.path}`);
+      } else if (!statSync(catalogTarget).isFile()) {
+        err(`catalog.yaml: ${label} path is not a file -> ${p.path}`);
+      }
     }
   }
   // related ids must resolve
@@ -183,12 +188,27 @@ if (!existsSync(catalogPath)) {
 
 // --- check 3: registry / schema coverage ---------------------------------
 const registryPath = join(DOCS, "contract-family-registry.md");
-if (existsSync(registryPath) && existsSync(SCHEMAS)) {
+if (!existsSync(registryPath)) {
+  err("docs/contract-family-registry.md is missing");
+} else if (!existsSync(SCHEMAS)) {
+  err("schemas/ directory is missing");
+} else if (!statSync(SCHEMAS).isDirectory()) {
+  err("schemas exists but is not a directory");
+} else {
   const registry = readFileSync(registryPath, "utf8");
   const schemaFiles = readdirSync(SCHEMAS).filter((f) => f.endsWith(".graphql"));
+  const familyRowSchemaRefs = new Set();
+  for (const line of registry.split("\n")) {
+    if (!line.startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    if (cells.length < 3 || !/^`[^`]+`$/.test(cells[0])) continue;
+    for (const m of cells[2].matchAll(/schemas\/([\w.-]+\.graphql)/g)) {
+      familyRowSchemaRefs.add(m[1]);
+    }
+  }
   for (const f of schemaFiles) {
-    if (!registry.includes(`schemas/${f}`)) {
-      err(`contract-family-registry.md: no schemas/${f} path reference (expected a registry row)`);
+    if (!familyRowSchemaRefs.has(f)) {
+      err(`contract-family-registry.md: no family matrix row references schemas/${f}`);
     }
   }
   // every schemas/*.graphql referenced in the registry must exist

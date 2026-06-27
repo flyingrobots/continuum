@@ -42,8 +42,14 @@ node scripts/docs-lint.mjs
 node --test 'apps/warp/test/**/*.test.mjs'
 ```
 
-The `pre-commit` hook runs the documentation gate automatically. CI runs both on
-pull requests.
+Enable the versioned pre-commit hook once per checkout:
+
+```bash
+sh scripts/setup-hooks.sh
+```
+
+After that setup, the `pre-commit` hook runs the documentation gate
+automatically. CI runs both checks on pull requests.
 
 ## Testing principle
 
