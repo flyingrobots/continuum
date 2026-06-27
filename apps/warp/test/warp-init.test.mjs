@@ -769,6 +769,9 @@ test('initWarp resolves a crates.io-installed Wesley (crate source) and invokes 
     assert.equal(result.toolchain.wesley.source, 'crate');
     assert.equal(result.toolchain.wesley.runner, 'native-binary');
     assert.equal(result.toolchain.wesley.commandSet, 'native-rust');
+    assert.equal(result.toolchain.wesley.version, null);
+    assert.equal(result.toolchain.wesley.versionSource, 'unverified-path-resolution');
+    assert.equal(result.toolchain.wesley.requestedVersion, '0.1.0');
     assert.deepEqual(resolveCalls, ['wesley']);
 
     assert.equal(invocations.length, 1);
@@ -788,6 +791,9 @@ test('initWarp resolves a crates.io-installed Wesley (crate source) and invokes 
     assert.equal(receipt.source, 'crate');
     assert.equal(receipt.resolvedPath, resolvedWesley);
     assert.equal(receipt.runner, 'native-binary');
+    assert.equal(receipt.version, null);
+    assert.equal(receipt.versionSource, 'unverified-path-resolution');
+    assert.equal(receipt.requestedVersion, '0.1.0');
 
     // crate source resolves an existing binary; it does not stage a copy under .warpspace
     await assert.rejects(access(path.join(projectDir, '.warpspace', 'packages', 'wesley', 'current', 'bin', 'wesley')));

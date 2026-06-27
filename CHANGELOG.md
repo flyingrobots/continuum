@@ -19,7 +19,9 @@
   map under `docs/reference/`, left `APP_GLOSSARY.md` as a signpost, added
   catalog `intents` validation and path-boundary checks, restored stack-trace
   leak assertions for usage errors, and made absolute Wesley binary resolution
-  require executable permission.
+  require executable permission. Crate-mode Wesley receipts now record the
+  manifest version as `requestedVersion` and keep `version` null unless the
+  binary version is actually observed.
 
 - Added a `crate` Wesley install source to `qw init` (`apps/warp/src/init.mjs`):
   it resolves the crates.io-installed `wesley` binary from `PATH`

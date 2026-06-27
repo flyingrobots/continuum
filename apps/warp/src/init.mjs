@@ -533,6 +533,7 @@ async function installWesleyTool({
     validateWesleyRunnerCommandSet({ runner, commandSet });
     const binName = requiredText(install.bin ?? 'wesley', 'toolchain.wesley.install.bin');
     const crate = install.crate ?? wesleySpec.package ?? 'wesley-cli';
+    const requestedVersion = wesleySpec.version ?? null;
 
     // The crates.io Wesley is a binary on PATH (cargo install wesley-cli); resolve
     // and invoke it directly rather than staging a managed copy.
@@ -556,14 +557,18 @@ async function installWesleyTool({
       runner,
       commandSet,
       package: crate,
-      version: wesleySpec.version ?? null,
+      version: null,
+      versionSource: 'unverified-path-resolution',
+      requestedVersion,
       resolvedPath
     };
     await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
 
     return {
       package: crate,
-      version: wesleySpec.version ?? null,
+      version: null,
+      versionSource: 'unverified-path-resolution',
+      requestedVersion,
       source,
       runner,
       commandSet,
