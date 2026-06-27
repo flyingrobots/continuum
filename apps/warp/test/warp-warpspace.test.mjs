@@ -15,6 +15,11 @@ import {
   defaultRunCommand
 } from '../src/warpspace.mjs';
 
+function assertNoStackTrace(stderr) {
+  assert.doesNotMatch(stderr, /\n\s+at\s+/);
+  assert.doesNotMatch(stderr, /\bnode:internal\b/);
+}
+
 test('warpspace lock resolves repo refs, syncs checkouts, and verifies clean heads', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warpspace-'));
   const upstreamRoot = path.join(tempDir, 'upstream');
@@ -616,14 +621,17 @@ test('warpspace help and usage errors stay user-facing', async () => {
   const usageError = await runCli(['init', 'demo-app', '--manifest']);
   assert.equal(usageError.code, 1);
   assert.match(usageError.stderr, /Missing value for --manifest/);
+  assertNoStackTrace(usageError.stderr);
 
   const shortFlagError = await runCli(['warpspace', 'sync', 'demo.lock.json', '--root', '-q']);
   assert.equal(shortFlagError.code, 1);
   assert.match(shortFlagError.stderr, /Missing value for --root/);
+  assertNoStackTrace(shortFlagError.stderr);
 
   const disallowedFlag = await runCli(['warpspace', 'lock', 'demo.toml', '--root', os.tmpdir()]);
   assert.equal(disallowedFlag.code, 1);
   assert.match(disallowedFlag.stderr, /Unknown option: --root/);
+  assertNoStackTrace(disallowedFlag.stderr);
 
   const conflictingInstallManifest = await runCli([
     'install',
@@ -633,16 +641,19 @@ test('warpspace help and usage errors stay user-facing', async () => {
   ]);
   assert.equal(conflictingInstallManifest.code, 1);
   assert.match(conflictingInstallManifest.stderr, /Use either positional manifest path or --manifest/);
+  assertNoStackTrace(conflictingInstallManifest.stderr);
 
   const quietInstall = await runCli(['install', '-q']);
   assert.equal(quietInstall.code, 1);
   assert.match(quietInstall.stderr, /Warpspace manifest not found: .*warpspace\.toml/);
   assert.doesNotMatch(quietInstall.stderr, /Warpspace manifest not found: .*-q/);
+  assertNoStackTrace(quietInstall.stderr);
 
   try {
     const missingManifest = await runCli(['install', path.join(tempDir, 'missing.toml')]);
     assert.equal(missingManifest.code, 1);
     assert.match(missingManifest.stderr, /Warpspace manifest not found/);
+    assertNoStackTrace(missingManifest.stderr);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

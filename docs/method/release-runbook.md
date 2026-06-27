@@ -1926,20 +1926,20 @@ duplication.
 To apply this across Continuum repos:
 
 1. Add `.continuum/release.yml`.
-2. Identify version sources.
-3. Identify release signposts.
-4. Standardize milestone naming.
-5. Standardize label axes.
-6. Add or update `RELEASE.md`.
-7. Add release-prep validation.
-8. Add final preflight.
-9. Add autotag workflow.
-10. Add publish workflow.
-11. Add verification commands.
-12. Add retrospective template.
+2. Declare version sources.
+3. Map release signposts.
+4. Normalize milestone naming.
+5. Normalize label axes.
+6. Create or trim `RELEASE.md`.
+7. Wire release-prep validation.
+8. Wire final preflight.
+9. Install the autotag workflow.
+10. Install the publish workflow.
+11. Record verification commands.
+12. Provide the retrospective template.
 13. Cut one release using the process.
 14. File fallout issues.
-15. Tighten automation.
+15. Tighten automation from the evidence.
 
 Do not try to perfect every repo before adopting the lifecycle. Start with the
 contract, then improve the adapters. The release process should itself improve

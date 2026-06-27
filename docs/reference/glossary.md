@@ -1,6 +1,8 @@
 ---
 title: Shared Noun Glossary
 status: current
+audiences: [newcomer, maintainer, agent]
+intents: [look-up-a-term]
 ---
 
 # Shared Noun Glossary
@@ -11,8 +13,8 @@ re-explaining them. Who *owns* each noun is in the
 [Shared Noun Ownership Map](ownership-map.md); where each is *authored* is under
 [`schemas/`](../../schemas/README.md).
 
-For the app-to-WARP noun mapping used by individual apps (e.g. `jedit`), see the
-[app glossary](../../APP_GLOSSARY.md) — that is a per-app coordination aid; this
+For the app-to-WARP noun mapping used by individual apps, see the
+[App Noun Map](app-noun-map.md). That page is a per-app coordination aid; this
 page is the shared vocabulary.
 
 ## Core temporal vocabulary

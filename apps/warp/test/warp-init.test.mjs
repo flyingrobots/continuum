@@ -850,3 +850,62 @@ test('initWarp crate source errors with cargo guidance when Wesley is not instal
     await rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test('initWarp crate source rejects an absolute Wesley path that is not executable', async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'continuum-warp-init-'));
+  const authorityRoot = path.join(tempDir, 'continuum');
+  const projectDir = path.join(tempDir, 'app');
+  const schemaPath = path.join(authorityRoot, 'schemas', 'continuum-neighborhood-core-family.graphql');
+  const manifestPath = path.join(authorityRoot, 'docs', 'releases', 'demo', 'continuum-stack-release.json');
+  const templatePath = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'template.json');
+  const templateFiles = path.join(authorityRoot, 'apps', 'warp', 'templates', 'demo-web-rust', 'files');
+  const nonExecutableWesley = path.join(tempDir, 'cargo-bin', 'wesley');
+  const schemaContent = 'type Query { ok: Boolean! }\n';
+
+  try {
+    await mkdir(path.join(authorityRoot, '.git'), { recursive: true });
+    await mkdir(path.dirname(schemaPath), { recursive: true });
+    await mkdir(path.dirname(manifestPath), { recursive: true });
+    await mkdir(path.dirname(nonExecutableWesley), { recursive: true });
+    await writeFile(schemaPath, schemaContent, 'utf8');
+    await writeFile(nonExecutableWesley, '#!/bin/sh\nexit 0\n', 'utf8');
+    await chmod(nonExecutableWesley, 0o644);
+    await writeTemplateFixture({ templatePath, templateFiles });
+    await writeFile(
+      manifestPath,
+      JSON.stringify(buildBaseManifest({
+        schemaContent,
+        projections: ['typescript'],
+        nodeToolchain: {
+          runtime: 'node',
+          source: 'system',
+          versionRange: '>=22.0.0',
+          managedPath: '.warpspace/packages/node/current/bin/node'
+        },
+        wesleyToolchain: {
+          package: 'wesley-cli',
+          runner: 'native-binary',
+          commandSet: 'native-rust'
+        },
+        wesleyInstall: {
+          source: 'crate',
+          crate: 'wesley-cli',
+          bin: nonExecutableWesley
+        }
+      }), null, 2) + '\n',
+      'utf8'
+    );
+
+    await assert.rejects(
+      initWarp({
+        projectDir,
+        manifestPath,
+        generate: false,
+        runCommand: async () => ({ status: 0, stdout: '', stderr: '' })
+      }),
+      /cargo install wesley-cli/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});

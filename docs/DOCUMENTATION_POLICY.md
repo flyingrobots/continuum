@@ -218,9 +218,41 @@ The repo maintains `docs/catalog.yaml`. Rules:
 - `type` MUST be one of the page types in §6; `capability` MUST be one of §5;
 - `audiences` MUST be drawn from `newcomer`, `maintainer`, `agent`,
   `contributor`, `app-author`, `stack-maintainer`;
+- `intents` MUST be drawn from the controlled vocabulary below;
 - `related` IDs MUST resolve to other catalog entries;
 - agents SHOULD route by `capability`, `audiences`, `intents`, and `type` rather
   than loading a capability's whole corpus.
+
+Current `intents` vocabulary:
+
+```text
+author-docs
+check-an-invariant
+check-evidence
+close-a-registry-gap
+conform-to-family
+coordinate-release
+find-authored-home
+find-gate
+find-noun-owner
+find-open-cut
+find-the-right-page
+look-up-a-command
+look-up-a-term
+orient
+plan-release
+plan-slices
+prepare-release
+prove-conformance
+publish-release
+run-something-first
+understand-doc-rules
+understand-ownership-design
+understand-proposed-profiles
+understand-registry-design
+understand-the-model
+verify-release
+```
 
 The catalog is a discovery surface. It does not make weak prose useful.
 

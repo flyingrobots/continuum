@@ -1,6 +1,8 @@
 ---
 title: qw command reference
 status: current
+audiences: [app-author, maintainer, agent]
+intents: [look-up-a-command]
 ---
 
 # qw command reference
@@ -84,9 +86,10 @@ qw warpspace locate <path>                 [--lock <path>] [--root <dir>] [--cwd
 
 ## Commands that do not exist yet
 
-`qw build`, `qw doctor` (top-level), and `qw update` are referenced as product
-intent but are **not implemented**. The only `doctor` today is
-`qw warpspace doctor`. See [apps/warp/VISION.md](../../apps/warp/VISION.md).
+`qw build`, `qw doctor` (top-level), and `qw update` are product targets, not
+current commands. Do not run them today. The only `doctor` today is
+`qw warpspace doctor`. The planned surface is tracked in
+[apps/warp/VISION.md](../../apps/warp/VISION.md).
 
 ## Examples
 

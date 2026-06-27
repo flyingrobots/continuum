@@ -10,6 +10,7 @@
 #   audiences:  newcomer, maintainer, agent, contributor, app-author,
 #               stack-maintainer
 #   status:     current, proposed, archived, draft, deprecated
+#   intents:    see docs/DOCUMENTATION_POLICY.md §10
 # Contract-family entries (type: family-reference) also carry cross-repo fields:
 #   authored_home, compiler_owner, runtime_owner, consumers, compatibility_status
 schema_version: 1
@@ -97,7 +98,16 @@ pages:
     path: reference/glossary.md
     audiences: [newcomer, maintainer, agent]
     intents: [look-up-a-term]
-    related: [ownership-map, contract-family-registry, overview]
+    related: [app-noun-map, ownership-map, contract-family-registry, overview]
+  - id: app-noun-map
+    title: App Noun Map
+    type: reference
+    capability: ontology
+    status: current
+    path: reference/app-noun-map.md
+    audiences: [maintainer, agent, app-author]
+    intents: [look-up-a-term]
+    related: [glossary, ownership-map, contract-family-registry]
   - id: qw-cli
     title: qw command reference
     type: reference

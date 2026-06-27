@@ -208,7 +208,7 @@ Direction-setting; "current hill" language. Doctrine, no source claims. Slightly
 stale ("establishing METHOD lanes… deciding the first artifacts") given those
 now exist, but acceptable for a bearing.
 
-### `APP_GLOSSARY.md` — accuracy ≈ 88% — **DONE: canonical glossary lifted to `docs/reference/glossary.md`** (APP_GLOSSARY kept for the per-app mapping)
+### `APP_GLOSSARY.md` — accuracy ≈ 88% — **DONE: canonical glossary lifted to `docs/reference/glossary.md`** (per-app map moved to `docs/reference/app-noun-map.md`)
 
 - ✅ "Continuum Shared Publication Families" table maps `NeighborhoodCore`, `SettlementDelta`, `ImportCandidate`, `ConflictArtifact`, `SettlementDecision`, `SettlementPlan`, `SettlementResult`, `laneId`, `frameIndex` to real schema symbols.
 - 🟡 The `jedit` hot-text table cites `jedit/...` files in a sibling repo — coordination aid, but skirts the §2.1 hub invariant (don't host sibling runtime truth). Keep the WARP-term column; link out for the jedit-local column rather than reproducing it.
@@ -220,7 +220,7 @@ Salvage notes referencing an *old* Continuum repo's files (`docs/DOCS-GOVERNANCE
 `docs/ARCH/ARCH-0002…`, `crates/jitos-core/…`) that **do not exist here**. Its
 "First Integration Targets" (invariant index, compatibility matrix, glossary) are
 **already done** (`docs/invariants/CONTINUUM.md`, `docs/contract-family-registry.md`,
-`APP_GLOSSARY.md`). No current-repo claims to verify. Pure historical scaffolding;
+`docs/reference/glossary.md`). No current-repo claims to verify. Pure historical scaffolding;
 its job is finished. **Deleted** in this pass; the four still-live runtime ideas
 were captured as `cool ideas` issues #39–42 first (history preserves the file).
 
@@ -272,7 +272,9 @@ policy + CONTRIBUTING; reconcile or close them. Leave the rest as backlog.
 ## Cross-cutting findings (fix regardless of consolidation)
 
 1. **Phantom reader-task dirs.** `docs/reference/` and `docs/explanation/` are referenced by the policy (§4, §18), AGENTS.md, and CONTRIBUTING.md but **do not exist**. Either create them (consolidation will) or stop citing them. The policy's §18 "Done: `docs/reference/release-targets.md`" is a false claim.
-2. **`qw build` / `qw doctor` don't exist** but GETTING_STARTED tells users to run them; the warp VISION correctly lists them as unbuilt. Single source of CLI truth needed.
+2. **`qw build` / top-level `qw doctor` / `qw update` don't exist.**
+   GETTING_STARTED now marks them as planned product targets, not current
+   commands. Keep the `qw` reference page as the single source of CLI truth.
 3. **Unbuilt protocol surface presented as real.** Capability tiers T0–T6 and the `continuum.*.v1` profile catalogue in README_FULL have zero source backing and aren't labelled proposed. Relabel or quarantine in one "proposed protocol profiles" page.
 4. **Stale packet machinery.** All packets `proposed`; `design/README.md` `active`; METHOD.md + `method/process.md` still mandate design cycles — all contradict policy §7. Relabel/demote.
 5. **`fixture-witnessed` evidence isn't CI-gated, and can't be cheaply.** The bats/fixtures backing receipt+settlement status live in `wesley/test/` but CI only runs `apps/warp/test` (`.github/workflows/ci.yml#40@2d09038`). The wesley README *claimed* `node --test wesley/test/*.test.mjs` is hermetic — **false**: those tests require `@wesley/core` and fail to load without a sibling Wesley checkout (`wesley/support/wesley-deps.mjs#117@2d09038`). So gating them in CI requires vendoring/installing Wesley first. The README claim has been corrected (see fixes below). **Deeper finding (issue #47):** the `@wesley/core` / `packages/wesley-host-node` layout these tests target no longer exists — Wesley migrated to a Rust workspace with a native `wesley-cli` — so the evidence is not merely un-gated but un-runnable against current Wesley until `continuum/wesley/` is retargeted or removed.
@@ -290,13 +292,15 @@ cluster into these pages; everything else becomes signpost, archive, or
 deletion.
 
 ### Signposts (short, route outward — keep at current homes)
+
 - `README.md` (repo front door) · `docs/index.md` (reader-goal router) · `docs/BEARING.md` · `docs/VISION.md` · `apps/warp/VISION.md`.
 
 ### Reader-task shelves (lift durable truth here)
+
 | Target page | Page type | Capability | Sourced from | Primary evidence |
 | --- | --- | --- | --- | --- |
 | `docs/explanation/causal-history-model.md` | explanation | ontology | `OVERVIEW.md` (de-scaffolded) | schemas (admission/settlement/neighborhood nouns) |
-| `docs/reference/glossary.md` | reference | ontology | `APP_GLOSSARY.md` shared-families table | `schemas/*.graphql` |
+| `docs/reference/glossary.md` | reference | ontology | shared-families table now split from `APP_GLOSSARY.md` history | `schemas/*.graphql` |
 | `docs/contract-family-registry.md` (stays) | reference | contract-families | current | `schemas/*.graphql`, gate coverage |
 | `docs/how-to/publish-runtime-evidence-for-a-contract-family.md` (stays) | conformance-guide | contract-families | current | gate coverage |
 | `docs/reference/ownership-map.md` | ownership-map | ownership-law | **lift packet 0014** | registry rows |
@@ -307,10 +311,12 @@ deletion.
 | `docs/explanation/protocol-profiles.md` *(status: proposed)* | reference | — | tiers T0–T6 + `continuum.*.v1` profiles extracted from `README_FULL.md` | **none yet — label proposed** |
 
 ### Keep as archive (frozen, not load-bearing)
+
 - All `docs/design/00NN/**` (relabel status; demote `design/README.md` to index).
 - `docs/method/backlog/**`, `docs/method/retro/**`, `docs/method/legends/**`.
 
 ### Trash (working tree; history retains)
+
 - `GoodIdeas.md` — **done**: deleted; the ~4 still-live runtime ideas captured as `cool ideas` issues #39–42, the rest already realized in current docs.
 - `README_FULL.md` *as a single page* — split: durable model prose → `docs/explanation/`; tier/profile catalogue → `docs/explanation/protocol-profiles.md` (status: proposed) or drop.
 
@@ -345,9 +351,17 @@ split — see "Structural consolidation completed" below).
 - **Slice 1 — ownership map lifted:** `docs/reference/ownership-map.md` authored from packet 0014 (updated to current schema truth, incl. settlement + runtime-boundary nouns); `index.md` + `catalog.yaml` repointed; packet demoted to archived design-packet.
 - **Slice 3 — convergence lifted:** `docs/reference/convergence.md` authored from packets 0035/0036 (durable gate/owner/evidence/ordering; GitHub state linked, not copied); 0037/0030 linked as history; routing repointed; packets archived in catalog.
 - **Slice 2 — README_FULL split:** the unbuilt T0–T6 tiers and `continuum.*.v1` profiles moved to `docs/explanation/protocol-profiles.md` (status: proposed, with an honest no-source banner); `README_FULL.md` now points there and its `warp doctor` reference is corrected.
-- **Slice 4 — canonical glossary:** `docs/reference/glossary.md` authored (source-backed shared nouns + cross-repo terms + banned collapses); `APP_GLOSSARY.md` points at it and keeps only the per-app mapping role.
+- **Slice 4 — canonical glossary:** `docs/reference/glossary.md` authored (source-backed shared nouns + cross-repo terms + banned collapses); the per-app map now lives in `docs/reference/app-noun-map.md`, with `APP_GLOSSARY.md` left as a signpost.
 - **Slice 5 — OVERVIEW de-scaffolded:** removed the "synthesis of packets 0001–0018" framing (policy §18); the per-section "Detailed packets" labels are now "Design history". OVERVIEW kept in place as the ontology explanation hub (relocating it would break many inbound links).
 - **Slice 6 — qw command reference:** `docs/reference/qw-cli.md` authored from `apps/warp/src/cli.mjs` + README; linked from `index.md` and registered in the catalog. `GETTING_STARTED.md` retained as the warp-cli how-to.
 
 ### Still open
-- **Architecture drift (issue #47):** `continuum/wesley/` imports a removed JS-era Wesley base platform (`@wesley/core`, `packages/wesley-core/src/ports/{clock,crypto}.mjs`) and the demo manifest invokes `packages/wesley-host-node/bin/wesley.mjs`, but the real Wesley is now a **Rust** Cargo workspace and the Node host was dropped (only `wesley-host-{bun,deno,browser}` survive). **It is not obsolete duplication, though:** per Rust Wesley's own docs, the TTD protocol compiler was extracted *into* `continuum/wesley/ttd/`, which is its authoritative home (no TTD or zod emitter exists in Rust Wesley); the `echo`/`warp-ttd` targets and receipt/settlement witness logic are Continuum-specific too. So the module owns real current IP that lost its JS substrate. This supersedes the earlier "vendor `@wesley/core` in CI" idea, and the receipt/settlement `fixture-witnessed` evidence is not runnable against current Wesley. Per Wesley's `LEGACY_NODE_MIGRATION.md`: Wesley now ships as a **crates.io binary** (`cargo install wesley-cli` → `wesley`); the Node surface (`packages/wesley-core`, `wesley-host-node`) is **deleted**; `zod` and domain-target dispatch were deleted and reassigned to "an external target module" (Continuum's job — Wesley is domain-empty); and a Rust **module capability registry** already exists (`crates/wesley-core/src/domain/capability.rs`) as the extension landing spot. So the path is to re-express the Continuum targets against that Rust registry (or an external-process/WASM target) and have `qw` invoke the crates.io `wesley` binary — `continuum/wesley/` is the reference to port FROM, not a module to keep running on a dead Node host. **Update — resolved in part:** `continuum/wesley/` has been deleted, `wesley-cli` 0.1.0 was installed from crates.io, and the registry's receipt/settlement rows were honestly downgraded to `authored` (the witness suite went with the module). Remaining work tracked on #47: re-point the demo manifest and `apps/warp` docs off the dead `wesley-host-node` path, and re-platform the TTD / `echo` / `warp-ttd` targets + witness onto the Rust `wesley-cli`.
+
+- **Architecture drift (issue #47):** resolved in part. `continuum/wesley/` was
+  deleted, the demo manifest now targets the crates.io `wesley-cli`, and the
+  receipt/settlement registry rows were downgraded to `authored` because their
+  witness suite left with the deleted module.
+- **Remaining #47 handoff:** re-platform the Continuum-owned TTD, `echo`,
+  `warp-ttd`, zod/registry, and receipt/settlement witness targets onto the Rust
+  Wesley capability registry or an external-process target. The tracked note is
+  `docs/method/backlog/up-next/SOURCE_warp-managed-toolchain-install-and-wesley-handoff.md`.

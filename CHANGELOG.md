@@ -15,6 +15,11 @@
   checkout credential persistence, made catalog paths require files, made
   registry/schema coverage fail closed on missing required surfaces, and added a
   tracked hook setup script for `.githooks`.
+- Addressed the follow-up PR #38 code-lawyer pass: moved the app-specific noun
+  map under `docs/reference/`, left `APP_GLOSSARY.md` as a signpost, added
+  catalog `intents` validation and path-boundary checks, restored stack-trace
+  leak assertions for usage errors, and made absolute Wesley binary resolution
+  require executable permission.
 
 - Added a `crate` Wesley install source to `qw init` (`apps/warp/src/init.mjs`):
   it resolves the crates.io-installed `wesley` binary from `PATH`

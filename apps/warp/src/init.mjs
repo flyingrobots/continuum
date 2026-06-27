@@ -723,7 +723,12 @@ async function installWesleyTool({
 // Resolve an executable by name from PATH (or verify an absolute path).
 async function defaultResolveBinary(binName) {
   if (path.isAbsolute(binName)) {
-    return (await pathExists(binName)) ? binName : null;
+    try {
+      await access(binName, fsConstants.X_OK);
+      return binName;
+    } catch {
+      return null;
+    }
   }
   const dirs = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
   for (const dir of dirs) {

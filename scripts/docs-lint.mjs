@@ -3,11 +3,20 @@
 // Dependency-free. Checks the facts this repo can determine reliably:
 //   1. internal relative links in docs/** resolve (anchors are advisory);
 //   2. docs/catalog.yaml integrity (ids, paths, controlled type/capability/
-//      audiences/status vocab, family-reference cross-repo fields, related);
+//      audiences/status/intents vocab, family-reference cross-repo fields,
+//      related);
 //   3. registry/schema coverage (every authored family has a row, vice versa).
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, dirname, resolve, relative, extname } from "node:path";
+import {
+  join,
+  dirname,
+  resolve,
+  relative,
+  extname,
+  isAbsolute,
+  sep,
+} from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -36,10 +45,41 @@ const AUDIENCES = new Set([
 const STATUSES = new Set([
   "current", "proposed", "archived", "draft", "deprecated",
 ]);
+const INTENTS = new Set([
+  "author-docs",
+  "check-an-invariant",
+  "check-evidence",
+  "close-a-registry-gap",
+  "conform-to-family",
+  "coordinate-release",
+  "find-authored-home",
+  "find-gate",
+  "find-noun-owner",
+  "find-open-cut",
+  "find-the-right-page",
+  "look-up-a-command",
+  "look-up-a-term",
+  "orient",
+  "plan-release",
+  "plan-slices",
+  "prepare-release",
+  "prove-conformance",
+  "publish-release",
+  "run-something-first",
+  "understand-doc-rules",
+  "understand-ownership-design",
+  "understand-proposed-profiles",
+  "understand-registry-design",
+  "understand-the-model",
+  "verify-release",
+]);
 // Cross-repo fields a contract-family entry MUST carry (policy §9).
 const FAMILY_REF_FIELDS = [
   "authored_home", "runtime_owner", "consumers", "compatibility_status",
 ];
+const CATALOG_ALLOWED_ROOT_FILES = new Set([
+  join(ROOT, "RELEASE.md"),
+]);
 
 function walk(dir, ext, out = []) {
   for (const name of readdirSync(dir)) {
@@ -63,6 +103,18 @@ function slug(heading) {
 // inside them is not mistaken for a real link or heading.
 function stripCode(md) {
   return md.replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "");
+}
+
+function isInside(parent, child) {
+  const rel = relative(parent, child);
+  return rel === "" ||
+    (!rel.startsWith(`..${sep}`) && rel !== ".." && !isAbsolute(rel));
+}
+
+function catalogPathIsInAllowedBoundary(target) {
+  return isInside(DOCS, target) ||
+    isInside(SCHEMAS, target) ||
+    CATALOG_ALLOWED_ROOT_FILES.has(target);
 }
 
 // --- check 1: internal links --------------------------------------------
@@ -161,6 +213,9 @@ if (!existsSync(catalogPath)) {
     for (const a of [].concat(p.audiences || [])) {
       if (!AUDIENCES.has(a)) err(`catalog.yaml: ${label} has unknown audience "${a}"`);
     }
+    for (const intent of [].concat(p.intents || [])) {
+      if (!INTENTS.has(intent)) err(`catalog.yaml: ${label} has unknown intent "${intent}"`);
+    }
     if (p.status && !STATUSES.has(p.status)) {
       err(`catalog.yaml: ${label} has unknown status "${p.status}"`);
     }
@@ -171,7 +226,9 @@ if (!existsSync(catalogPath)) {
     }
     if (p.path) {
       const catalogTarget = resolve(DOCS, p.path);
-      if (!existsSync(catalogTarget)) {
+      if (!catalogPathIsInAllowedBoundary(catalogTarget)) {
+        err(`catalog.yaml: ${label} path escapes allowed docs/schema/signpost roots -> ${p.path}`);
+      } else if (!existsSync(catalogTarget)) {
         err(`catalog.yaml: ${label} path does not resolve -> ${p.path}`);
       } else if (!statSync(catalogTarget).isFile()) {
         err(`catalog.yaml: ${label} path is not a file -> ${p.path}`);
