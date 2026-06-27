@@ -35,6 +35,7 @@ For how this documentation is organized and the rules it follows, see the
 ## Coordinate the stack release (stack maintainers)
 
 - [Continuum Stack Convergence](reference/convergence.md) — ownership, gates, goalpost ordering, and the compatibility set; links to live GitHub state.
+- [Continuum Release Lifecycle and Runbook](method/release-runbook.md) — canonical release lifecycle, profile contract, verification, publication, and retrospective rules.
 - Design history: [convergence packet](design/0035-continuum-stack-convergence/README.md), [release roadmap](design/0036-continuum-stack-release-roadmap/README.md), [project slice plan](design/0037-continuum-stack-project-slice-plan/README.md).
 
 ## Understand the theory

@@ -51,6 +51,24 @@ pages:
     audiences: [contributor, agent]
     intents: [orient]
     related: [bearing]
+  - id: release-runbook
+    title: Continuum Release Lifecycle and Runbook
+    type: contributor
+    capability: method
+    status: current
+    path: method/release-runbook.md
+    audiences: [maintainer, stack-maintainer, agent, contributor]
+    intents: [plan-release, prepare-release, publish-release, verify-release]
+    related: [convergence]
+  - id: release-process
+    title: Release process
+    type: contributor
+    capability: method
+    status: current
+    path: ../RELEASE.md
+    audiences: [maintainer, agent, contributor]
+    intents: [prepare-release, verify-release]
+    related: [release-runbook]
 
   # --- ontology and orientation ---
   - id: overview

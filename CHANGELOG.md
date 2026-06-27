@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added the canonical Continuum Release Lifecycle and Runbook, replacing the
+  placeholder release checklist with a full planned-to-closed lifecycle,
+  release profile contract, release-type rules, scope reconciliation, immutable
+  tag and publish-from-tag rules, verification evidence, retrospectives, and
+  adoption checklist for existing repos.
+- Added this repo's first `.continuum/release.yml` profile and a thin
+  `RELEASE.md` signpost. The profile declares current validation and signposts
+  honestly while marking release-prep, autotag, and publish workflows as not yet
+  implemented.
+
 - Added a `crate` Wesley install source to `qw init` (`apps/warp/src/init.mjs`):
   it resolves the crates.io-installed `wesley` binary from `PATH`
   (`cargo install wesley-cli`) and invokes it natively (`wesley emit …`), with a
