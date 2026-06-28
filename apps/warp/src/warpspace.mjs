@@ -102,6 +102,7 @@ export async function installWarpspace({
     });
 
   const runtime = await materializeRuntimeProjection({
+    lockPath: resolvedLockPath,
     lock: lockResult.lock,
     root: resolvedRoot
   });
@@ -321,6 +322,167 @@ export async function doctorWarpspace({
 
   return {
     kind: 'warp.warpspace.doctor.result.v1',
+    ok: verification.ok,
+    verification
+  };
+}
+
+export async function materializeRuntimeProjection({
+  lockPath = 'warpspace.lock.json',
+  root = null,
+  lock = null
+}) {
+  const resolvedLockPath = path.resolve(requiredText(lockPath, 'warpspace lock path'));
+  const runtimeLock = lock ?? await readLock(resolvedLockPath);
+  const resolvedRoot = path.resolve(root ?? path.dirname(resolvedLockPath));
+  const projection = runtimeProjectionSpec({
+    lock: runtimeLock,
+    root: resolvedRoot
+  });
+
+  if (projection.status === 'skipped') {
+    return {
+      kind: 'warp.runtime.materialize.result.v1',
+      lockPath: resolvedLockPath,
+      root: resolvedRoot,
+      status: 'skipped',
+      reason: projection.reason
+    };
+  }
+
+  await mkdir(path.dirname(projection.path), { recursive: true });
+  await writeFile(projection.path, JSON.stringify(projection.config, null, 2) + '\n', 'utf8');
+
+  return {
+    kind: 'warp.runtime.materialize.result.v1',
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    status: 'written',
+    profile: projection.profile,
+    runtimeKind: projection.runtimeKind,
+    path: projection.path,
+    mount: projection.mount,
+    image: projection.config.image
+  };
+}
+
+export async function verifyRuntimeProjection({
+  lockPath = 'warpspace.lock.json',
+  root = null
+}) {
+  const resolvedLockPath = path.resolve(requiredText(lockPath, 'warpspace lock path'));
+  const lock = await readLock(resolvedLockPath);
+  const resolvedRoot = path.resolve(root ?? path.dirname(resolvedLockPath));
+  const projection = runtimeProjectionSpec({
+    lock,
+    root: resolvedRoot
+  });
+
+  if (projection.status === 'skipped') {
+    return {
+      kind: 'warp.runtime.verify.result.v1',
+      lockPath: resolvedLockPath,
+      root: resolvedRoot,
+      ok: true,
+      status: 'skipped',
+      reason: projection.reason,
+      issues: []
+    };
+  }
+
+  const issues = [];
+  let actual = null;
+  if (!await pathExists(projection.path)) {
+    issues.push(runtimeIssue({
+      code: 'missing-runtime-projection',
+      path: projection.path,
+      expected: projection.config
+    }));
+  } else {
+    actual = await readRuntimeProjection(projection.path);
+    if (!isJsonObject(actual)) {
+      issues.push(runtimeIssue({
+        code: 'runtime-projection-invalid-shape',
+        path: projection.path,
+        expected: 'JSON object',
+        actual
+      }));
+    } else {
+      compareRuntimeField({
+        issues,
+        code: 'runtime-name-mismatch',
+        path: projection.path,
+        field: 'name',
+        expected: projection.config.name,
+        actual: actual.name
+      });
+      compareRuntimeField({
+        issues,
+        code: 'runtime-image-mismatch',
+        path: projection.path,
+        field: 'image',
+        expected: projection.config.image,
+        actual: actual.image
+      });
+      compareRuntimeField({
+        issues,
+        code: 'runtime-workspace-folder-mismatch',
+        path: projection.path,
+        field: 'workspaceFolder',
+        expected: projection.config.workspaceFolder,
+        actual: actual.workspaceFolder
+      });
+      compareRuntimeField({
+        issues,
+        code: 'runtime-workspace-mount-mismatch',
+        path: projection.path,
+        field: 'workspaceMount',
+        expected: projection.config.workspaceMount,
+        actual: actual.workspaceMount
+      });
+      compareRuntimeField({
+        issues,
+        code: 'runtime-remote-env-mismatch',
+        path: projection.path,
+        field: 'remoteEnv',
+        expected: projection.config.remoteEnv,
+        actual: actual.remoteEnv
+      });
+    }
+  }
+
+  return {
+    kind: 'warp.runtime.verify.result.v1',
+    lockPath: resolvedLockPath,
+    root: resolvedRoot,
+    ok: issues.length === 0,
+    status: issues.length === 0 ? 'ok' : 'drifted',
+    profile: projection.profile,
+    runtimeKind: projection.runtimeKind,
+    path: projection.path,
+    expected: {
+      name: projection.config.name,
+      image: projection.config.image,
+      workspaceFolder: projection.config.workspaceFolder,
+      workspaceMount: projection.config.workspaceMount,
+      remoteEnv: projection.config.remoteEnv
+    },
+    actual,
+    issues
+  };
+}
+
+export async function doctorRuntimeProjection({
+  lockPath = 'warpspace.lock.json',
+  root = null
+}) {
+  const verification = await verifyRuntimeProjection({
+    lockPath,
+    root
+  });
+
+  return {
+    kind: 'warp.runtime.doctor.result.v1',
     ok: verification.ok,
     verification
   };
@@ -810,11 +972,10 @@ function manifestRepoPath({ spec, name, manifestPath }) {
   });
 }
 
-async function materializeRuntimeProjection({ lock, root }) {
+function runtimeProjectionSpec({ lock, root }) {
   const profile = lock.runtime?.default;
   if (profile == null) {
     return {
-      kind: 'warp.runtime.materialize.result.v1',
       status: 'skipped',
       reason: 'no-runtime-profile'
     };
@@ -822,7 +983,6 @@ async function materializeRuntimeProjection({ lock, root }) {
 
   if (profile.kind !== 'devcontainer') {
     return {
-      kind: 'warp.runtime.materialize.result.v1',
       status: 'skipped',
       reason: `unsupported-runtime-kind:${profile.kind ?? 'unknown'}`
     };
@@ -839,18 +999,79 @@ async function materializeRuntimeProjection({ lock, root }) {
     remoteEnv: runtimeEnv(profile)
   };
 
-  await mkdir(devcontainerDir, { recursive: true });
-  await writeFile(devcontainerPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-
   return {
-    kind: 'warp.runtime.materialize.result.v1',
-    status: 'written',
+    status: 'expected',
     profile: 'default',
     runtimeKind: 'devcontainer',
     path: devcontainerPath,
     mount,
-    image: config.image
+    config
   };
+}
+
+async function readRuntimeProjection(filePath) {
+  try {
+    return JSON.parse(await readFile(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw error;
+    }
+    throw userFacingError(
+      `Runtime projection is not valid JSON: ${filePath}`,
+      'EWARP_RUNTIME_INVALID_JSON'
+    );
+  }
+}
+
+function compareRuntimeField({
+  issues,
+  code,
+  path: filePath,
+  field,
+  expected,
+  actual
+}) {
+  if (sameJsonValue(expected, actual)) {
+    return;
+  }
+  issues.push(runtimeIssue({
+    code,
+    path: filePath,
+    field,
+    expected,
+    actual
+  }));
+}
+
+function runtimeIssue({
+  code,
+  path: filePath,
+  field = null,
+  expected = undefined,
+  actual = undefined
+}) {
+  const issue = {
+    code,
+    path: filePath
+  };
+  if (field != null) {
+    issue.field = field;
+  }
+  if (expected !== undefined) {
+    issue.expected = expected;
+  }
+  if (actual !== undefined) {
+    issue.actual = actual;
+  }
+  return issue;
+}
+
+function sameJsonValue(left, right) {
+  return JSON.stringify(stableJsonValue(left)) === JSON.stringify(stableJsonValue(right));
+}
+
+function isJsonObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function runtimeImage(profile) {
