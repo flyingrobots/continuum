@@ -314,11 +314,9 @@ export interface Page<Value> {
   readonly coordinate: CoordinateReceipt;
 }
 
-export interface ValidationOutcome<T> {
-  readonly kind: 'valid' | 'invalid';
-  readonly value?: T;
-  readonly errors?: readonly ConstructionError[];
-}
+export type ValidationOutcome<T> =
+  | { readonly kind: 'valid'; readonly value: T }
+  | { readonly kind: 'invalid'; readonly errors: readonly ConstructionError[] };
 
 export class ContinuumConstructionError extends TypeError {
   readonly code: string;
@@ -333,6 +331,8 @@ export function canonicalStringify(value: CanonicalJson): string;
 export function toCanonicalJson(value: unknown): CanonicalJson;
 export function assertCanonicalJson(value: unknown): void;
 export function hashCanonicalJson(value: CanonicalJson): AppliedDigest;
+export function digestAppliedReading(reading: Partial<AppliedReading<unknown>>): AppliedDigest;
+export function digestAppliedIntent(intent: Partial<AppliedIntent<unknown>>): AppliedDigest;
 export function meetRevelationPosture(
   ...postures: readonly RevelationPosture[]
 ): RevelationPosture;
@@ -379,6 +379,9 @@ export function redact(value: unknown): CanonicalJson;
 export function validateDeclaration<T extends AppliedReading<unknown> | AppliedIntent<unknown>>(
   declaration: T,
 ): ValidationOutcome<T>;
+export function validateDeclaration(
+  declaration: unknown,
+): ValidationOutcome<AppliedReading<unknown> | AppliedIntent<unknown>>;
 
 export type SelectionSpec = { readonly kind: string; readonly [key: string]: unknown };
 export type ApertureSpec = { readonly kind: string; readonly [key: string]: unknown };

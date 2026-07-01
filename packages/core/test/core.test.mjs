@@ -6,12 +6,14 @@ import {
   ContinuumObservationError,
   canonicalStringify,
   compareOccurrenceBinding,
+  digestAppliedIntent,
   hashCanonicalJson,
   makeOccurredIntent,
   makeOccurrenceRef,
   matchAdmission,
   matchObservation,
   meetRevelationPosture,
+  redact,
   unwrapObserved,
   validateDeclaration
 } from '../src/index.mjs';
@@ -19,7 +21,7 @@ import {
 const issuer = { kind: 'client', id: 'client:local' };
 
 function appliedIntent(args) {
-  return {
+  const intent = {
     kind: 'intent',
     optic: {
       domain: 'xyph.quest',
@@ -34,12 +36,11 @@ function appliedIntent(args) {
     site: { kind: 'quest-comment' },
     footprint: { kind: 'comment-footprint' },
     support: { kind: 'comment-support' },
-    admission: { kind: 'comment-admission' },
-    appliedDigest: hashCanonicalJson({
-      kind: 'intent',
-      name: 'recordComment',
-      args
-    })
+    admission: { kind: 'comment-admission' }
+  };
+  return {
+    ...intent,
+    appliedDigest: digestAppliedIntent(intent)
   };
 }
 
@@ -113,6 +114,29 @@ test('occurrence key digest is independent from applied intent digest', () => {
   assert.equal(compareOccurrenceBinding(first, secondAct), 'separate-occurrence');
 });
 
+test('occurrence binding rejects malformed occurred intents', () => {
+  assert.throws(
+    () => compareOccurrenceBinding({}, {}),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'invalid-occurred-intent'
+  );
+
+  const occurred = makeOccurredIntent(
+    appliedIntent({ questId: 'quest:1', body: 'LGTM' }),
+    makeOccurrenceRef({ issuer, localId: 'client-act:1' })
+  );
+
+  assert.throws(
+    () => compareOccurrenceBinding(
+      occurred,
+      {
+        ...occurred,
+        occurredDigest: hashCanonicalJson({ wrong: 'digest' })
+      }
+    ),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'digest-mismatch'
+  );
+});
+
 test('string occurrences must be expanded before core occurrence construction', () => {
   assert.throws(
     () => makeOccurredIntent(appliedIntent({ body: 'LGTM' }), 'client-act:1'),
@@ -180,6 +204,22 @@ test('match helpers require exhaustive handlers', () => {
     ),
     (error) => error instanceof ContinuumConstructionError && error.code === 'missing-match-handler'
   );
+
+  assert.throws(
+    () => matchObservation(
+      { kind: 'bogus', observation: { value: 42 } },
+      {
+        observed: ({ observation }) => observation.value,
+        plural: () => 0,
+        conflict: () => 0,
+        obstruction: () => 0
+      }
+    ),
+    (error) => (
+      error instanceof ContinuumConstructionError &&
+      error.code === 'unknown-observation-outcome-kind'
+    )
+  );
 });
 
 test('validateDeclaration returns typed invalid construction results', () => {
@@ -194,4 +234,41 @@ test('validateDeclaration returns typed invalid construction results', () => {
   const invalid = validateDeclaration({ kind: 'intent', args: { body: undefined } });
   assert.equal(invalid.kind, 'invalid');
   assert.equal(invalid.errors[0].code, 'invalid-digest');
+
+  const staleDigest = {
+    ...appliedIntent({ body: 'LGTM' }),
+    appliedDigest: hashCanonicalJson({ stale: true })
+  };
+  const mismatch = validateDeclaration(staleDigest);
+  assert.equal(mismatch.kind, 'invalid');
+  assert.equal(mismatch.errors[0].code, 'digest-mismatch');
+});
+
+test('redact removes observer-specific values and evidence from log-safe output', () => {
+  assert.deepEqual(
+    redact({
+      kind: 'observed',
+      observation: {
+        value: 'quest secret',
+        observer: { id: 'did:example:alice' },
+        support: { atoms: ['signed-claim'] },
+        proof: { proofRef: 'cas://proof' },
+        transport: { token: 'cursor-secret' },
+        witnessDebt: [{ kind: 'missing-signature' }]
+      },
+      coordinate: { digest: hashCanonicalJson({ coordinate: 1 }) }
+    }),
+    {
+      kind: 'observed',
+      observation: {
+        value: '[redacted]',
+        observer: '[redacted]',
+        support: '[redacted]',
+        proof: '[redacted]',
+        transport: '[redacted]',
+        witnessDebt: '[redacted]'
+      },
+      coordinate: { digest: hashCanonicalJson({ coordinate: 1 }) }
+    }
+  );
 });

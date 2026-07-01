@@ -22,6 +22,28 @@ const TRANSPORT_ORDER = new Map([
 const VALUE_BY_ORDER = ['opaque', 'redacted', 'clear'];
 const PROOF_BY_ORDER = ['none', 'receipt', 'public-proof', 'witness'];
 const TRANSPORT_BY_ORDER = ['none', 'local', 'shareable'];
+const REDACTED = '[redacted]';
+const REDACTED_KEYS = new Set([
+  'author',
+  'authority',
+  'authorityReceipt',
+  'authorityPresentation',
+  'conflict',
+  'ledger',
+  'localId',
+  'observer',
+  'proof',
+  'proofRef',
+  'publicInputs',
+  'result',
+  'results',
+  'signature',
+  'support',
+  'token',
+  'transport',
+  'value',
+  'witnessDebt'
+]);
 
 export class ContinuumConstructionError extends TypeError {
   constructor(message, options = {}) {
@@ -51,6 +73,14 @@ export function hashCanonicalJson(value) {
   return `sha256:${createHash('sha256').update(canonicalStringify(value)).digest('hex')}`;
 }
 
+export function digestAppliedReading(reading) {
+  return hashCanonicalJson(appliedReadingDigestPayload(reading));
+}
+
+export function digestAppliedIntent(intent) {
+  return hashCanonicalJson(appliedIntentDigestPayload(intent));
+}
+
 export function toCanonicalJson(value) {
   if (value === null) {
     return null;
@@ -60,7 +90,7 @@ export function toCanonicalJson(value) {
   }
   if (typeof value === 'number') {
     assertCanonicalNumber(value);
-    return Object.is(value, -0) ? 0 : value;
+    return value;
   }
   if (Array.isArray(value)) {
     return value.map((item) => toCanonicalJson(item));
@@ -169,14 +199,13 @@ export function makeOccurredIntent(intent, occurrence) {
     kind: 'occurred-intent',
     intent,
     occurrence: occurrenceRef,
-    occurredDigest: hashCanonicalJson({
-      occurrenceKeyDigest: occurrenceRef.occurrenceKeyDigest,
-      appliedDigest: intent.appliedDigest
-    })
+    occurredDigest: expectedOccurredDigest(intent, occurrenceRef)
   };
 }
 
 export function compareOccurrenceBinding(left, right) {
+  assertOccurredIntent(left, 'left');
+  assertOccurredIntent(right, 'right');
   const leftKey = left?.occurrence?.occurrenceKeyDigest;
   const rightKey = right?.occurrence?.occurrenceKeyDigest;
   const leftApplied = left?.intent?.appliedDigest;
@@ -198,13 +227,17 @@ export function unwrapObserved(outcome) {
 }
 
 export function matchObservation(outcome, handlers) {
-  assertHandlers('observation', handlers, ['observed', 'plural', 'conflict', 'obstruction']);
-  return handlers[outcome.kind](outcome);
+  const kinds = ['observed', 'plural', 'conflict', 'obstruction'];
+  assertHandlers('observation', handlers, kinds);
+  const kind = assertOutcomeKind('observation', outcome, kinds);
+  return handlers[kind](outcome);
 }
 
 export function matchAdmission(outcome, handlers) {
-  assertHandlers('admission', handlers, ['accepted', 'plural', 'conflict', 'obstruction']);
-  return handlers[outcome.kind](outcome);
+  const kinds = ['accepted', 'plural', 'conflict', 'obstruction'];
+  assertHandlers('admission', handlers, kinds);
+  const kind = assertOutcomeKind('admission', outcome, kinds);
+  return handlers[kind](outcome);
 }
 
 export function redact(value) {
@@ -214,13 +247,19 @@ export function redact(value) {
   if (Array.isArray(value)) {
     return value.map((item) => redact(item));
   }
-  if (typeof value !== 'object') {
+  if (typeof value === 'string' || typeof value === 'boolean') {
     return value;
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && !Object.is(value, -0) ? value : REDACTED;
+  }
+  if (typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
+    return REDACTED;
   }
   const output = {};
   for (const [key, field] of Object.entries(value)) {
-    if (key === 'proof' || key === 'transport' || key === 'witnessDebt') {
-      output[key] = '[redacted]';
+    if (REDACTED_KEYS.has(key)) {
+      output[key] = REDACTED;
     } else {
       output[key] = redact(field);
     }
@@ -256,7 +295,14 @@ function assertAppliedReading(reading) {
     });
   }
   assertDigest(reading.appliedDigest, 'applied reading');
-  assertCanonicalJson(reading.args);
+  assertRequired(reading.optic, 'applied reading optic');
+  assertRequired(reading.args, 'applied reading args');
+  assertRequired(reading.aperture, 'applied reading aperture');
+  assertRequired(reading.basisPolicy, 'applied reading basisPolicy');
+  assertRequired(reading.requestedPosture, 'applied reading requestedPosture');
+  assertRequired(reading.support, 'applied reading support');
+  assertRequired(reading.projection, 'applied reading projection');
+  assertDigestMatches(reading.appliedDigest, digestAppliedReading(reading), 'applied reading');
 }
 
 function assertAppliedIntent(intent) {
@@ -266,10 +312,75 @@ function assertAppliedIntent(intent) {
     });
   }
   assertDigest(intent.appliedDigest, 'applied intent');
-  assertCanonicalJson(intent.args);
+  assertRequired(intent.optic, 'applied intent optic');
+  assertRequired(intent.args, 'applied intent args');
+  assertRequired(intent.site, 'applied intent site');
+  assertRequired(intent.footprint, 'applied intent footprint');
+  assertRequired(intent.support, 'applied intent support');
+  assertRequired(intent.admission, 'applied intent admission');
+  assertDigestMatches(intent.appliedDigest, digestAppliedIntent(intent), 'applied intent');
+}
+
+function assertOccurredIntent(occurred, label) {
+  if (occurred?.kind !== 'occurred-intent') {
+    throw new ContinuumConstructionError(`${label} occurred intent kind must be "occurred-intent"`, {
+      code: 'invalid-occurred-intent'
+    });
+  }
+  assertAppliedIntent(occurred.intent);
+  const occurrenceRef = normalizeOccurrenceRef(occurred.occurrence);
+  assertDigest(occurred.occurredDigest, `${label} occurred intent`);
+  assertDigestMatches(
+    occurred.occurredDigest,
+    expectedOccurredDigest(occurred.intent, occurrenceRef),
+    `${label} occurred intent`
+  );
+}
+
+function expectedOccurredDigest(intent, occurrenceRef) {
+  return hashCanonicalJson({
+    occurrenceKeyDigest: occurrenceRef.occurrenceKeyDigest,
+    appliedDigest: intent.appliedDigest
+  });
+}
+
+function appliedReadingDigestPayload(reading) {
+  return canonicalRecord([
+    ['kind', 'reading'],
+    ['optic', reading?.optic],
+    ['args', reading?.args],
+    ['selection', reading?.selection],
+    ['page', reading?.page],
+    ['aperture', reading?.aperture],
+    ['basisPolicy', reading?.basisPolicy],
+    ['requestedPosture', reading?.requestedPosture],
+    ['support', reading?.support],
+    ['projection', reading?.projection]
+  ]);
+}
+
+function appliedIntentDigestPayload(intent) {
+  return canonicalRecord([
+    ['kind', 'intent'],
+    ['optic', intent?.optic],
+    ['args', intent?.args],
+    ['site', intent?.site],
+    ['footprint', intent?.footprint],
+    ['support', intent?.support],
+    ['admission', intent?.admission]
+  ]);
+}
+
+function canonicalRecord(entries) {
+  return toCanonicalJson(Object.fromEntries(entries.filter(([, value]) => value !== undefined)));
 }
 
 function normalizeOccurrenceRef(occurrence) {
+  if (occurrence == null || typeof occurrence !== 'object') {
+    throw new ContinuumConstructionError('Occurrence ref must be an object', {
+      code: 'invalid-occurrence-ref'
+    });
+  }
   const ref = makeOccurrenceRef({
     issuer: occurrence.issuer,
     localId: occurrence.localId
@@ -286,9 +397,25 @@ function normalizeOccurrenceRef(occurrence) {
 }
 
 function assertDigest(value, label) {
-  if (typeof value !== 'string' || !value.startsWith('sha256:')) {
+  if (typeof value !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(value)) {
     throw new ContinuumConstructionError(`${label} digest must be a sha256 digest`, {
       code: 'invalid-digest'
+    });
+  }
+}
+
+function assertRequired(value, label) {
+  if (value == null) {
+    throw new ContinuumConstructionError(`${label} is required`, {
+      code: 'missing-required-field'
+    });
+  }
+}
+
+function assertDigestMatches(actual, expected, label) {
+  if (actual !== expected) {
+    throw new ContinuumConstructionError(`${label} digest does not match canonical content`, {
+      code: 'digest-mismatch'
     });
   }
 }
@@ -332,6 +459,15 @@ function assertHandlers(label, handlers, kinds) {
       });
     }
   }
+}
+
+function assertOutcomeKind(label, outcome, kinds) {
+  if (outcome == null || !kinds.includes(outcome.kind)) {
+    throw new ContinuumConstructionError(`Unknown ${label} outcome kind: ${outcome?.kind}`, {
+      code: `unknown-${label}-outcome-kind`
+    });
+  }
+  return outcome.kind;
 }
 
 function toConstructionError(error) {
