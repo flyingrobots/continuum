@@ -41,6 +41,10 @@ For how this documentation is organized and the rules it follows, see the
 ## Understand the theory
 
 - [Overview](OVERVIEW.md) is the living explanation of the model.
+- [Observer API contract](explanation/observer-api-contract.md) describes the
+  proposed observer/session/reading/intent contract for app-facing runtime APIs.
+- [Protocol profiles and capability tiers](explanation/protocol-profiles.md)
+  describes proposed participation levels and profile names.
 - The full record lives in the [design packets](design/README.md), a **frozen
   historical decision log**. A superseded packet stays as history rather than
   being deleted; new decisions use a decision record or a `CHANGELOG.md` line.

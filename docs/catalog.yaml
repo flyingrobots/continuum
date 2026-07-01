@@ -213,6 +213,15 @@ pages:
     audiences: [maintainer, agent]
     intents: [understand-proposed-profiles]
     related: [contract-family-registry, schema-runtime-boundary]
+  - id: observer-api-contract
+    title: Observer API contract (proposed)
+    type: explanation
+    capability: contract-families
+    status: proposed
+    path: explanation/observer-api-contract.md
+    audiences: [maintainer, agent, app-author]
+    intents: [understand-the-model, conform-to-family]
+    related: [protocol-profiles, schema-runtime-boundary, contract-family-registry]
 
   # --- invariants ---
   - id: invariants-continuum
