@@ -128,6 +128,16 @@ interface ObserverHandle {
   at(coordinate: CoordinateInput): ObserverSession;
 }
 
+type ReadingValue<Reading> =
+  Reading extends AppliedReading<infer Value> ? Value : never;
+
+type ObservationOutcomesFor<
+  Readings extends readonly AppliedReading<unknown>[],
+> = {
+  readonly [Index in keyof Readings]:
+    ObservationOutcome<ReadingValue<Readings[Index]>>;
+};
+
 interface ObserverSession {
   pin(): Promise<PinnedObserverSession>;
 
@@ -142,9 +152,9 @@ interface ObserverSession {
     reading: AppliedReading<Value>,
   ): Promise<ObservationOutcome<Value>>;
 
-  observeMany(
-    readings: readonly AppliedReading<unknown>[],
-  ): Promise<ObservationOutcome<unknown>[]>;
+  observeMany<Readings extends readonly AppliedReading<unknown>[]>(
+    readings: Readings,
+  ): Promise<ObservationOutcomesFor<Readings>>;
 
   canObserve?<Value>(
     reading: AppliedReading<Value>,
