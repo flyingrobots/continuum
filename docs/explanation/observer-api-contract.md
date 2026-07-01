@@ -408,8 +408,8 @@ type AuthoredIntent<Result> = {
 ```
 
 If `AuthoredIntent.signature` is present, it must cover the authored intent
-digest, including occurrence, applied intent digest, author, authority, and any
-`authoredAt` fields included in the signed form.
+digest, including occurrence, applied intent digest, author, authority, nonce,
+and any `authoredAt` fields included in the signed form.
 
 The public session may accept either occurred or authored intent:
 
@@ -533,6 +533,10 @@ optimizationDigest         optional performance hint identity
 lowering.loweringDigest    target evaluator/lowering identity
 runtime receipt            target runtime implementation identity
 ```
+
+Continuum v1 digest receipts use lowercase `sha256:<64 lowercase hex>` strings.
+Future digest algorithm agility must be represented by an explicit new field or
+type, not by silently reinterpreting `AppliedDigest`.
 
 Changing an optimization hint must not change meaning. Changing the semantic
 law must change the semantic digest.

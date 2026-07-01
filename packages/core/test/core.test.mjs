@@ -62,6 +62,16 @@ test('canonical JSON sorts object keys and rejects unsupported values', () => {
     () => canonicalStringify({ value: Number.POSITIVE_INFINITY }),
     (error) => error instanceof ContinuumConstructionError && error.code === 'non-finite-number'
   );
+  assert.throws(
+    () => canonicalStringify({ value: Number.MAX_SAFE_INTEGER + 1 }),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'unsafe-integer'
+  );
+  const sparse = [];
+  sparse[1] = 'x';
+  assert.throws(
+    () => canonicalStringify(sparse),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'sparse-array'
+  );
 });
 
 test('canonical digests are stable across object insertion order', () => {
@@ -72,6 +82,16 @@ test('canonical digests are stable across object insertion order', () => {
 });
 
 test('revelation posture meet is dimension-wise minimum', () => {
+  const posture = {
+    value: 'redacted',
+    proof: 'receipt',
+    transport: 'local',
+    extra: 'must not survive normalization'
+  };
+  const normalized = meetRevelationPosture(posture);
+  assert.notEqual(normalized, posture);
+  assert.deepEqual(normalized, { value: 'redacted', proof: 'receipt', transport: 'local' });
+
   assert.deepEqual(
     meetRevelationPosture(
       { value: 'clear', proof: 'witness', transport: 'shareable' },
@@ -114,6 +134,23 @@ test('occurrence key digest is independent from applied intent digest', () => {
   assert.equal(compareOccurrenceBinding(first, secondAct), 'separate-occurrence');
 });
 
+test('occurrence refs require concrete issuer namespaces', () => {
+  assert.throws(
+    () => makeOccurrenceRef({ issuer: [], localId: 'client-act:1' }),
+    (error) => (
+      error instanceof ContinuumConstructionError &&
+      error.code === 'invalid-occurrence-issuer'
+    )
+  );
+  assert.throws(
+    () => makeOccurrenceRef({ issuer: { kind: 'client' }, localId: 'client-act:1' }),
+    (error) => (
+      error instanceof ContinuumConstructionError &&
+      error.code === 'invalid-occurrence-issuer'
+    )
+  );
+});
+
 test('occurrence binding rejects malformed occurred intents', () => {
   assert.throws(
     () => compareOccurrenceBinding({}, {}),
@@ -140,6 +177,10 @@ test('occurrence binding rejects malformed occurred intents', () => {
 test('string occurrences must be expanded before core occurrence construction', () => {
   assert.throws(
     () => makeOccurredIntent(appliedIntent({ body: 'LGTM' }), 'client-act:1'),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'missing-occurrence-issuer'
+  );
+  assert.throws(
+    () => makeOccurredIntent(appliedIntent({ body: 'LGTM' }), null),
     (error) => error instanceof ContinuumConstructionError && error.code === 'missing-occurrence-issuer'
   );
 });
@@ -204,6 +245,15 @@ test('match helpers require exhaustive handlers', () => {
     ),
     (error) => error instanceof ContinuumConstructionError && error.code === 'missing-match-handler'
   );
+  assert.throws(
+    () => matchObservation(
+      { kind: 'observed', observation: { value: 42 } },
+      {
+        observed: ({ observation }) => observation.value
+      }
+    ),
+    (error) => error instanceof ContinuumConstructionError && error.code === 'missing-match-handler'
+  );
 
   assert.throws(
     () => matchObservation(
@@ -235,6 +285,13 @@ test('validateDeclaration returns typed invalid construction results', () => {
   assert.equal(invalid.kind, 'invalid');
   assert.equal(invalid.errors[0].code, 'invalid-digest');
 
+  const invalidDigest = validateDeclaration({
+    ...appliedIntent({ body: 'LGTM' }),
+    appliedDigest: 'sha256:x'
+  });
+  assert.equal(invalidDigest.kind, 'invalid');
+  assert.equal(invalidDigest.errors[0].code, 'invalid-digest');
+
   const staleDigest = {
     ...appliedIntent({ body: 'LGTM' }),
     appliedDigest: hashCanonicalJson({ stale: true })
@@ -254,7 +311,8 @@ test('redact removes observer-specific values and evidence from log-safe output'
         support: { atoms: ['signed-claim'] },
         proof: { proofRef: 'cas://proof' },
         transport: { token: 'cursor-secret' },
-        witnessDebt: [{ kind: 'missing-signature' }]
+        witnessDebt: [{ kind: 'missing-signature' }],
+        debug: { bigint: 1n, fn() {} }
       },
       coordinate: { digest: hashCanonicalJson({ coordinate: 1 }) }
     }),
@@ -266,7 +324,8 @@ test('redact removes observer-specific values and evidence from log-safe output'
         support: '[redacted]',
         proof: '[redacted]',
         transport: '[redacted]',
-        witnessDebt: '[redacted]'
+        witnessDebt: '[redacted]',
+        debug: { bigint: '[redacted]', fn: '[redacted]' }
       },
       coordinate: { digest: hashCanonicalJson({ coordinate: 1 }) }
     }

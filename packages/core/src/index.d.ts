@@ -10,6 +10,11 @@ export type CanonicalJsonObject = {
   readonly [key: string]: CanonicalJson;
 };
 
+/**
+ * Continuum v1 digest receipts are fixed to lowercase SHA-256 strings.
+ * Algorithm agility must be introduced as an explicit new field or type, not by
+ * silently reinterpreting this contract.
+ */
 export type AppliedDigest = `sha256:${string}`;
 
 export interface LawpackRef {
@@ -226,6 +231,12 @@ export interface Obstruction {
   readonly evaluation?: EvaluationReceipt;
 }
 
+export type ReadingValue<Reading> = Reading extends AppliedReading<infer Value> ? Value : never;
+
+export type ObservationOutcomesFor<Readings extends readonly AppliedReading<unknown>[]> = {
+  readonly [Index in keyof Readings]: ObservationOutcome<ReadingValue<Readings[Index]>>;
+};
+
 export interface ObserverSession {
   pin(): Promise<PinnedObserverSession>;
   author<Result>(
@@ -234,7 +245,9 @@ export interface ObserverSession {
   ): Promise<AuthoredIntent<Result>>;
   read<Value>(reading: AppliedReading<Value>): Promise<Value>;
   observe<Value>(reading: AppliedReading<Value>): Promise<ObservationOutcome<Value>>;
-  observeMany(readings: readonly AppliedReading<unknown>[]): Promise<ObservationOutcome<unknown>[]>;
+  observeMany<Readings extends readonly AppliedReading<unknown>[]>(
+    readings: Readings,
+  ): Promise<ObservationOutcomesFor<Readings>>;
   canObserve?<Value>(reading: AppliedReading<Value>): Promise<CapabilityOutcome>;
   canAdmit?<Result>(
     intent: OccurredIntent<Result> | AuthoredIntent<Result>,
@@ -320,10 +333,12 @@ export type ValidationOutcome<T> =
 
 export class ContinuumConstructionError extends TypeError {
   readonly code: string;
+  constructor(message: string, options?: { readonly code?: string });
 }
 
 export class ContinuumObservationError extends Error {
   readonly outcome: ObservationOutcome<unknown>;
+  constructor(outcome: ObservationOutcome<unknown>);
   toRedactedJson(): CanonicalJson;
 }
 
@@ -383,6 +398,9 @@ export function validateDeclaration(
   declaration: unknown,
 ): ValidationOutcome<AppliedReading<unknown> | AppliedIntent<unknown>>;
 
+// Phase 1 placeholders. These names are part of the public contract, but their
+// field-level schemas must be narrowed by Wesley/Edict lawpacks before they are
+// treated as finalized domain types.
 export type SelectionSpec = { readonly kind: string; readonly [key: string]: unknown };
 export type ApertureSpec = { readonly kind: string; readonly [key: string]: unknown };
 export type BasisPolicy = { readonly kind: string; readonly [key: string]: unknown };

@@ -22,6 +22,11 @@ const TRANSPORT_ORDER = new Map([
 const VALUE_BY_ORDER = ['opaque', 'redacted', 'clear'];
 const PROOF_BY_ORDER = ['none', 'receipt', 'public-proof', 'witness'];
 const TRANSPORT_BY_ORDER = ['none', 'local', 'shareable'];
+const TOP_REVELATION_POSTURE = {
+  value: 'clear',
+  proof: 'witness',
+  transport: 'shareable'
+};
 const REDACTED = '[redacted]';
 const REDACTED_KEYS = new Set([
   'author',
@@ -93,6 +98,13 @@ export function toCanonicalJson(value) {
     return value;
   }
   if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      if (!Object.hasOwn(value, index)) {
+        throw new ContinuumConstructionError('Canonical JSON arrays must not contain holes', {
+          code: 'sparse-array'
+        });
+      }
+    }
     return value.map((item) => toCanonicalJson(item));
   }
   if (typeof value === 'object') {
@@ -133,6 +145,11 @@ export function assertCanonicalNumber(value) {
       code: 'negative-zero'
     });
   }
+  if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
+    throw new ContinuumConstructionError('Canonical JSON integers must be safe integers', {
+      code: 'unsafe-integer'
+    });
+  }
 }
 
 export function meetRevelationPosture(...postures) {
@@ -154,7 +171,7 @@ export function meetRevelationPosture(...postures) {
       TRANSPORT_ORDER,
       TRANSPORT_BY_ORDER
     )
-  }));
+  }), TOP_REVELATION_POSTURE);
 }
 
 export function compareRevelationPosture(left, right) {
@@ -166,7 +183,15 @@ export function compareRevelationPosture(left, right) {
 }
 
 export function makeOccurrenceRef({ issuer, localId }) {
-  if (issuer == null || typeof issuer !== 'object') {
+  if (
+    issuer == null ||
+    typeof issuer !== 'object' ||
+    Array.isArray(issuer) ||
+    typeof issuer.kind !== 'string' ||
+    issuer.kind.length === 0 ||
+    typeof issuer.id !== 'string' ||
+    issuer.id.length === 0
+  ) {
     throw new ContinuumConstructionError('Occurrence issuer must be an object ref', {
       code: 'invalid-occurrence-issuer'
     });
@@ -186,7 +211,7 @@ export function makeOccurrenceRef({ issuer, localId }) {
 
 export function makeOccurredIntent(intent, occurrence) {
   assertAppliedIntent(intent);
-  const occurrenceRef = typeof occurrence === 'string'
+  const occurrenceRef = typeof occurrence === 'string' || occurrence == null
     ? undefined
     : normalizeOccurrenceRef(occurrence);
   if (occurrenceRef == null) {
