@@ -22,6 +22,13 @@ current working directory, root projection, lock file, and optional basis ref,
 then emits a typed locator plus runtime projection metadata marked outside hash
 scope.
 
+Runtime projections are generated local machine state. `qw runtime materialize`
+writes the declared projection from `warpspace.lock.json`; `qw runtime verify`
+and `qw runtime doctor` check whether files such as
+`.devcontainer/devcontainer.json` still match the declared WARPspace runtime.
+Those files tell a container or editor how to run the source constellation, but
+they do not become canonical path identity.
+
 Current manifests:
 
 - [`jedit-echo-dev.toml`](./jedit-echo-dev.toml) pins the first Wesley/Echo/`jedit`/`warp-ttd`
