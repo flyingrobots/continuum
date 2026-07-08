@@ -261,7 +261,16 @@ pages:
     path: reference/convergence.md
     audiences: [stack-maintainer, agent]
     intents: [coordinate-release, find-gate]
-    related: [ownership-map, contract-family-registry, packet-0035, packet-0036]
+    related: [xyph-gate-alpha-demo-plan, ownership-map, contract-family-registry, packet-0035, packet-0036]
+  - id: xyph-gate-alpha-demo-plan
+    title: Xyph Gate Alpha demo plan
+    type: reference
+    capability: convergence
+    status: current
+    path: reference/xyph-gate-alpha-demo-plan.md
+    audiences: [stack-maintainer, agent]
+    intents: [coordinate-release, plan-slices, find-gate]
+    related: [convergence, ownership-map, contract-family-registry]
   - id: packet-0035
     title: Continuum Stack Convergence (design packet)
     type: design-packet
