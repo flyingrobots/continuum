@@ -7,12 +7,12 @@ status: current
 
 Status anchor: 2026-07-08
 
-Current campaign state:
+Live campaign state belongs in GitHub, not copied prose. Use these anchors:
 
-- GP0 is complete across Continuum, Edict, Echo, and Xyph.
-- GP0 milestones are closed.
-- GP1 milestones are open.
-- GP1 has one open anchor issue per repo.
+- Continuum vocabulary: https://github.com/flyingrobots/continuum/issues/78
+- Edict proof plan: https://github.com/flyingrobots/edict/issues/136
+- Echo trace receipt: https://github.com/flyingrobots/echo/issues/646
+- Xyph shadow Gate: https://github.com/flyingrobots/xyph/issues/79
 
 This document is the demo spine for the Profunctor Optics / Xyph Gate Alpha
 campaign. It is meant to be edited as decisions land. Chat context should flow
@@ -31,7 +31,7 @@ The first complete demo should show this:
 ```text
 An agent-authored PR changes a protected payment workflow.
 Xyph Gate computes what behavior became reachable.
-The unsafe change is blocked in shadow mode first, then in enforce mode.
+The unsafe change is blocked in shadow mode first, then repaired and rerun.
 Workbench explains the blocked path and emits a finite repair menu.
 The repaired change passes.
 The ledger records the receipt, witness capsule, obligation state, and verdict.
@@ -48,7 +48,7 @@ Every accepted action leaves a receipt.
 
 ## Fixed Campaign Facts
 
-These facts are already anchored in the Goalpost 0 GitHub issues:
+These facts are already anchored in the Xyph Gate Alpha goalpost 0 GitHub issues:
 
 | Field | Value |
 | --- | --- |
@@ -63,7 +63,7 @@ These facts are already anchored in the Goalpost 0 GitHub issues:
 | First policy question | Can `capture:success` happen without durable receipt obligation satisfaction? |
 | First product mode | Shadow verdict before enforcement |
 
-Goalpost 0 anchors:
+XGA-GP0 anchors:
 
 | Repo | Issue | Responsibility |
 | --- | --- | --- |
@@ -154,11 +154,11 @@ This is the target flow once all first-version pieces exist.
 3. Edict turns the proposal into a bounded intent.
 4. Edict emits or references a contract bundle and Target IR artifact.
 5. Edict emits `EchoProofPlanV0`.
-6. Wesley-shaped canonical rules bind schema, codecs, and digests.
+6. Wesley/Continuum-authored canonical rules bind schema, codecs, and digests; early fixtures may stand in for generated artifacts without changing ownership.
 7. Echo validates the plan, bundle, basis, and authority posture.
 8. Echo executes or simulates deterministically.
 9. Echo emits `TraceRunReceiptV0` and trace rows.
-10. Continuum wraps the result as `WitnessCapsuleV0`.
+10. Echo or Xyph assembles a `WitnessCapsuleV0` that conforms to Continuum vocabulary.
 11. Xyph computes a base/head `HorizonDiffV0`.
 12. Xyph evaluates policy.
 13. Gate returns `ALLOW`, `SHADOW`, `BLOCK`, or `OVERRIDE_WITH_DEBT`.
@@ -227,8 +227,7 @@ The context governor gives only finite repair choices:
 ```text
 1. Add durable receipt write before payment settlement.
 2. Add compensating obstruction that prevents capture success without receipt.
-3. Mark the region as obligation debt with owner, severity, TTL, and override.
-4. Abandon the change.
+3. Abandon the change.
 ```
 
 The agent must choose one of these paths. It must not broaden authority, bypass
@@ -316,7 +315,7 @@ For the demo, it should emit or fixture:
 - obstruction field
 - retained evidence refs or explicit missing-retention posture
 
-Echo PR #644 is useful but not blocking for Goalpost 0. WAL durability becomes a
+Echo PR #644 is useful but not blocking for XGA-GP0. WAL durability becomes a
 hard dependency when the campaign claims durable replay and retained evidence.
 
 ### Xyph
@@ -341,9 +340,12 @@ a real blocked trace. Worker follows only after Gate can constrain it.
 
 ### Wesley-Shaped Canonical Layer
 
-The roadmap uses Wesley as the schema and canonical codec layer. If there is no
-separate Wesley repo yet, the first demo can host this responsibility in Edict
-fixtures and Echo validation seams.
+The roadmap uses Wesley as the schema and canonical codec authority. If there is
+no separate Wesley repo yet, the first demo can use fixtures that stand in for
+Wesley-generated artifacts, but those fixtures must be treated as temporary
+consumers of the canonical contract, not as new authored homes. Edict may carry
+fixture artifacts and Echo may validate them through seams, but neither repo
+should invent ad hoc canonical bytes or become the canonical codec owner.
 
 For the demo, the canonical layer must define:
 
@@ -358,28 +360,31 @@ No participant may hash an ad hoc JSON string and call it evidence.
 
 ## Goalposts
 
-### GP0: Campaign Grounding
+These are Xyph Gate Alpha-local goalposts, written as `XGA-GP*`. They are not
+the stack convergence GP numbers in `docs/reference/convergence.md`.
+
+### XGA-GP0: Campaign Grounding
 
 Purpose: stop scope drift before code expands.
 
 Deliverables:
 
 - campaign label exists in all repos
-- GP0 milestone exists in all repos
+- XGA-GP0 milestone exists in all repos
 - one anchor issue exists per repo
 - first protected workflow is fixed
 - first aperture is fixed
 - first target trace shape is fixed
 - blocking adjacent PRs are explicitly parked or promoted
 
-Current state:
+Historical completion record, 2026-07-08:
 
 - completed in Continuum, Edict, Echo, and Xyph
-- GP0 issues and milestones are closed
+- XGA-GP0 issues and milestones are closed
 - first fixture: `payment_receipt_required@0`
 - first aperture: `payment_reliability@0`
 - first trace shape: `TraceRunReceiptV0`
-- successor GP1 issues:
+- successor XGA-GP1 issues:
   - Continuum: https://github.com/flyingrobots/continuum/issues/78
   - Edict: https://github.com/flyingrobots/edict/issues/136
   - Echo: https://github.com/flyingrobots/echo/issues/646
@@ -387,11 +392,11 @@ Current state:
 
 Definition of done:
 
-- each GP0 issue has the final fixture vocabulary decision
-- each repo knows exactly what it owns for GP1
-- GP1 issues are opened
+- each XGA-GP0 issue has the final fixture vocabulary decision
+- each repo knows exactly what it owns for XGA-GP1
+- XGA-GP1 issues are opened
 
-### GP1: Evidence Vocabulary Freeze
+### XGA-GP1: Evidence Vocabulary Freeze
 
 Purpose: agree on the nouns and fixture fields.
 
@@ -417,7 +422,7 @@ Definition of done:
 - missing evidence is an obligation, not a warning string
 - no runtime execution is required yet
 
-### GP2: Fixture-Backed Gate Shadow
+### XGA-GP2: Fixture-Backed Gate Shadow
 
 Purpose: make Xyph look like the product before every substrate is real.
 
@@ -425,7 +430,7 @@ Repo deliverables:
 
 | Repo | Deliverable |
 | --- | --- |
-| Continuum | fixture capsule around base/head evidence refs |
+| Continuum | fixture vocabulary and validation profile for base/head evidence refs |
 | Edict | fixture proof plans for base and head |
 | Echo | fixture trace receipts for base and head |
 | Xyph | shadow Gate command and Horizon Diff renderer |
@@ -451,7 +456,7 @@ Definition of done:
 - the result is deterministic from fixtures
 - the output is legible to a platform engineer
 
-### GP3: Edict To Echo Core Trace
+### XGA-GP3: Edict To Echo Core Trace
 
 Purpose: complete the first real vertical substrate path.
 
@@ -461,7 +466,7 @@ Repo deliverables:
 | --- | --- |
 | Edict | tiny source or fixture lowers to `TargetIrArtifact` and `EchoProofPlanV0` |
 | Echo | accepts the artifact/plan and emits deterministic `TraceRunReceiptV0` |
-| Continuum | wraps the trace as `WitnessCapsuleV0` |
+| Continuum | validates the `WitnessCapsuleV0` vocabulary that Echo or Xyph assembles |
 | Xyph | consumes the real artifacts instead of static fixtures |
 
 Demo command:
@@ -477,7 +482,7 @@ Definition of done:
 - same input reproduces same evidence
 - no ZK and no GitHub integration required
 
-### GP4: Repair Menu MVP
+### XGA-GP4: Repair Menu MVP
 
 Purpose: turn a blocked trace into a lawful next move.
 
@@ -488,7 +493,7 @@ Repo deliverables:
 | Echo | obstruction fields carry enough structure for repair |
 | Edict | obstruction maps back to intent fields where possible |
 | Xyph | context governor compiles finite repair menu |
-| Continuum | witness capsule can carry obstruction and obligation refs |
+| Continuum | witness capsule vocabulary can carry obstruction and obligation refs |
 
 Demo command:
 
@@ -503,7 +508,7 @@ Definition of done:
 - bypass attempts remain policy failures
 - repaired intent can be rerun
 
-### GP5: Enforcing Gate MVP
+### XGA-GP5: Enforcing Gate MVP
 
 Purpose: convert shadow evidence into a merge-blocking product.
 
@@ -513,7 +518,7 @@ Repo deliverables:
 | --- | --- |
 | Xyph | policy evaluator returns `ALLOW`, `BLOCK`, `SHADOW`, `OVERRIDE_WITH_DEBT` |
 | Xyph | CLI or GitHub Action posts a PR verdict |
-| Continuum | capsule carries verdict and obligation refs |
+| Continuum | capsule vocabulary carries verdict and obligation refs |
 | Edict | stable command or fixture surface for proof-plan generation |
 | Echo | stable command or fixture surface for trace generation |
 
@@ -530,7 +535,7 @@ Definition of done:
 - override creates explicit debt
 - result is reproducible locally
 
-### GP6: Effector Boundary MVP
+### XGA-GP6: Effector Boundary MVP
 
 Purpose: stop the demo from pretending that Echo receipts automatically prove
 the outside world changed.
@@ -556,7 +561,7 @@ Definition of done:
 - missing confirmation becomes an obligation
 - out-of-band divergence can be represented as evidence, not prose
 
-### GP7: Ledger And Obligation Report MVP
+### XGA-GP7: Ledger And Obligation Report MVP
 
 Purpose: turn the technical demo into an audit artifact.
 
@@ -581,7 +586,7 @@ Definition of done:
 - every open obligation has owner, severity, TTL, and next action
 - evidence strength does not outrun model grade
 
-### GP8: Verify MVP
+### XGA-GP8: Verify MVP
 
 Purpose: prove evidence can cross a boundary.
 
@@ -606,7 +611,7 @@ Definition of done:
 - verifier reports evidence posture and trust assumptions
 - verifier can reject stale, incomplete, or mismatched evidence
 
-### GP9: Workbench Minimum UI
+### XGA-GP9: Workbench Minimum UI
 
 Purpose: make blocked behavior visible.
 
@@ -625,7 +630,7 @@ Definition of done:
 - developer can export a regression fixture
 - UI is useful without needing the full future product
 
-### GP10: Worker Under Gate
+### XGA-GP10: Worker Under Gate
 
 Purpose: introduce autonomous repair only after Gate can constrain it.
 
@@ -637,7 +642,7 @@ Repo deliverables:
 | Xyph | Worker output must pass Gate |
 | Edict | generated repair intent can be checked |
 | Echo | rerun proves whether the obligation closed |
-| Continuum | capsule records the worker-authored path and evidence posture |
+| Continuum | capsule vocabulary records the worker-authored path and evidence posture |
 
 Definition of done:
 
@@ -645,7 +650,7 @@ Definition of done:
 - Gate feedback becomes Worker input
 - repaired path closes or updates the obligation
 
-### GP11: Tier 3 Holographic Support
+### XGA-GP11: Tier 3 Holographic Support
 
 Purpose: harden the evidence target without waiting for ZK.
 
@@ -664,7 +669,7 @@ Definition of done:
 - verifier can distinguish L2 from L3
 - support material is compact enough for practical use
 
-### GP12: Tier 5 ZK Backend
+### XGA-GP12: Tier 5 ZK Backend
 
 Purpose: later proof compression, not the first product.
 
@@ -694,7 +699,7 @@ against.
 | prompt-injected agent | defended at Gate, not merely by prompt text |
 | malicious agent | constrained by lack of settlement authority |
 | tired human approver | UI must show compiled intent, not agent prose |
-| compromised runtime host | not fully solved in GP1-GP5; requires signing-key and attestation hardening |
+| compromised runtime host | not fully solved in XGA-GP1 through XGA-GP5; requires signing-key and attestation hardening |
 | malicious partner runtime | handled by native policy and evidence posture, not blind trust |
 | wrong policy | represented as policy grade / lawpack debt, not magically solved |
 | stale or refuted evidence | future taint and un-settlement workflow required |
@@ -778,16 +783,14 @@ xyph verify capsule artifacts/payment_receipt_required/head.capsule.json
 
 ## Near-Term Working Order
 
-1. Finish GP0 by filling in the four anchor issues with final fixture decisions.
-2. Open GP1 issues for the evidence vocabulary freeze.
-3. Create the first cross-repo fixture id and digest domain names.
-4. Add Continuum fixture vocabulary.
-5. Shape Edict `EchoProofPlanV0` around the existing skeleton.
-6. Shape Echo `TraceRunReceiptV0` as fixture-backed trace evidence.
-7. Add Xyph shadow Gate command over fixtures.
-8. Replace fixtures with the first real Edict-to-Echo trace.
-9. Add repair menu output.
-10. Move from shadow verdict to enforce verdict.
+1. Complete XGA-GP1 by freezing the shared fixture vocabulary and digest domains.
+2. Add Continuum fixture vocabulary for capsule, aperture, diff, and obligation refs.
+3. Shape Edict `EchoProofPlanV0` around the existing skeleton.
+4. Shape Echo `TraceRunReceiptV0` as fixture-backed trace evidence.
+5. Add Xyph shadow Gate command over fixtures.
+6. Replace fixtures with the first real Edict-to-Echo trace.
+7. Add repair menu output.
+8. Move from shadow verdict to enforce verdict.
 
 ## Success Standard
 
