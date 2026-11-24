@@ -15,7 +15,8 @@ for the product story and what is and is not finished, see
 When the package is linked or installed the binary is `qw`. For repo-local
 development the same CLI runs as `node apps/warp/bin/warp.mjs`.
 
-Top-level commands are `init`, `install`, and `warpspace <subcommand>`. Any
+Top-level commands are `init`, `install`, `runtime <subcommand>`, and
+`warpspace <subcommand>`. Any
 other command prints usage and exits non-zero. Every command accepts `-h` /
 `--help`.
 
@@ -62,6 +63,24 @@ verifies the result. Manifest defaults to `warpspace.toml`.
 | `--skip-sync` | Skip syncing declared repo checkouts. |
 | `--json` | Emit structured JSON (exit code follows `ok`). |
 | `-q`, `--quiet` | Suppress success text. |
+
+## `qw runtime`
+
+```text
+qw runtime <materialize|verify|doctor> [warpspace.lock.json] [--root <dir>] [--json]
+```
+
+Manages the local runtime projection (today `.devcontainer/devcontainer.json`)
+derived from `[runtime.default]` in the lock. The lock path defaults to
+`warpspace.lock.json` in the current directory. None of the subcommands refresh
+the lock, sync repos or start containers.
+
+- `materialize` writes the projection for supported runtime kinds.
+- `verify` compares the file on disk with the projection the lock expects and
+  reports drift; exit code is non-zero when it drifted.
+- `doctor` wraps `verify` in a doctor-shaped result.
+
+With `--json` each prints a structured result (`warp.runtime.<subcommand>.result.v1`).
 
 ## `qw warpspace`
 

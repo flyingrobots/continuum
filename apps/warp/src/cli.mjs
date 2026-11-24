@@ -2,9 +2,12 @@ import { initWarp } from './init.mjs';
 import { locateWarpspacePath } from './locator.mjs';
 import {
   doctorWarpspace,
+  doctorRuntimeProjection,
   installWarpspace,
   lockWarpspace,
+  materializeRuntimeProjection,
   syncWarpspace,
+  verifyRuntimeProjection,
   verifyWarpspace
 } from './warpspace.mjs';
 
@@ -25,6 +28,10 @@ export async function main(argv, io = {}) {
 
   if (command === 'install') {
     return runInstall(rest, { stdout, stderr });
+  }
+
+  if (command === 'runtime') {
+    return runRuntime(rest, { stdout, stderr });
   }
 
   if (command === 'warpspace') {
@@ -157,6 +164,109 @@ async function runInstall(argv, { stdout, stderr }) {
     }
     return writeCommandError(stderr, error);
   }
+}
+
+async function runRuntime(argv, { stdout, stderr }) {
+  const [command, ...rest] = argv;
+  if (command == null || command === '--help' || command === '-h') {
+    stdout(renderRuntimeUsage());
+    return 0;
+  }
+
+  if (command === 'materialize') {
+    const usage = renderRuntimeMaterializeUsage();
+    if (hasHelpFlag(rest)) {
+      stdout(usage);
+      return 0;
+    }
+    const wantsJson = rest.includes('--json');
+    try {
+      const { options, positionals } = parseRuntimeArgs(rest, usage);
+      const result = await materializeRuntimeProjection({
+        lockPath: runtimeLockPath(positionals, usage),
+        root: options.root ?? null
+      });
+      if (options.json) {
+        stdout(JSON.stringify(result, null, 2) + '\n');
+      } else if (result.status === 'written') {
+        stdout(`Runtime projection written: ${result.path}\n`);
+      } else {
+        stdout(`Runtime projection skipped: ${result.reason}\n`);
+      }
+      return 0;
+    } catch (error) {
+      if (wantsJson) {
+        return writeJsonCommandError(stdout, error, 'warp.runtime.materialize.error.v1', 'EWARP_RUNTIME_FAILED');
+      }
+      return writeCommandError(stderr, error);
+    }
+  }
+
+  if (command === 'verify') {
+    const usage = renderRuntimeVerifyUsage();
+    if (hasHelpFlag(rest)) {
+      stdout(usage);
+      return 0;
+    }
+    const wantsJson = rest.includes('--json');
+    try {
+      const { options, positionals } = parseRuntimeArgs(rest, usage);
+      const result = await verifyRuntimeProjection({
+        lockPath: runtimeLockPath(positionals, usage),
+        root: options.root ?? null
+      });
+      if (options.json) {
+        stdout(JSON.stringify(result, null, 2) + '\n');
+      } else if (result.ok) {
+        if (result.status === 'skipped') {
+          stdout(`Runtime projection skipped: ${result.reason}\n`);
+        } else {
+          stdout(`Runtime projection verified: ${result.path}\n`);
+        }
+      } else {
+        stderr(renderRuntimeIssues(result));
+      }
+      return result.ok ? 0 : 1;
+    } catch (error) {
+      if (wantsJson) {
+        return writeJsonCommandError(stdout, error, 'warp.runtime.verify.error.v1', 'EWARP_RUNTIME_FAILED');
+      }
+      return writeCommandError(stderr, error);
+    }
+  }
+
+  if (command === 'doctor') {
+    const usage = renderRuntimeDoctorUsage();
+    if (hasHelpFlag(rest)) {
+      stdout(usage);
+      return 0;
+    }
+    const wantsJson = rest.includes('--json');
+    try {
+      const { options, positionals } = parseRuntimeArgs(rest, usage);
+      const result = await doctorRuntimeProjection({
+        lockPath: runtimeLockPath(positionals, usage),
+        root: options.root ?? null
+      });
+      if (options.json) {
+        stdout(JSON.stringify(result, null, 2) + '\n');
+      } else if (result.ok) {
+        stdout('Runtime doctor: ok\n');
+      } else {
+        stderr(renderRuntimeIssues(result.verification));
+      }
+      return result.ok ? 0 : 1;
+    } catch (error) {
+      if (wantsJson) {
+        return writeJsonCommandError(stdout, error, 'warp.runtime.doctor.error.v1', 'EWARP_RUNTIME_FAILED');
+      }
+      return writeCommandError(stderr, error);
+    }
+  }
+
+  stderr(`Unknown runtime command: ${command}\n\n`);
+  stderr(renderRuntimeUsage());
+  return 1;
 }
 
 async function runWarpspace(argv, { stdout, stderr }) {
@@ -543,6 +653,40 @@ function parseWarpspaceLocateArgs(argv, usage) {
   return { options, positionals };
 }
 
+function parseRuntimeArgs(argv, usage) {
+  const options = {};
+  const positionals = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+
+    if (!token.startsWith('--')) {
+      positionals.push(token);
+      continue;
+    }
+
+    switch (token) {
+      case '--root':
+        options.root = requireValue(argv, ++index, token, usage);
+        break;
+      case '--json':
+        options.json = true;
+        break;
+      default:
+        throw new UsageError(`Unknown option: ${token}`, usage);
+    }
+  }
+
+  return { options, positionals };
+}
+
+function runtimeLockPath(positionals, usage) {
+  if (positionals.length > 1) {
+    throw new UsageError('Expected at most one warpspace lock path.', usage);
+  }
+  return positionals[0] ?? 'warpspace.lock.json';
+}
+
 function requireValue(argv, index, flag, usage) {
   const value = argv[index];
   if (value == null || value.startsWith('-')) {
@@ -558,6 +702,7 @@ function renderUsage() {
     'Usage:',
     '  qw init <projectDir> [--profile demo] [--manifest <path>]',
     '  qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
+    '  qw runtime <materialize|verify|doctor> [warpspace.lock.json] [--root <dir>] [--json]',
     '  qw warpspace <lock|verify|sync|doctor> ...',
     '',
     'Options:',
@@ -585,6 +730,30 @@ function renderInstallUsage() {
     'Usage: qw install [warpspace.toml] [--manifest <path>] [--root <dir>] [--lock <path>] [--skip-sync] [--json]',
     ''
   ].join('\n');
+}
+
+function renderRuntimeUsage() {
+  return [
+    'qw runtime - Manage local runtime projections from a WARPspace lock',
+    '',
+    'Usage:',
+    '  qw runtime materialize [warpspace.lock.json] [--root <dir>] [--json]',
+    '  qw runtime verify [warpspace.lock.json] [--root <dir>] [--json]',
+    '  qw runtime doctor [warpspace.lock.json] [--root <dir>] [--json]',
+    ''
+  ].join('\n');
+}
+
+function renderRuntimeMaterializeUsage() {
+  return 'Usage: qw runtime materialize [warpspace.lock.json] [--root <dir>] [--json]\n';
+}
+
+function renderRuntimeVerifyUsage() {
+  return 'Usage: qw runtime verify [warpspace.lock.json] [--root <dir>] [--json]\n';
+}
+
+function renderRuntimeDoctorUsage() {
+  return 'Usage: qw runtime doctor [warpspace.lock.json] [--root <dir>] [--json]\n';
 }
 
 function renderWarpspaceUsage() {
@@ -619,6 +788,37 @@ function renderWarpspaceDoctorUsage() {
 
 function renderWarpspaceLocateUsage() {
   return 'Usage: qw warpspace locate <path> [--lock <warpspace.lock.json>] [--root <dir>] [--cwd <dir>] [--basis <ref>] [--json]\n';
+}
+
+function renderRuntimeIssues(result) {
+  const lines = [
+    `Runtime projection verification failed: ${result.root}`,
+    ''
+  ];
+  for (const issue of result.issues) {
+    lines.push(`- ${issue.code}`);
+    if (issue.path) {
+      lines.push(`  path: ${issue.path}`);
+    }
+    if (issue.field) {
+      lines.push(`  field: ${issue.field}`);
+    }
+    if (issue.expected !== undefined) {
+      lines.push(`  expected: ${renderIssueValue(issue.expected)}`);
+    }
+    if (issue.actual !== undefined) {
+      lines.push(`  actual: ${renderIssueValue(issue.actual)}`);
+    }
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
+function renderIssueValue(value) {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value);
 }
 
 function renderWarpspaceIssues(result) {
