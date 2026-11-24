@@ -1,6 +1,6 @@
 ---
 title: Witness Refinement And Equivalence
-status: proposed
+status: archived
 ---
 
 # Witness Refinement And Equivalence

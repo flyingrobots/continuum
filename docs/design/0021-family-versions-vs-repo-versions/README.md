@@ -1,6 +1,6 @@
 ---
 title: Family Versions versus Repo Versions
-status: proposed
+status: archived
 ---
 
 # Family Versions versus Repo Versions

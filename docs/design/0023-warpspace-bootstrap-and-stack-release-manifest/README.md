@@ -1,6 +1,6 @@
 ---
 title: WARPspace Bootstrap And Stack Release Manifest
-status: proposed
+status: archived
 ---
 
 # WARPspace Bootstrap And Stack Release Manifest

@@ -1,6 +1,6 @@
 ---
 title: Continuum Spine Protocol Report
-status: proposed
+status: archived
 ---
 
 # Continuum Spine Protocol Report

@@ -1,11 +1,20 @@
 # OVERVIEW
 
-This document is the brief synthesis of Continuum design packets `0001` through
-`0017`.
-
-It is not the place for full proofs. It is the place to remember what the
-current theory says, what the important nouns mean, and how that theory cashes
+This is the living explanation of Continuum's **theory and ontology**: what the
+current model says, what the important nouns mean, and how that theory cashes
 out across Echo, `git-warp`, `warp-ttd`, and Wesley.
+
+It is not the place for full proofs. The frozen [design log](design/README.md)
+records how each idea was decided; the "design history" links below point to
+those packets as history, not as the way to learn the current model.
+
+Coordination and release material introduced in later packets (`0023`+:
+warpspace bootstrap, the cross-repo contract family registry, and stack
+convergence) is not synthesized here. For that, route through the
+[documentation index](index.md):
+
+- contract families and their evidence: [Contract Family Registry](contract-family-registry.md);
+- stack release coordination: [Continuum Stack Convergence](design/0035-continuum-stack-convergence/README.md).
 
 For the detailed arguments, examples, and open theorem questions, read the
 packets in [docs/design](design/README.md).
@@ -47,7 +56,7 @@ This means the difference between `Worldline` and `Strand` is not geometric
 shape. It is admission, governance, and provenance. Both are lane-shaped. A
 braid lives one level up as a plural/compositional object.
 
-Detailed packets:
+Design history:
 
 - [0001-lane-ontology-and-merge-temporality](design/0001-lane-ontology-and-merge-temporality/README.md)
 - [0002-kairotic-merge-and-derived-lanes](design/0002-kairotic-merge-and-derived-lanes/README.md)
@@ -72,7 +81,7 @@ That is why a successful merge can yield a **derived lane**, while an
 unsuccessful merge should remain an explicit braid with obstruction witness
 instead of pretending a single line exists.
 
-Detailed packets:
+Design history:
 
 - [0001-lane-ontology-and-merge-temporality](design/0001-lane-ontology-and-merge-temporality/README.md)
 - [0002-kairotic-merge-and-derived-lanes](design/0002-kairotic-merge-and-derived-lanes/README.md)
@@ -108,7 +117,7 @@ The right relation is:
 So the geometry of the site and the judgment about the site are related, but
 they are not the same thing.
 
-Detailed packets:
+Design history:
 
 - [0005-alignment-structure-and-outcome](design/0005-alignment-structure-and-outcome/README.md)
 - [0006-focus-boundary-structure](design/0006-focus-boundary-structure/README.md)
@@ -135,7 +144,7 @@ Two good sentences from this part of the stack are:
 - affect tracks what the local move makes different
 - reintegration tracks what the whole still demands of that move
 
-Detailed packets:
+Design history:
 
 - [0008-affect-versus-reintegration-boundary](design/0008-affect-versus-reintegration-boundary/README.md)
 - [0009-optic-clarification-of-affect-and-reintegration](design/0009-optic-clarification-of-affect-and-reintegration/README.md)
@@ -162,7 +171,7 @@ This leads to a bounded and useful notion of counterfactual strength:
 Continuum only claims the middle layer as a practical design target today. The
 theory does **not** require pretending we can enumerate "all futures."
 
-Detailed packets:
+Design history:
 
 - [0003-braid-witness-and-local-optic-neighborhoods](design/0003-braid-witness-and-local-optic-neighborhoods/README.md)
 - [0004-minimal-braid-witness-for-level-2](design/0004-minimal-braid-witness-for-level-2/README.md)
@@ -204,7 +213,7 @@ Two key consequences follow:
 - witness refinement and shell refinement are not the same thing
 - witness equivalence is purpose-indexed, not raw byte equality
 
-Detailed packets:
+Design history:
 
 - [0010-residual-reintegration-structure](design/0010-residual-reintegration-structure/README.md)
 - [0011-witness-core-and-receipt-shell](design/0011-witness-core-and-receipt-shell/README.md)
@@ -244,7 +253,7 @@ The goal is:
 - same contract family where semantics are shared
 - engine-local detail only below that boundary
 
-Detailed packets:
+Design history:
 
 - [0014-shared-noun-ownership-map](design/0014-shared-noun-ownership-map/README.md)
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
@@ -260,7 +269,7 @@ That family freezes:
 
 while still leaving bounded-site computation engine-local.
 
-Detailed packet:
+Design history:
 
 - [0022-neighborhood-core-and-admission-outcome-family](design/0022-neighborhood-core-and-admission-outcome-family/README.md)
 - authored family: [schemas/continuum-neighborhood-core-family.graphql](../schemas/continuum-neighborhood-core-family.graphql)
@@ -295,7 +304,7 @@ Settlement sits between:
 
 It is related to all three, but it is not reducible to any of them.
 
-Detailed packet:
+Design history:
 
 - [0017-settlement-publication-and-shared-reintegration](design/0017-settlement-publication-and-shared-reintegration/README.md)
 - authored family: [schemas/continuum-settlement-family.graphql](../schemas/continuum-settlement-family.graphql)
@@ -316,7 +325,7 @@ So the stack now distinguishes:
 That is the law that keeps interoperability from collapsing into adapter
 folklore.
 
-Detailed packet:
+Design history:
 
 - [0016-engine-local-vs-shared-observer-contract](design/0016-engine-local-vs-shared-observer-contract/README.md)
 
@@ -351,7 +360,7 @@ The practical invariants are:
 - explicit cross-runtime import/export admission
 - no silent translation in adapters or tools
 
-Detailed packet:
+Design history:
 
 - [0018-one-graph-two-temperatures-and-runtime-handoff](design/0018-one-graph-two-temperatures-and-runtime-handoff/README.md)
 
@@ -369,7 +378,7 @@ The active integration proof target is one narrow end-to-end slice where:
 That proof should be small, concrete, and witnessed. It is the current bridge
 from theory into active repo changes.
 
-Detailed packet:
+Design history:
 
 - [0015-echo-wesley-warp-ttd-proof-plan](design/0015-echo-wesley-warp-ttd-proof-plan/README.md)
 

@@ -1,6 +1,6 @@
 ---
 title: Alignment Structure And Outcome
-status: proposed
+status: archived
 ---
 
 # Alignment Structure And Outcome

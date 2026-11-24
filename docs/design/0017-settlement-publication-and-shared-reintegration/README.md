@@ -1,6 +1,6 @@
 ---
 title: Settlement Publication and Shared Reintegration Contract
-status: proposed
+status: archived
 ---
 
 # Settlement Publication and Shared Reintegration Contract

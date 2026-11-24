@@ -1,6 +1,6 @@
 ---
 title: Compatibility Obligations Versus Evidence
-status: proposed
+status: archived
 ---
 
 # Compatibility Obligations Versus Evidence

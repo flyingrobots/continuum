@@ -1,0 +1,69 @@
+schema: 1
+repo:
+  name: continuum
+  owner: Continuum
+  primary_artifact: coordination-docs-and-qw-prototype
+versioning:
+  strategy: fixed
+  tag_format: "v{version}"
+  release_branch_format: "release/v{version}"
+  milestone_format: "v{version}"
+version_sources:
+  - path: apps/warp/package.json
+    type: json
+    field: version
+    required: true
+docs:
+  changelog: CHANGELOG.md
+  front_door: README.md
+  architecture:
+    - docs/BEARING.md
+    - docs/VISION.md
+    - docs/reference/convergence.md
+  user_docs:
+    - docs/GETTING_STARTED.md
+    - apps/warp/README.md
+    - apps/warp/VISION.md
+    - docs/reference/qw-cli.md
+  operator_docs:
+    - RELEASE.md
+    - docs/method/release-runbook.md
+    - docs/method/release.md
+    - docs/releases/
+  contributor_docs:
+    - CONTRIBUTING.md
+    - AGENTS.md
+    - METHOD.md
+validation:
+  prep: "node scripts/docs-lint.mjs && node --test 'apps/warp/test/**/*.test.mjs'"
+  preflight: "node scripts/docs-lint.mjs && node --test 'apps/warp/test/**/*.test.mjs'"
+workflows:
+  ci: .github/workflows/ci.yml
+  release_prep: null
+  autotag: null
+  publish: null
+publish:
+  manual_dispatch_required: true
+  github_release: true
+  registries: []
+  note: "No package registry or deployment publication workflow is implemented for this repository yet."
+dist_tags:
+  stable: github-release
+  prerelease: {}
+  maintenance: "v{major}"
+issue_axes:
+  required:
+    - type
+    - priority
+    - status
+    - area
+  optional:
+    - risk
+    - impact
+adoption_status:
+  profile_declared: true
+  release_prep_validation: partial
+  final_preflight: partial
+  autotag_workflow: not_implemented
+  publish_workflow: not_implemented
+  verification_commands: partial

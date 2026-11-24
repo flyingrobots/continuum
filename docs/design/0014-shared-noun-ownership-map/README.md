@@ -1,6 +1,6 @@
 ---
 title: Shared Noun Ownership Map
-status: proposed
+status: archived
 ---
 
 # Shared Noun Ownership Map

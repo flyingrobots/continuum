@@ -1,6 +1,6 @@
 ---
 title: One Graph, Two Temperatures, and Runtime Handoff
-status: proposed
+status: archived
 ---
 
 # One Graph, Two Temperatures, and Runtime Handoff

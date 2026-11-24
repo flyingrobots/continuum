@@ -1,6 +1,6 @@
 ---
 title: Cross-Repo Contract Family Registry
-status: proposed
+status: archived
 ---
 
 # Cross-Repo Contract Family Registry

@@ -104,17 +104,10 @@ Continuum supplies the shared boundary language and proof posture that lets thes
 
 ## Capability tiers
 
-Continuum compatibility grows in visible tiers, and a participant can join early without pretending to support everything. 
-
-- **T0 — Descriptor only:** the participant can say what it is and what it does not support.
-- **T1 — Contract-shaped:** the participant publishes or consumes contract families and schema digests.
-- **T2 — Observable:** the participant can answer observation requests with reading envelopes.
-- **T3 — History exchange:** the participant can export or import witnessed suffixes.
-- **T4 — Debuggable:** the participant supports replay, seek, and step semantics for advertised debug operations.
-- **T5 — Counterfactual:** the participant supports scratch branches and divergence reports.
-- **T6 — Law/optic:** the participant can admit, obstruct, revoke, and witness law or optic artifacts. 
-
-A participant does not need to start at the top. T0 and T1 are valid ways to join the ecosystem honestly. 
+The intended model is that compatibility grows in visible tiers (T0 descriptor-only
+through T6 law/optic), so a participant can join early without pretending to
+support everything. These tiers are a **design target, not yet authored** — see
+[Protocol profiles and capability tiers (proposed)](docs/explanation/protocol-profiles.md).
 
 ## Participant types
 
@@ -124,22 +117,13 @@ Participants that only observe, adapt, debug, mount, compile, or test are still 
 
 ## Profiles in human terms
 
-Profiles describe behavior, while contract families describe shared nouns. 
-
-Important profiles include:
-
-- `continuum.participant.hello.v1`: identity, supported profiles, contract families, connection hints, auth posture, and evidence posture.
-- `continuum.contract.index.v1`: authored and consumed families, generated artifacts, schema digests, witnesses, and open cuts.
-- `continuum.observation.v1`: lawful readings returned as evidence-bearing `ReadingEnvelope` results or obstructions.
-- `continuum.history.exchange.v1`: export/import of witnessed suffixes and settlement outcomes.
-- `continuum.debug.v1`: app-agnostic debugger access to causal history.
-- `continuum.counterfactual.v1`: scratch branches, alternate histories, divergence reports, and promotion requests.
-- `continuum.law.optic.v1`: compiled law/optic artifacts admitted without ambient authority.
-- `continuum.warpspace.v1`: local app constellations, runtime targets, generated roots, and stack tuple locks.
-- `continuum.agent.v1`: structured discovery, inspection, proposal, rehearsal, and obstruction surfaces for agents.
-- `continuum.warp-drive.v1`: file-shaped readings and write-as-intent semantics without making POSIX the core ontology. 
-
-For example, `continuum.observation.v1` may require `ObserverPlan`, `ObservationRequest`, and `ReadingEnvelope`, but compiling those nouns alone does not guarantee that a participant preserves rights, residuals, obstruction behavior, and evidence posture. 
+Profiles would describe behavior, while contract families describe shared nouns.
+The intended profile set (`continuum.participant.hello.v1`,
+`continuum.observation.v1`, `continuum.history.exchange.v1`, and the rest) is a
+**design target, not yet authored** — it is documented, with the honest caveat,
+in [Protocol profiles and capability tiers (proposed)](docs/explanation/protocol-profiles.md).
+The shared nouns those profiles would build on do exist today in the
+[contract families](docs/contract-family-registry.md).
 
 ## WARP TTD and WARP DRIVE
 
@@ -203,7 +187,7 @@ Read in this order:
 
 ## Current implementation direction
 
-The next concrete proof is small and focused: define `continuum.participant.hello.v1`, add a descriptor-only participant fixture, add structured evidence posture, generate a witness through Wesley, prove WARP TTD can discover a target without app-specific knowledge, and teach `warp doctor` to report profile and evidence status honestly. 
+The next concrete proof is small and focused: define `continuum.participant.hello.v1`, add a descriptor-only participant fixture, add structured evidence posture, generate a witness through Wesley, prove WARP TTD can discover a target without app-specific knowledge, and teach the `qw` CLI to report profile and evidence status honestly (a `qw doctor`-style command that does not exist yet). See [Protocol profiles and capability tiers (proposed)](docs/explanation/protocol-profiles.md). 
 
 There are no counterfactuals yet, no global law registry yet, no identity-system decision yet, and no federation surface yet. 
 

@@ -1,6 +1,6 @@
 ---
 title: Warp CLI And WARPspace TOML
-status: proposed
+status: archived
 ---
 
 # Warp CLI And WARPspace TOML

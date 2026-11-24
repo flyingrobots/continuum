@@ -1,6 +1,6 @@
 ---
 title: Braid Witness And Local Optic Neighborhoods
-status: proposed
+status: archived
 ---
 
 # Braid Witness And Local Optic Neighborhoods

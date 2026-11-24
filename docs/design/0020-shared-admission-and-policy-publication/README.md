@@ -1,6 +1,6 @@
 ---
 title: Shared Admission and Policy Publication
-status: proposed
+status: archived
 ---
 
 # Shared Admission and Policy Publication

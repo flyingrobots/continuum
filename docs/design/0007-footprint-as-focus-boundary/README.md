@@ -1,6 +1,6 @@
 ---
 title: Footprint As Focus Boundary
-status: proposed
+status: archived
 ---
 
 # Footprint As Focus Boundary

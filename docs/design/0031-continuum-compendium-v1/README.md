@@ -1,6 +1,6 @@
 ---
 title: Continuum Compendium V1
-status: proposed
+status: archived
 ---
 
 # Continuum Compendium V1

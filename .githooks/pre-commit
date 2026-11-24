@@ -1,4 +1,5 @@
 #!/bin/sh
 set -eu
 
-echo "continuum: no default pre-commit checks yet"
+# Documentation gate (see docs/DOCUMENTATION_POLICY.md §8). Blocks on errors.
+node scripts/docs-lint.mjs

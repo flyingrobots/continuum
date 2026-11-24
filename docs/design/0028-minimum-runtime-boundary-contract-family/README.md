@@ -1,6 +1,6 @@
 ---
 title: Minimum Runtime Boundary Contract Family
-status: proposed
+status: archived
 ---
 
 # Minimum Runtime Boundary Contract Family

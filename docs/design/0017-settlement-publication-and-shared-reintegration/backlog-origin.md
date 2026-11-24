@@ -1,6 +1,6 @@
 ---
 title: Backlog Origin
-status: proposed
+status: archived
 ---
 
 # Backlog Origin

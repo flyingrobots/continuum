@@ -1,6 +1,6 @@
 ---
 title: Minimal Braid Witness For Level 2
-status: proposed
+status: archived
 ---
 
 # Minimal Braid Witness For Level 2
