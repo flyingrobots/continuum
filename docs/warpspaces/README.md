@@ -29,6 +29,11 @@ and `qw runtime doctor` check whether files such as
 Those files tell a container or editor how to run the source constellation, but
 they do not become canonical path identity.
 
+Boundaries: `qw runtime materialize` only writes the projection for supported
+runtime kinds (today `devcontainer`); it does not refresh the lock, sync repos,
+or start containers. If a projection file disagrees with `warpspace.lock.json`,
+the lock wins and `qw runtime verify` reports the drift.
+
 Current manifests:
 
 - [`jedit-echo-dev.toml`](./jedit-echo-dev.toml) pins the first Wesley/Echo/`jedit`/`warp-ttd`
